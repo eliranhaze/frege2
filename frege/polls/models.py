@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import datetime
@@ -14,8 +15,12 @@ class Question(models.Model):
     def was_published_recently(self):
         return self.date > timezone.now() - datetime.timedelta(days=1)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.text
+
+    class Meta:
+        verbose_name = "שאלה"
+        verbose_name_plural = "שאלות"
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
