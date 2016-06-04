@@ -1,19 +1,15 @@
 from django.http import HttpResponse
-from django.shortcuts import render
-from django.template import loader
+from django.shortcuts import get_object_or_404, render
 
 from .models import Question
 
 def index(request):
     qlist = Question.objects.order_by('date')[:10]
-    template = loader.get_template('polls/index.html')
-    context = {
-        'qlist' : qlist,
-    }
-    return render(request, 'polls/index.html', context)
+    return render(request, 'polls/index.html', {'qlist':qlist})
 
 def detail(request, qid):
-    return HttpResponse("You're looking at the results of question %s." % qid) 
+    q = get_object_or_404(Question, id=qid)
+    return render(request, 'polls/detail.html', {'q':q})
 
 def vote(request, qid):
     return HttpResponse("You're voting on question %s." % qid) 
