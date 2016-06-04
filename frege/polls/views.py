@@ -1,7 +1,8 @@
-from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from .models import Question
+from .models import Choice, Question
 
 def index(request):
     qlist = Question.objects.order_by('date')[:10]
@@ -12,7 +13,19 @@ def detail(request, qid):
     return render(request, 'polls/detail.html', {'q':q})
 
 def results(request, qid):
-    return HttpResponse("These are the results of question %s." % qid) 
+    q = get_object_or_404(Question, id=qid)
+    return render(request, 'polls/results.html', {'q':q})
 
 def vote(request, qid):
-    return HttpResponse("You're voting on question %s." % qid) 
+    q = get_object_or_404(Question, id=qid)
+    try:
+        # we make sure this is a post call by explicitly using request.POST
+        sel = q.choice_set.get(id=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        # back to form
+        return render(request, 'polls/detail.html', {'q':q, 'error_message':'No choice selected.'})
+
+    sel.votes += 1
+    sel.save()
+    # always return like this when dealing with post
+    return HttpResponseRedirect(reverse('polls:results', args=(q.id,)))
