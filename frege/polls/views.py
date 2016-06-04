@@ -11,5 +11,8 @@ def detail(request, qid):
     q = get_object_or_404(Question, id=qid)
     return render(request, 'polls/detail.html', {'q':q})
 
+def results(request, qid):
+    return HttpResponse("These are the results of question %s." % qid) 
+
 def vote(request, qid):
     return HttpResponse("You're voting on question %s." % qid) 
