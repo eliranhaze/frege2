@@ -1,0 +1,8 @@
+{% if qlist %}
+    <ul>
+    {% for q in qlist %}
+        <li><a href="/polls/{{ q.id }}/">{{ q.text }}</a></li>
+    {% endfor %}
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
