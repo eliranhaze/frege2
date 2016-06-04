@@ -10,7 +10,7 @@ urlpatterns = [
     # ex: /polls/5/ 
     url(r'^%s/$' % QID_EXP, views.detail, name='detail'),
     # ex: /polls/5/results/
-    url(r'^%s/results/$' % QID_EXP, views.detail, name='detail'),
+    url(r'^%s/results/$' % QID_EXP, views.detail, name='results'),
     # ex: /polls/5/vote/ 
-    url(r'^%s/vote/$' % QID_EXP, views.detail, name='detail'),
+    url(r'^%s/vote/$' % QID_EXP, views.detail, name='vote'),
 ]
