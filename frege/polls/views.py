@@ -1,8 +1,30 @@
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.views import generic
 
 from .models import Choice, Question
+
+# Generic views
+
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'qlist'
+
+    def get_queryset(self):
+        return Question.objects.order_by('-date')[:10]
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+    context_object_name = 'q'
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+    context_object_name = 'q'
+
+# Explicit views
 
 def index(request):
     qlist = Question.objects.order_by('date')[:10]
