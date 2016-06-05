@@ -13,7 +13,8 @@ class Question(models.Model):
     date = models.DateTimeField('date published')
 
     def was_published_recently(self):
-        return self.date > timezone.now() - datetime.timedelta(days=1)
+        now = timezone.now()
+        return now > self.date > now - datetime.timedelta(days=1)
 
     def __unicode__(self):
         return self.text
