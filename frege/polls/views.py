@@ -8,17 +8,24 @@ from .models import Choice, Question
 
 # Generic views
 
+def get_past_questions():
+    return Question.objects.filter(date__lte=timezone.now())
+
 class IndexView(generic.ListView):
     template_name = 'polls/index.html'
     context_object_name = 'qlist'
 
     def get_queryset(self):
-        return Question.objects.filter(date__lte=timezone.now()).order_by('-date')[:10]
+        return get_past_questions().order_by('-date')[:10]
 
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
     context_object_name = 'q'
+
+    def get_queryset(self):
+        """excludes any future questions"""
+        return get_past_questions()
 
 class ResultsView(generic.DetailView):
     model = Question
