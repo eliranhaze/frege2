@@ -9,11 +9,15 @@ from .models import Question
 def create_question(text, days):
      time = timezone.now() + timedelta(days=days)
      return Question.objects.create(text=text, date=time)
- 
+
 class QuestionViewTests(TestCase):
  
     def _get(self):
-        return self.client.get(reverse('polls:index'))
+        return self._get_view('index')
+
+    def _get_view(self, view, args = None):
+        url = reverse('polls:%s' % view, args=args)
+        return self.client.get(url)
 
     def _assertEmpty(self, response):
         self.assertEqual(response.status_code, 200)
@@ -54,6 +58,14 @@ class QuestionViewTests(TestCase):
         q2 = create_question('past2', days=-10)
         self._assertContains(self._get(), [q, q2])
 
+    def test_detail_view_future(self):
+        q = create_question('future', days=5)
+        self.assertEqual(self._get_view('detail', (q.id,)).status_code, 404)
+
+    def test_detail_view_past(self):
+        q = create_question('past', days=-2)
+        self.assertContains(self._get_view('detail', (q.id,)), q.text)        
+       
 class QuestionTests(TestCase):
 
     def test_was_published_recently_future(self):
