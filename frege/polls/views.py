@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views import generic
 
 from .models import Choice, Question
@@ -12,7 +13,7 @@ class IndexView(generic.ListView):
     context_object_name = 'qlist'
 
     def get_queryset(self):
-        return Question.objects.order_by('-date')[:10]
+        return Question.objects.filter(date__lte=timezone.now()).order_by('-date')[:10]
 
 class DetailView(generic.DetailView):
     model = Question
