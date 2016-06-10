@@ -28,8 +28,8 @@ class Choice(models.Model):
     text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 
-    def __str__(self):
-        return '%s[%d]' % (self.text, self.votes)
+    def __unicode__(self):
+        return self.text
 
     class Meta:
         verbose_name = 'בחירה'
