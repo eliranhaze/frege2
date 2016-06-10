@@ -2,7 +2,13 @@ from django.contrib import admin
 
 from .models import Question
 
-# Register your models here.
+class QuestionAdmin(admin.ModelAdmin):
+#    fields = ['date', 'text']
+    fieldsets = [
+        (None,               {'fields':['text']}),
+        ('Date information', {'fields':['date']}),
+    ] 
 
-admin.site.register(Question)
+
+admin.site.register(Question, QuestionAdmin)
 
