@@ -31,4 +31,7 @@ class Choice(models.Model):
     def __str__(self):
         return '%s[%d]' % (self.text, self.votes)
 
+    class Meta:
+        verbose_name = 'בחירה'
+        verbose_name_plural = 'בחירות'
 
