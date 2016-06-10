@@ -55,10 +55,13 @@
   </div>
   {% endif %}
   <div class="submit-row">
-    <label>&nbsp;</label><input type="submit" value="{% trans 'Log in' %}" />
+    <label>&nbsp;</label><input type="submit" class="default" value="{% trans 'Log in' %}" />
   </div>
 </form>
 
+  <div class="submit-row">
+    <label>&nbsp;</label><input type="button" value="פעם ראשונה? הירשמ/י כאן" onclick="location.href='/accounts/register'"/>
+  </div>
 <script type="text/javascript">
 document.getElementById('id_username').focus()
 </script>
