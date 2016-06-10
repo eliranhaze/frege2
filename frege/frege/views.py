@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import login as auth_login
+from django.contrib.auth.views import logout as auth_logout
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -13,6 +14,9 @@ def login(request):
         context['site_title'] = 'התחברות'
         context['title'] = 'לוגיקה'
     return auth_login(request, extra_context=context)
+
+def logout(request):
+    return auth_logout(request, next_page=reverse('polls:index'))
 
 def register(request):
     if request.method == 'POST':

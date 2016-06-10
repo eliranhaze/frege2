@@ -16,11 +16,12 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from .views import login, register
+from .views import login, logout, register
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^polls/', include('polls.urls')),
     url(r'^accounts/login/$', login),
+    url(r'^accounts/logout/$', logout),
     url(r'^accounts/register/$', register),
 ]
