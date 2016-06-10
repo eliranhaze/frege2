@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -11,14 +12,15 @@ from .models import Choice, Question
 def get_past_questions():
     return Question.objects.filter(date__lte=timezone.now())
 
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'polls/index.html'
     context_object_name = 'qlist'
 
     def get_queryset(self):
+        print 'User is %s' % self.request.user
         return get_past_questions().order_by('-date')[:10]
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
     context_object_name = 'q'
