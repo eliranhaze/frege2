@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
 
 from .models import Choice, Question
@@ -17,6 +18,8 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ['date']
     search_fields = ['text']
 
-
 admin.site.register(Question, QuestionAdmin)
 
+# override admin stuff like so
+admin.site.site_title = 'We be admining'
+admin.site.site_header = 'ניהולוגיקה!'
