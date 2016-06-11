@@ -15,9 +15,15 @@ Here's a brief summary:
 - DeductionQuestion: a question that is answered by a deduction in gui.
 """
 
+def shorten_text(text, size=30):
+    return text if len(text) <= size else '%s...' % text[:size-3]
+
 class Chapter(models.Model):
     number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
     title = models.CharField(verbose_name='כותרת', max_length=30)
+
+    def __unicode__(self):
+        return '%s: %s' % (self.number, self.title)
 
     class Meta:
         verbose_name = 'פרק'
@@ -37,11 +43,21 @@ class Question(models.Model):
 class TextualQuestion(Question):
     text = models.TextField(verbose_name='טקסט')
 
+    @property
+    def short_text(self):
+        return shorten_text(self.text)
+ 
+    def __unicode__(self):
+        return '%s: %s' % (self.number, self.short_text)
+
     class Meta(Question.Meta):
         abstract = True
 
 class FormalQuestion(Question):
     formula = models.CharField(verbose_name='נוסחה', max_length=30)
+
+    def __unicode__(self):
+        return self.formula
 
     class Meta(Question.Meta):
         abstract = True
@@ -81,6 +97,13 @@ DeductionQuestion._meta.get_field('formula').verbose_name = 'מסקנה'
 
 class Answer(models.Model):
     text = models.CharField(verbose_name='טקסט', max_length=200)
+
+    @property
+    def short_text(self):
+        return shorten_text(self.text)
+
+    def __unicode__(self):
+        return self.short_text
 
     class Meta:
         abstract = True
