@@ -29,14 +29,18 @@
 <form action="/accounts/register/" method="post">{% csrf_token %}
   <div class="form-row">
     {{ form.username.errors }}
-    {{ form.username.label_tag }} {{ form.username }}
+    <label for="id_username">שם משתמש:</label>
+    <input id="id_username" maxlength="30" name="username" type="text" />
+    <p class="help">שדה חובה. 30 תווים או פחות. אותיות, ספרות ו-@/./+/-/_ בלבד.</p>
   </div>
-  <div class="form-row">
+  <div class="form-row field-password1">
     {{ form.password1.errors }}
-    {{ form.password1.label_tag }} {{ form.password1 }}
-    <input type="hidden" name="next" value="{{ next }}" />
+    <label class="required" for="id_password1">סיסמה:</label>
+    <input id="id_password1" name="password1" type="password" />
+    <label class="required" for="id_password2">אימות סיסמה:</label>
+    <input id="id_password2" name="password2" type="password" />
+     <p class="help">יש להזין את אותה סיסמה כמו קודם, לאימות.</p>
     {{ form.password2.errors }}
-    {{ form.password2.label_tag }} {{ form.password2 }}
   </div>
   <div class="submit-row">
     <label>&nbsp;</label><input type="submit" value="רישום" />
