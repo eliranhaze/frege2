@@ -15,7 +15,7 @@ Here's a brief summary:
 - DeductionQuestion: a question that is answered by a deduction in gui.
 """
 
-def shorten_text(text, size=30):
+def shorten_text(text, size=40):
     return text if len(text) <= size else '%s...' % text[:size-3]
 
 class Chapter(models.Model):
