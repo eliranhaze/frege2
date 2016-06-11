@@ -41,6 +41,7 @@ class DeductionQuestionInline(admin.StackedInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
+    ordering = ['chapter', 'number']
 
 class TextualQuestionAdmin(QuestionAdmin):
     search_fields = ['text']
