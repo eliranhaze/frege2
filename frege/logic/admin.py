@@ -39,17 +39,28 @@ class DeductionQuestionInline(admin.StackedInline):
     model = DeductionQuestion
     extra = 0
 
-class FormulationQuestionAdmin(admin.ModelAdmin):
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ['__unicode__', 'chapter']
+
+class TextualQuestionAdmin(QuestionAdmin):
+    search_fields = ['text']
+
+class OpenQuestionAdmin(TextualQuestionAdmin):
+    pass
+
+class FormulationQuestionAdmin(TextualQuestionAdmin):
     inlines = [
         FormulationAnswerInline,
     ]
 
-class ChoiceQuestionAdmin(admin.ModelAdmin):
+class ChoiceQuestionAdmin(TextualQuestionAdmin):
     inlines = [
         ChoiceInline,
     ]
 
 class ChapterAdmin(admin.ModelAdmin):
+    list_display = ['__unicode__', 'num_questions']
+    search_fields = ['title']
     inlines = [
         OpenQuestionInline,
         FormulationQuestionInline,
@@ -59,7 +70,7 @@ class ChapterAdmin(admin.ModelAdmin):
     ]
 
 admin.site.register(Chapter, ChapterAdmin)
-admin.site.register(OpenQuestion)
+admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion)

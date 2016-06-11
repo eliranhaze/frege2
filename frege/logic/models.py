@@ -22,8 +22,16 @@ class Chapter(models.Model):
     number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
     title = models.CharField(verbose_name='כותרת', max_length=30)
 
+    def num_questions(self):
+        return self.openquestion_set.count() + \
+               self.formulationquestion_set.count() + \
+               self.choicequestion_set.count() + \
+               self.truthtablequestion_set.count() + \
+               self.deductionquestion_set.count()
+    num_questions.short_description = 'מספר שאלות'
+
     def __unicode__(self):
-        return '%s: %s' % (self.number, self.title)
+        return '%s. %s' % (self.number, self.title)
 
     class Meta:
         verbose_name = 'פרק'
