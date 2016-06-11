@@ -89,6 +89,7 @@ class TruthTableQuestion(FormalQuestion):
 class DeductionQuestion(FormalQuestion):
     premises = models.CharField(verbose_name='הנחות', max_length=300)
     # TODO: list? see: http://stackoverflow.com/questions/22340258/django-list-field-in-model
+    # TODO: also, this should be optional (e.g. theorems)
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'

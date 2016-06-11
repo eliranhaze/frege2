@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.views.generic.base import RedirectView
 
 from .views import login, logout, register
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^fregush/', include('logic.urls')),
+    url(r'^$', RedirectView.as_view(url='/fregush/', permanent=True)),
+
+    # TODO: to be removed
     url(r'^polls/', include('polls.urls')),
 
     # account stuff
