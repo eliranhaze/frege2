@@ -29,7 +29,7 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
         """excludes any future questions"""
         return get_past_questions()
 
-class ResultsView(generic.DetailView):
+class ResultsView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
     context_object_name = 'q'
