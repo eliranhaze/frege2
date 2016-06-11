@@ -37,6 +37,9 @@ class Question(models.Model):
 
     class Meta:
         abstract = True
+        # this is insufficient since it is enforced on a table level only so
+        # i can e.g. get deduction and open question with the same number and chapter
+        # so... TODO: custom validation
         unique_together = ('chapter', 'number')
         ordering = ['number']
 
@@ -48,7 +51,7 @@ class TextualQuestion(Question):
         return shorten_text(self.text)
  
     def __unicode__(self):
-        return '%s: %s' % (self.number, self.short_text)
+        return '%s. %s' % (self.number, self.short_text)
 
     class Meta(Question.Meta):
         abstract = True
@@ -57,7 +60,7 @@ class FormalQuestion(Question):
     formula = models.CharField(verbose_name='נוסחה', max_length=30)
 
     def __unicode__(self):
-        return self.formula
+        return '%s. %s' % (self.number, self.formula)
 
     class Meta(Question.Meta):
         abstract = True
