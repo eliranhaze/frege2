@@ -20,7 +20,10 @@ from .views import login, logout, register
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^fregush/', include('logic.urls')),
     url(r'^polls/', include('polls.urls')),
+
+    # account stuff
     url(r'^accounts/login/$', login),
     url(r'^accounts/logout/$', logout),
     url(r'^accounts/register/$', register),
