@@ -3,21 +3,22 @@
 body {
 /* 	background-image: url("http://www.adisil.com/assets/admin/img/blur-background09.jpg"); */
 /* 	background-size: 100%; */
-	background-color: #d2e8f0;
-    padding-top: 75px; 
-	direction: rtl;
-	font-family: 'Alef', sans-serif;
-	font-size: medium;
+    /*background-color: #d2e8f0;*/
+    background-color: #F8F8F8;
+    padding-top: 60px; 
+    direction: rtl;
+    font-family: 'Alef', sans-serif;
+    font-size: large;
 }
 
 .progress {
-	height: 18px !important;
+    height: 18px !important;
 }
 
 .myhl {
-	background-color: #ecf5f4;
+    background-color: #ecf5f4;
 }
 
 .mainf {
-	background-color: #ddedf1;
+    background-color: #ddedf1;
 }
