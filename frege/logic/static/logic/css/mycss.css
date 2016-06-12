@@ -1,0 +1,23 @@
+@CHARSET "UTF-8";
+
+body {
+/* 	background-image: url("http://www.adisil.com/assets/admin/img/blur-background09.jpg"); */
+/* 	background-size: 100%; */
+	background-color: #d2e8f0;
+    padding-top: 75px; 
+	direction: rtl;
+	font-family: 'Alef', sans-serif;
+	font-size: medium;
+}
+
+.progress {
+	height: 18px !important;
+}
+
+.myhl {
+	background-color: #ecf5f4;
+}
+
+.mainf {
+	background-color: #ddedf1;
+}
