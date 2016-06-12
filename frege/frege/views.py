@@ -7,16 +7,22 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 
+DEFAULT_REDIRECT = 'logic:index'
+
+def _get_default_redirect():
+    return reverse(DEFAULT_REDIRECT)
+
 def login(request):
     context = {}
     if request.method == 'GET':
         context['site_header'] = 'התחברות'
         context['site_title'] = 'התחברות'
         context['title'] = 'לוגיקה'
+        context['next'] = _get_default_redirect()
     return auth_login(request, extra_context=context)
 
 def logout(request):
-    return auth_logout(request, next_page=reverse('polls:index'))
+    return auth_logout(request, next_page=_get_default_redirect())
 
 def register(request):
     if request.method == 'POST':
@@ -27,7 +33,7 @@ def register(request):
             # autologin and redirect home
             post = request.POST.copy()
             post['password'] = request.POST['password1']
-            post['next'] = reverse('polls:index')
+            post['next'] = _get_default_redirect()
             request.POST = post
             return auth_login(request)
     else:
