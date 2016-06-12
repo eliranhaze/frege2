@@ -5,6 +5,8 @@
 {% block content %}
 {% if chapter_list %}
     <div class="container">
+    <div class="page-header">
+    </div>
     <div class="list-group">
     {% for chapter in chapter_list %}
         <a class="list-group-item text-center" href="{% url 'logic:chapter' chapter.number %}">
