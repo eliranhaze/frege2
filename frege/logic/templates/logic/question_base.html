@@ -1,0 +1,52 @@
+{% extends "logic/base.html" %}
+
+{% block title %}פרק {{ chapter.number }}: {{ chapter.title }}{% endblock %}
+
+
+{% block content %}
+  <div ng-app="myApp" ng-controller="qCtrl" class="container" role="main">
+    <!-- Question panel -->
+    <div class="page-header">
+    <h3>שאלה {{ question.number }} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p style="white-space: pre-wrap;">{{ question.text }}</p>
+        <p><b>הזן תשובה:</b></p>
+
+        {% block question_content %}
+        {% endblock %}
+        
+    <!-- Progress -->
+    <div class="progress">
+      <div class="progress-bar progress-bar-default progress-bar-striped active border" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: {{ question.number }}%">
+      </div>
+    </div>
+
+    <!-- Answer alerts -->
+    <div class="alert alert-success" role="alert" ng-show="isCorrect !== null && isCorrect">
+      <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+      <strong>תשובה נכונה!</strong> תשובתך אכן נכונה. 
+      <button type="button" class="btn btn-primary" ng-click="next()">
+        המשך <span class="glyphicon glyphicon-hand-left" aria-hidden="true"></span>
+      </button>          
+      </div>
+      <div class="alert alert-danger" role="alert" ng-show="isCorrect !== null  && !isCorrect" ng-click="isCorrect = null">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        <strong>תשובה שגויה!</strong> אתה כישלון.
+      </div>
+      <div class="alert alert-warning" role="alert" ng-show="emptyAns !== null  && emptyAns" ng-click="emptyAns = null">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        <strong>תשובה ריקה.</strong> אנא הזן תשובה.
+      </div>
+
+    <!-- Navigation -->
+    <nav class="pull-left"> 
+      <ul class="pagination">
+        <li ng-repeat="question in questions" ng-class="$index === i? 'active' : ''" ng-click="go($index)">
+          <a href="" ng-class="getPageClass($index)">{{ question.number }}</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{% endblock content %}
