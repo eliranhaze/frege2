@@ -18,16 +18,21 @@ Here's a brief summary:
 def shorten_text(text, size=40):
     return text if len(text) <= size else '%s...' % text[:size-3]
 
+def _concrete_sub_classes(cls):
+    subs = []
+    for sub in cls.__subclasses__():
+        if sub._meta.abstract:
+            subs.extend(_concrete_sub_classes(sub))
+        else:
+            subs.append(sub)
+    return subs
+         
 class Chapter(models.Model):
     number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
     title = models.CharField(verbose_name='כותרת', max_length=30)
 
     def num_questions(self):
-        return self.openquestion_set.count() + \
-               self.formulationquestion_set.count() + \
-               self.choicequestion_set.count() + \
-               self.truthtablequestion_set.count() + \
-               self.deductionquestion_set.count()
+        return Question._count(chapter__number=self.number)
     num_questions.short_description = 'מספר שאלות'
 
     def __unicode__(self):
@@ -42,6 +47,26 @@ class Question(models.Model):
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
     followup = models.ForeignKey('self', verbose_name='שאלת המשך', on_delete=models.CASCADE, blank=True, null=True)
     number = models.PositiveIntegerField(verbose_name='מספר')
+
+    @classmethod
+    def _all(cls):
+        return cls._sub_func('all')
+
+    @classmethod
+    def _filter(cls, **kwargs):
+        return cls._sub_func('filter', **kwargs)
+
+    @classmethod
+    def _count(cls, **kwargs):
+        return len(cls._filter(**kwargs))
+
+    @classmethod
+    def _sub_func(cls, func_name, **kwargs):
+        concretes = _concrete_sub_classes(cls)
+        all_obj = []
+        for c in concretes:
+            all_obj.extend(getattr(c.objects, func_name)(**kwargs))
+        return all_obj
 
     class Meta:
         abstract = True
