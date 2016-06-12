@@ -13,3 +13,9 @@ class IndexView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         return Chapter.objects.all()
 
+class ChapterView(LoginRequiredMixin, generic.ListView):
+    template_name = 'logic/index.html'
+
+    def get_queryset(self):
+        return []
+
