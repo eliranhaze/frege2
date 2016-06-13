@@ -35,6 +35,9 @@ class Chapter(models.Model):
         return Question._count(chapter__number=self.number)
     num_questions.short_description = 'מספר שאלות'
 
+    def get_questions(self):
+        return Question._filter(chapter__number=self.number)
+
     def __unicode__(self):
         return '%s. %s' % (self.number, self.title)
 
