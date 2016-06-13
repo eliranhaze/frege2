@@ -40,3 +40,6 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
         print 'TEMPLATE', self.template_name
         return context
 
+    def post(self, request, *args, **kwargs):
+        print 'Got', request.POST
+        return render(request, self.template_name) 
