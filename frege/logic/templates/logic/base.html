@@ -9,9 +9,6 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
         
     <!-- Icon -->
-<!--    <link rel="shortcut icon" href="{% static 'logic/images/favicon.ico'%}" type="image/x-icon"> -->
-<!--    <link rel="icon" href="{% static 'logic/images/favicon.ico'%}" type="image/x-icon"> -->
-
     <link rel="apple-touch-icon" sizes="57x57" href="/static/logic/images/apple-touch-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/static/logic/images/apple-touch-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/static/logic/images/apple-touch-icon-72x72.png">
@@ -59,34 +56,27 @@
   <body role="document">
 
     <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top" dir="rtl">
+    <nav class="navbar navbar-default navbar-fixed-top">
       <div class="container">
-        <div class="navbar-header">
+        <div class="navbar-header pull-right">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Frege rulz</a>
+          <a class="navbar-brand" href="/">מבוא ללוגיקה</a>
+          <a href="/"><img class="" style="padding: 15px;" src="/static/logic/images/favicon-32x32.png" id="logo"/></a>
         </div>
-        <div id="navbar" class="navbar-collapse collapse">
+        <div id="navbar" class="navbar-collapse collapse pull-left">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li role="separator" class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li><a href="#">Separated link</a></li>
-                <li><a href="#">One more separated link</a></li>
-              </ul>
-            </li>
+            <li><a href="/accounts/logout"><span class="glyphicon glyphicon-off"></span> יציאה</a></li>
+          </ul>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse pull-right">
+          <ul class="nav navbar-nav">
+            <li><a href="#contact"><span class="glyphicon glyphicon-file"></span> התשובות שלי</a></li>
+            <li><a href="{% url 'logic:index'%}"><span class="glyphicon glyphicon-th-list"></span> פרקים</a></li>
           </ul>
         </div>
       </div>
@@ -94,6 +84,13 @@
 
 {% block content %}
 {% endblock %} 
+
+    <footer class="footer">
+      <div class="container pull-left">
+        <p class="text-muted small"><small></small></p>
+      </div>
+    </footer>
+
   </body>
 <html>
 
