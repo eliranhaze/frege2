@@ -4,12 +4,34 @@
 
 {% block question_content %}
 
-    <div class="list-group">
-    {% for choice in question.choice_set.all %}
-      <a class="list-group-item text-right" href="{% url 'logic:chapter' chapter.number %}">
-        {{ choice }}
-      </a>
-    {% endfor %}
-    </div>
+  <div>
 
+      <form id=cq>
+      {% for choice in question.choice_set.all %}
+          <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
+      {% endfor %}
+        <div style="padding: 10px;margin-top: 20px;">
+          <button class="btn btn-default btn-lg" id="answer" >אישור</button>
+        </div>
+      </form>
+  </div>
+
+<!-- csrf post thing: http://stackoverflow.com/questions/5407463/how-to-use-post-with-django -->
+
+<script>
+$(document).ready(function(){
+    $("#answer").click(function(){
+        $.post({% url 'logic:index' %},
+        {
+            'choice':$('input[name=choice]:checked', '#cq').val(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        function(data, status){
+            alert("data " + data.length + "\nstatus " + status);
+        });
+    });
+});
+</script>
 {% endblock question_content %} 
+
+<!-- TODO: visual spinner while loading: http://ux.stackexchange.com/questions/57599/when-should-i-use-ajax-to-submit-forms-vs-regular-page-submit -->
