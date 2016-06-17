@@ -43,7 +43,6 @@ $(document).ready(function(){
             'csrfmiddlewaretoken': '{{ csrf_token }}'
         },
         function(data, status){
-            // TODO: split to success and error case: see that django tab i have open
             if (data['correct']) {
                 $.notify({
                     icon: "glyphicon glyphicon-ok",
@@ -52,7 +51,7 @@ $(document).ready(function(){
                     type: "success",
                 });
                 $("#answer").html("המשך");
-                $("#answer").attr("onclick", "alert('hi')");
+                $("#answer").attr("onclick", "location.href={{ next_url }}");
                 $("#answer").attr("class", "btn btn-primary btn-lg");
             } else {
                 $.notify({

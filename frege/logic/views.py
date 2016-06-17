@@ -25,6 +25,14 @@ def next_question(chapter, user):
         if not question.user_answer(user):
             return question
 
+def next_question_url(chapter, user):
+    question = next_question(chapter, user)
+    if question:
+        url = reverse('logic:question', args=(chapter.number,question.number))
+    else:
+        url = reverse('logic:chapter-summary', args=(chapter.number,))
+    return url
+
 def chapter_questions_user_data(chapter, user):
     user_answers = {ans.question_number : ans.correct \
                     for ans in UserAnswer.objects.filter(user=user, chapter=chapter)}
@@ -40,12 +48,10 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
 
     def dispatch(self, request, chnum):
         chapter = Chapter.objects.get(number=chnum)
-        question = next_question(chapter, request.user)
-        if question:
-            url = reverse('logic:question', args=(chapter.number,question.number))
-        else:
-            url = reverse('logic:chapter-summary', args=(chapter.number,))
-        return HttpResponseRedirect(url)
+        return HttpResponseRedirect(next_question_url(chapter, request.user))
+
+# TODO: !!!!!!!!!!!!!!!!!!!!1 CHOICE GET BUG WTF!!!:w
+# overzealous are we not?
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_summary.html'
@@ -72,6 +78,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = self.object
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
+        context['next_url'] = next_question_url(question.chapter, self.request.user)
         if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
         return context
@@ -88,5 +95,4 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         )
         print 'answer', request.user, 'is', user_ans, 'created:', created
         return JsonResponse({'correct':user_ans.correct})
-
 
