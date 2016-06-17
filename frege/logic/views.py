@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views import generic
@@ -9,6 +9,7 @@ from .models import (
     Chapter,
     Question,
     ChoiceQuestion,
+    Choice,
 )
 
 def get_question_or_404(**kwargs):
@@ -27,8 +28,8 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 class ChapterView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        chapter = Chapter.objects.get(number=kwargs['chnum'])
+    def dispatch(self, request, chnum):
+        chapter = Chapter.objects.get(number=chnum)
         questions = Question._filter(chapter__number=chapter.number)
         question = questions[0] # TODO: determine the first question for this user
         return HttpResponseRedirect(reverse('logic:question', args=(chapter.number,question.number)))
@@ -48,7 +49,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        print 'Got', request.POST
-        return render(request, self.template_name)
+        choice = Choice.objects.get(id=request.POST['choice'])
+        return JsonResponse({'correct':choice.is_correct})
 
 

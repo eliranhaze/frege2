@@ -42,16 +42,27 @@ $(document).ready(function(){
             'csrfmiddlewaretoken': '{{ csrf_token }}'
         },
         function(data, status){
-            // data.length, status
-            $.notify({
-                icon: "glyphicon glyphicon-ok",
-                message: "<strong>תשובה נכונה</strong>"
-            },{
-                type: "success",
-            });
-            $("#answer").html("המשך");
-            $("#answer").attr("onclick", "alert('hi')");
-            $("#answer").attr("class", "btn btn-primary btn-lg");
+            // TODO: split to success and error case: see that django tab i have open
+            if (data['correct']) {
+                $.notify({
+                    icon: "glyphicon glyphicon-ok",
+                    message: "<strong>תשובה נכונה</strong>"
+                },{
+                    type: "success",
+                });
+                $("#answer").html("המשך");
+                $("#answer").attr("onclick", "alert('hi')");
+                $("#answer").attr("class", "btn btn-primary btn-lg");
+            }
+            else {
+                $.notify({
+                    icon: "glyphicon glyphicon-remove",
+                    message: "<strong>תשובה שגויה</strong>"
+                },{
+                    type: "danger",
+                });
+                $("#answer").html("אישור");
+            }
         });
     });
 });
