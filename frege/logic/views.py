@@ -27,35 +27,17 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 class ChapterView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
 
-    def get_object(self):
-        print 'VIEW:', self.__class__.__name__
-        return get_object_or_404(Chapter, number=self.kwargs['chnum'])
-
-    def get_context_data(self, **kwargs):
-        context = super(ChapterView, self).get_context_data(**kwargs)
-        questions = Question._filter(chapter__number=self.kwargs['chnum'])
-        context['question_list'] = Question._filter(chapter__number=self.kwargs['chnum'])
-        if len(questions) == 0:
-            self.template_name = 'logic/index.html'
-        else:
-            first_question = questions[0] # TODO: determine the first question for this user
-            context['question'] = first_question
-            if type(first_question) == ChoiceQuestion:
-                self.template_name = 'logic/choice.html'
-
-        print 'TEMPLATE', self.template_name
-        return context
-
-    def post(self, request, *args, **kwargs):
-        print 'Got', request.POST
-        return render(request, self.template_name) 
+    def dispatch(self, request, *args, **kwargs):
+        chapter = Chapter.objects.get(number=kwargs['chnum'])
+        questions = Question._filter(chapter__number=chapter.number)
+        question = questions[0] # TODO: determine the first question for this user
+        return HttpResponseRedirect(reverse('logic:question', args=(chapter.number,question.number)))
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
     context_object_name = 'question'
 
     def get_object(self):
-        print 'VIEW:', self.__class__.__name__
         return get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
 
     def get_context_data(self, **kwargs):
