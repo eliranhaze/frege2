@@ -1,10 +1,6 @@
-{% extends "logic/base.html" %}
+{% extends "logic/chapter_base.html" %}
 
-{% block title %}פרק {{ chapter.number }}: {{ chapter.title }}{% endblock %}
-
-
-{% block content %}
-  <div ng-app="myApp" ng-controller="qCtrl" class="container" role="main" id="main">
+{% block chapter_content %}
     <!-- Question panel -->
     <div class="page-header">
     <h3>שאלה {{ question.number }} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
@@ -18,28 +14,4 @@
         {% endblock %}
      </div>
     </div>
-    
-    <!-- Chapter questions navigation -->
-    <div class="page-header">
-    </div>
-    <div class="panel panel-default">
-      <div class="panel-body">
-{% for qnum, correct in chap_questions.iteritems %}
-  {% if qnum == question.number %}
-        <button class="btn btn-primary">{{ qnum }}</button>
-  {% else %}
-        <a href='{% url 'logic:question' question.chapter.number qnum %}' class=
-    {% if correct %}
-        "btn btn-success"
-    {% elif correct == False %}
-        "btn btn-danger"
-    {% else %} {# None: question was not answered #}
-        "btn btn-default"
-    {% endif %}
-        >{{ qnum }}</a>
-  {% endif %}
-{% endfor %}
-      </div>
-    </div>
-  </div>
-{% endblock content %}
+{% endblock chapter_content %}
