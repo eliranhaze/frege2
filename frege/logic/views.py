@@ -50,9 +50,6 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
         chapter = Chapter.objects.get(number=chnum)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
 
-# TODO: !!!!!!!!!!!!!!!!!!!!1 CHOICE GET BUG WTF!!!:w
-# overzealous are we not?
-
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_summary.html'
 
