@@ -51,8 +51,11 @@ class AboutView(LoginRequiredMixin, generic.DetailView):
 
 class ChapterView(LoginRequiredMixin, generic.DetailView):
 
+    def get_object(self):
+        return get_object_or_404(Chapter, number=self.kwargs['chnum'])
+
     def dispatch(self, request, chnum):
-        chapter = Chapter.objects.get(number=chnum)
+        chapter = get_object_or_404(Chapter, number=chnum)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
