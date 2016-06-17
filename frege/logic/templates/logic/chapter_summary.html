@@ -1,0 +1,15 @@
+{% extends "logic/chapter_base.html" %}
+
+{% block chapter_content %}
+    <div class="page-header">
+    <h3>סיכום <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p style="white-space: pre-wrap;">ענית נכון על {{ num_correct }} תשובות מתוך {{ chap_questions|length }}.</p>
+        {% if num_correct == chap_questions|length %}
+        <p><span class="glyphicon glyphicon-star-empty"></span> כל הכבוד! <span class="glyphicon glyphicon-star-empty"></span></p>
+        {% endif %}
+     </div>
+    </div>
+{% endblock chapter_content %}

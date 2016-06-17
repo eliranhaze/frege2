@@ -18,7 +18,18 @@ def get_question_or_404(**kwargs):
     if not question:
         raise Http404('Question does not exist: %s' % kwargs)
     return question
- 
+
+def next_question(chapter, user):
+    questions = Question._filter(chapter__number=chapter.number)
+    for question in questions:
+        if not question.user_answer(user):
+            return question
+
+def chapter_questions_user_data(chapter, user):
+    user_answers = {ans.question_number : ans.correct \
+                    for ans in UserAnswer.objects.filter(user=user, chapter=chapter)}
+    return {q.number : user_answers.get(q.number) for q in chapter.questions()}
+
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
 
@@ -26,13 +37,28 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         return Chapter.objects.all()
 
 class ChapterView(LoginRequiredMixin, generic.DetailView):
-    template_name = 'logic/chapter.html'
 
     def dispatch(self, request, chnum):
         chapter = Chapter.objects.get(number=chnum)
-        questions = Question._filter(chapter__number=chapter.number)
-        question = questions[0] # TODO: determine the first question for this user
-        return HttpResponseRedirect(reverse('logic:question', args=(chapter.number,question.number)))
+        question = next_question(chapter, request.user)
+        if question:
+            url = reverse('logic:question', args=(chapter.number,question.number))
+        else:
+            url = reverse('logic:chapter-summary', args=(chapter.number,))
+        return HttpResponseRedirect(url)
+
+class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'logic/chapter_summary.html'
+
+    def get_object(self):
+        return get_object_or_404(Chapter, number=self.kwargs['chnum'])
+
+    def get_context_data(self, **kwargs):
+        context = super(ChapterSummaryView, self).get_context_data(**kwargs)
+        chap_questions = chapter_questions_user_data(self.object, self.request.user)
+        context['chap_questions'] = chap_questions
+        context['num_correct'] = sum(1 for _, correct in chap_questions.iteritems() if correct)
+        return context
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
@@ -45,9 +71,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context = super(QuestionView, self).get_context_data(**kwargs)
         question = self.object
         context['chapter'] = question.chapter
-        user_answers = {ans.question_number : ans.correct \
-                        for ans in UserAnswer.objects.filter(user=self.request.user, chapter=question.chapter)}
-        context['chap_questions'] = { q.number : user_answers.get(q.number) for q in question.chapter.questions()}
+        context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
         if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
         return context

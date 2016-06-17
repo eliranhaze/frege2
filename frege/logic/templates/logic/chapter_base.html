@@ -14,10 +14,10 @@
     <div class="panel panel-default">
       <div class="panel-body">
 {% for qnum, correct in chap_questions.iteritems %}
-  {% if qnum == question.number %}
+  {% if question and qnum == question.number %}
         <button class="btn btn-primary">{{ qnum }}</button>
   {% else %}
-        <a href='{% url 'logic:question' question.chapter.number qnum %}' class=
+        <a href='{% url 'logic:question' chapter.number qnum %}' class=
     {% if correct %}
         "btn btn-success"
     {% elif correct == False %}
