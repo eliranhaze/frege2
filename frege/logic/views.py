@@ -75,7 +75,6 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = self.object
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
-        context['next_url'] = next_question_url(question.chapter, self.request.user)
         if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
         return context
@@ -91,5 +90,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             defaults={'correct':correct},
         )
         print 'answer', request.user, 'is', user_ans, 'created:', created
-        return JsonResponse({'correct':user_ans.correct})
+        return JsonResponse({
+            'correct' : user_ans.correct,
+            'next_url' : ('location.href="%s";' % next_question_url(question.chapter, self.request.user)),
+        })
 

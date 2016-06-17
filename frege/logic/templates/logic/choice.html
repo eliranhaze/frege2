@@ -52,7 +52,7 @@ $(document).ready(function(){
                 });
                 $("#answer").html("המשך");
                 $("#answer").off("click");
-                $("#answer").attr("onclick", "location.href='{{ next_url }}';");
+                $("#answer").attr("onclick", data['next_url']);
                 $("#answer").attr("class", "btn btn-primary btn-lg");
             } else {
                 $.notify({
