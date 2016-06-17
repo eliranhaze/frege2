@@ -10,14 +10,14 @@ from .models import (
     Question,
     ChoiceQuestion,
     Choice,
+    UserAnswer,
 )
 
 def get_question_or_404(**kwargs):
-    result = Question._filter(**kwargs)
-    if not result:
+    question = Question._get(**kwargs)
+    if not question:
         raise Http404('Question does not exist: %s' % kwargs)
-    assert len(result) == 1
-    return result[0]
+    return question
  
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
@@ -48,8 +48,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             self.template_name = 'logic/choice.html'
         return context
 
-    def post(self, request, *args, **kwargs):
-        choice = Choice.objects.get(id=request.POST['choice'])
-        return JsonResponse({'correct':choice.is_correct})
+    def post(self, request, chnum, qnum):
+        chapter = Chapter.objects.get(number=chnum)
+        question = Question._get(chapter__number=chnum, number=qnum)
+        correct = Choice.objects.get(id=request.POST['choice']).is_correct
+        user_ans, created = UserAnswer.objects.update_or_create(
+            user=request.user,
+            chapter=chapter,
+            question_number=question.number,
+            defaults={'correct':correct},
+        )
+        print 'answer', request.user, 'is', user_ans, 'created:', created
+        return JsonResponse({'correct':user_ans.correct})
 
 
