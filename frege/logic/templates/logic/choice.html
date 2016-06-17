@@ -16,18 +16,31 @@
       </form>
   </div>
 
-<!-- csrf post thing: http://stackoverflow.com/questions/5407463/how-to-use-post-with-django -->
-
 <script>
 $(document).ready(function(){
     $("#answer").click(function(){
+        $("#answer").html("בודק...");
         $.post("{% url 'logic:chapter' number=chapter.number %}",
         {
             'choice':$('input[name=choice]:checked', '#cq').val(),
             'csrfmiddlewaretoken': '{{ csrf_token }}'
         },
         function(data, status){
-            alert("data " + data.length + "\nstatus " + status);
+            // data.length, status
+            $.notify({
+                icon: "glyphicon glyphicon-ok",
+                message: "<strong>תשובה נכונה</strong>"
+            },{
+                type: "success",
+                allow_dismiss: false,
+                offset: 100,
+                placement: {from: "bottom", align: "center"},
+                animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
+                delay: 2000,
+            });
+            $("#answer").html("המשך");
+            $("#answer").attr("onclick", "alert('hi')");
+            $("#answer").attr("class", "btn btn-primary btn-lg");
         });
     });
 });
