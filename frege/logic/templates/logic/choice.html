@@ -53,13 +53,35 @@ $(document).ready(function(){
                 $("#answer").html("המשך");
                 $("#answer").attr("onclick", "alert('hi')");
                 $("#answer").attr("class", "btn btn-primary btn-lg");
-            }
-            else {
+            } else {
                 $.notify({
                     icon: "glyphicon glyphicon-remove",
                     message: "<strong>תשובה שגויה</strong>"
                 },{
                     type: "danger",
+                });
+                $("#answer").html("אישור");
+            }
+        })
+        .fail(function(response){
+            if (response.responseText) {
+                $.notify({
+                    icon: "glyphicon glyphicon-wrench",
+                    message: "<strong>נראה שיש בעיה בשרת...</strong> \
+                             <br>הבעיה נרשמה והיא תטופל בהקדם. \
+                             <br>תודה על הסבלנות. \
+                             <br>בינתיים, הנה לב ממני: <span class='glyphicon glyphicon-heart'></span>"
+                },{
+                    type: "info",
+                    delay: 15000,
+                });
+                $("#answer").html("אישור");
+            } else {
+                $.notify({
+                    icon: "glyphicon glyphicon-flash",
+                    message: "<strong>בעיה בהתחברות לשרת</strong> אנא בדקו את החיבור לאינטרנט"
+                },{
+                    type: "warning",
                 });
                 $("#answer").html("אישור");
             }
