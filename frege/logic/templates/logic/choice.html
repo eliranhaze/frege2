@@ -18,9 +18,25 @@
 
 <script>
 $(document).ready(function(){
+    $.notifyDefaults({
+        allow_dismiss: false,
+        offset: 100,
+        placement: {from: "bottom", align: "center"},
+        animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
+        delay: 2000,
+    });
     $("#answer").click(function(){
+        if (!$('input[name=choice]:checked', '#cq').val()) {
+            $.notify({
+                icon: "glyphicon glyphicon-pencil",
+                message: "<strong>לא נבחרה תשובה</strong>"
+            },{
+                type: "warning",
+            });
+            return false
+        }
         $("#answer").html("בודק...");
-        $.post("{% url 'logic:chapter' chapter.number %}",
+        $.post("{% url 'logic:question' chapter.number question.number %}",
         {
             'choice':$('input[name=choice]:checked', '#cq').val(),
             'csrfmiddlewaretoken': '{{ csrf_token }}'
@@ -32,11 +48,6 @@ $(document).ready(function(){
                 message: "<strong>תשובה נכונה</strong>"
             },{
                 type: "success",
-                allow_dismiss: false,
-                offset: 100,
-                placement: {from: "bottom", align: "center"},
-                animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
-                delay: 2000,
             });
             $("#answer").html("המשך");
             $("#answer").attr("onclick", "alert('hi')");
