@@ -21,7 +21,7 @@
 <script>
 $(document).ready(function(){
     $("#answer").click(function(){
-        $.post('/fregush/1/',<!--{% url 'logic:index' %}, -->
+        $.post("{% url 'logic:chapter' number=chapter.number %}",
         {
             'choice':$('input[name=choice]:checked', '#cq').val(),
             'csrfmiddlewaretoken': '{{ csrf_token }}'
