@@ -51,7 +51,8 @@ $(document).ready(function(){
                     type: "success",
                 });
                 $("#answer").html("המשך");
-                $("#answer").attr("onclick", "location.href={{ next_url }}");
+                $("#answer").off("click");
+                $("#answer").attr("onclick", "location.href='{{ next_url }}';");
                 $("#answer").attr("class", "btn btn-primary btn-lg");
             } else {
                 $.notify({
