@@ -20,7 +20,7 @@
 $(document).ready(function(){
     $("#answer").click(function(){
         $("#answer").html("בודק...");
-        $.post("{% url 'logic:chapter' number=chapter.number %}",
+        $.post("{% url 'logic:chapter' chapter.number %}",
         {
             'choice':$('input[name=choice]:checked', '#cq').val(),
             'csrfmiddlewaretoken': '{{ csrf_token }}'

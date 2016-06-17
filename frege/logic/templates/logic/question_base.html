@@ -19,39 +19,16 @@
      </div>
     </div>
     
-    <!-- Progress 
-    <div class="progress">
-      <div class="progress-bar progress-bar-default progress-bar-striped active border" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: {{ question.number }}%">
-      </div>
-    </div>-->
-
-    <!-- Answer alerts 
-    <div class="alert alert-success" role="alert" ng-show="isCorrect !== null && isCorrect">
-      <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-      <strong>תשובה נכונה!</strong> תשובתך אכן נכונה. 
-      <button type="button" class="btn btn-primary" ng-click="next()">
-        המשך <span class="glyphicon glyphicon-hand-left" aria-hidden="true"></span>
-      </button>          
-      </div>
-      <div class="alert alert-danger" role="alert" ng-show="isCorrect !== null  && !isCorrect" ng-click="isCorrect = null">
-        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        <strong>תשובה שגויה!</strong> אתה כישלון.
-      </div>
-      <div class="alert alert-warning" role="alert" ng-show="emptyAns !== null  && emptyAns" ng-click="emptyAns = null">
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        <strong>תשובה ריקה.</strong> אנא הזן תשובה.
-      </div> -->
-
     <!-- Chapter questions navigation -->
     <div class="page-header">
     </div>
     <div class="panel panel-default">
       <div class="panel-body">
-{% for chap_question in question.chapter.get_questions %}
-  {% if chap_question == question %}
-        <button class="btn btn-primary">{{ chap_question.number }}</button>
+{% for ch_question in question.chapter.get_questions %}
+  {% if ch_question == question %}
+        <button class="btn btn-primary">{{ ch_question.number }}</button>
   {% else %}
-        <button class="btn btn-default">{{ chap_question.number }}</button>
+        <a class="btn btn-default" href='{% url 'logic:question' question.chapter.number ch_question.number %}'>{{ ch_question.number }}</a>
   {% endif %}
 {% endfor %}
       </div>
