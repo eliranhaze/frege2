@@ -43,8 +43,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(QuestionView, self).get_context_data(**kwargs)
-        context['chapter'] = self.object.chapter
-        if type(self.object) == ChoiceQuestion:
+        question = self.object
+        context['chapter'] = question.chapter
+        user_answers = {ans.question_number : ans.correct \
+                        for ans in UserAnswer.objects.filter(user=self.request.user, chapter=question.chapter)}
+        context['chap_questions'] = { q.number : user_answers.get(q.number) for q in question.chapter.questions()}
+        if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
         return context
 

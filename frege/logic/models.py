@@ -36,7 +36,7 @@ class Chapter(models.Model):
         return Question._count(chapter__number=self.number)
     num_questions.short_description = 'מספר שאלות'
 
-    def get_questions(self):
+    def questions(self):
         return Question._filter(chapter__number=self.number)
 
     def __unicode__(self):
@@ -52,6 +52,12 @@ class Question(models.Model):
     followup = models.ForeignKey('self', verbose_name='שאלת המשך', on_delete=models.CASCADE, blank=True, null=True)
     number = models.PositiveIntegerField(verbose_name='מספר')
 
+    def user_answers(self):
+        return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
+    
+    def user_answer(self, user):
+        return UserAnswer.objects.filter(user=user, chapter=self.chapter, question_number=self.number)
+    
     @classmethod
     def _all(cls):
         return cls._sub_func('all')
@@ -184,4 +190,5 @@ class UserAnswer(models.Model):
     class Meta(Answer.Meta):
         verbose_name = 'תשובת משתמש'
         verbose_name_plural = 'תשובות משתמש'
+        unique_together = ('chapter', 'user', 'question_number')
 

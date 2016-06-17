@@ -24,11 +24,19 @@
     </div>
     <div class="panel panel-default">
       <div class="panel-body">
-{% for ch_question in question.chapter.get_questions %}
-  {% if ch_question == question %}
-        <button class="btn btn-primary">{{ ch_question.number }}</button>
+{% for qnum, correct in chap_questions.iteritems %}
+  {% if qnum == question.number %}
+        <button class="btn btn-primary">{{ qnum }}</button>
   {% else %}
-        <a class="btn btn-default" href='{% url 'logic:question' question.chapter.number ch_question.number %}'>{{ ch_question.number }}</a>
+        <a href='{% url 'logic:question' question.chapter.number qnum %}' class=
+    {% if correct %}
+        "btn btn-success"
+    {% elif correct == False %}
+        "btn btn-danger"
+    {% else %} {# None: question was not answered #}
+        "btn btn-default"
+    {% endif %}
+        >{{ qnum }}</a>
   {% endif %}
 {% endfor %}
       </div>
