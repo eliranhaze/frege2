@@ -182,6 +182,8 @@ class UserAnswer(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
     question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
+    # TODO: since  there is no fk to question here, deleting question won't cause deleting this,
+    # so i must take care of that myself.
     correct = models.BooleanField(verbose_name='תשובה נכונה')
 
     def __unicode__(self):
