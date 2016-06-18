@@ -1,5 +1,5 @@
 function post_answer(url, data, csrf) {
-    if (!$('input[name=choice]:checked', '#cq').val()) {
+    if (is_empty()) {
         $.notify({
             icon: "glyphicon glyphicon-pencil",
             message: "<strong>לא נבחרה תשובה</strong>"

@@ -17,6 +17,9 @@
   </div>
 
   <script>
+    function is_empty() {
+        return !$('input[name=choice]:checked', '#cq').val();
+    }
     function register_event() {
         $('#answer').one('click', function() {
             post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
