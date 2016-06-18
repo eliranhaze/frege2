@@ -7,6 +7,7 @@ function post_answer(url, data, csrf) {
             type: "warning",
             delay: 1000,
         });
+        register_event();
         return false;
     }
     $("#answer").html("בודק...");
