@@ -17,8 +17,11 @@
   </div>
 
   <script>
-    $('#answer').click(function(){
-        post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
-    });
+    function register_event() {
+        $('#answer').one('click', function() {
+            post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
+        });
+    }
+    $(document).ready(register_event);
   </script>
 {% endblock question_content %} 

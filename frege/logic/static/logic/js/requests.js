@@ -20,7 +20,6 @@ function post_answer(url, data, csrf) {
                 type: "success",
             });
             $("#answer").html("המשך");
-            $("#answer").off("click");
             $("#answer").attr("onclick", data['next_url']);
             $("#answer").attr("class", "btn btn-primary btn-lg");
         } else {
@@ -31,9 +30,11 @@ function post_answer(url, data, csrf) {
                 type: "danger",
             });
             $("#answer").html("אישור");
+            register_event();
         }
     })
     .fail(function(response){
+        register_event();
         if (response.responseText) {
             $.notifyClose();
             $.notify({
@@ -60,7 +61,7 @@ function post_answer(url, data, csrf) {
     });
 }
 
-$(document).ready(function(){
+$(document).ready(function() {
     $.notifyDefaults({
         allow_dismiss: false,
         offset: 100,
