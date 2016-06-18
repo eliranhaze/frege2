@@ -8,19 +8,23 @@ body {
     font-family: 'Alef', sans-serif;
     font-size: large;
 }
-
-.progress {
-    height: 18px !important;
+/*
+.btn-success {
+    background-color: #50BF7F;
 }
 
-.myhl {
-    background-color: #ecf5f4;
+.alert-success {
+    background-color: #50BF7F;
 }
 
-.mainf {
-    background-color: #ddedf1;
+.btn-danger {
+    background-color: #F05146;
 }
 
+.alert-danger {
+    background-color: #F05146;
+}
+*/
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
