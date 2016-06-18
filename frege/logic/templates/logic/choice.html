@@ -12,85 +12,13 @@
       {% endfor %}
       </form>
       <div style="padding: 10px;margin-top: 20px;">
-        <button class="btn btn-default btn-lg" id="answer" >אישור</button>
+        <button class="btn btn-default btn-lg" id="answer">אישור</button>
       </div>
   </div>
 
-<script>
-$(document).ready(function(){
-    $.notifyDefaults({
-        allow_dismiss: false,
-        offset: 100,
-        placement: {from: "bottom", align: "center"},
-        animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
-        delay: 2000,
+  <script>
+    $('#answer').click(function(){
+        post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
     });
-    $("#answer").click(function(){
-        if (!$('input[name=choice]:checked', '#cq').val()) {
-            $.notify({
-                icon: "glyphicon glyphicon-pencil",
-                message: "<strong>לא נבחרה תשובה</strong>"
-            },{
-                type: "warning",
-                delay: 1000,
-            });
-            return false
-        }
-        $("#answer").html("בודק...");
-        $.post("{% url 'logic:question' chapter.number question.number %}",
-        {
-            'choice':$('input[name=choice]:checked', '#cq').val(),
-            'csrfmiddlewaretoken': '{{ csrf_token }}'
-        },
-        function(data, status){
-            if (data['correct']) {
-                $.notify({
-                    icon: "glyphicon glyphicon-ok",
-                    message: "<strong>תשובה נכונה</strong>"
-                },{
-                    type: "success",
-                });
-                $("#answer").html("המשך");
-                $("#answer").off("click");
-                $("#answer").attr("onclick", data['next_url']);
-                $("#answer").attr("class", "btn btn-primary btn-lg");
-            } else {
-                $.notify({
-                    icon: "glyphicon glyphicon-remove",
-                    message: "<strong>תשובה שגויה</strong>"
-                },{
-                    type: "danger",
-                });
-                $("#answer").html("אישור");
-            }
-        })
-        .fail(function(response){
-            if (response.responseText) {
-                $.notifyClose();
-                $.notify({
-                    icon: "glyphicon glyphicon-wrench",
-                    message: "<strong>נראה שיש בעיה בשרת...</strong> \
-                             <br>הבעיה נרשמה והיא תטופל בהקדם. \
-                             <br>תודה על הסבלנות. \
-                             <br>בינתיים, הנה לב ממני: <span class='glyphicon glyphicon-heart'></span>"
-                },{
-                    type: "info",
-                    allow_dismiss: true,
-                    newest_on_top: true,
-                    delay: 15000,
-                });
-                $("#answer").html("אישור");
-            } else {
-                $.notify({
-                    icon: "glyphicon glyphicon-flash",
-                    message: "<strong>בעיה בהתחברות לשרת</strong> אנא בדקו את החיבור לאינטרנט"
-                },{
-                    type: "warning",
-                });
-                $("#answer").html("אישור");
-            }
-        });
-    });
-});
-</script>
+  </script>
 {% endblock question_content %} 
