@@ -1,7 +1,7 @@
 /**
  * 
- * Code for handling formulas. Contains a recursive class representation of a formula and
- * some formula functions.
+ * Code for handling formulas of classical propositional logic.
+ * Contains a recursive class representation of a formula and some formula functions.
  *
  * @author: Eliran Haziza
  *
@@ -9,8 +9,8 @@
 
 /* Connectives */
 var NEG  = '~'
-var CONJ = '*'
-var DISJ = '|'
+var CON = '*'
+var DIS = '|'
 var IMPL = '>'
 var EQV  = '='
 
@@ -50,7 +50,7 @@ Formula.prototype.analyse = function(f) {
 			nesting--;
 		} else if (nesting === 0) {	
 			// We are on the highest nesting level. Check for main connective.
-			if (c === CONJ || c === DISJ || c === IMPL || c === EQV) {
+			if (c === CON || c === DIS || c === IMPL || c === EQV) {
 				// Binary connective found. Create 2 sub-formulas.
 				this.con = c;
 				this.sf1 = new Formula(f.slice(0, i));
@@ -79,9 +79,9 @@ Formula.prototype.assign = function(assignment) {
 	switch (this.con) {
 	    case NEG:
 	        return !this.sf1.assign(assignment);
-	    case CONJ:
+	    case CON:
 	        return this.sf1.assign(assignment) && this.sf2.assign(assignment);
-	    case DISJ:
+	    case DIS:
 	        return this.sf1.assign(assignment) || this.sf2.assign(assignment);
 	    case IMPL:
 	        return !this.sf1.assign(assignment) || this.sf2.assign(assignment);
