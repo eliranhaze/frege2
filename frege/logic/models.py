@@ -178,22 +178,6 @@ class Choice(Answer):
         verbose_name = 'בחירה'
         verbose_name_plural = 'בחירות'
 
-class UserAnswer(models.Model):
-    user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
-    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
-    question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
-    # TODO: since  there is no fk to question here, deleting question won't cause deleting this,
-    # so i must take care of that myself.
-    correct = models.BooleanField(verbose_name='תשובה נכונה')
-
-    def __unicode__(self):
-        return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
-
-    class Meta(Answer.Meta):
-        verbose_name = 'תשובת משתמש'
-        verbose_name_plural = 'תשובות משתמשים'
-        unique_together = ('chapter', 'user', 'question_number')
-
 class UserChapter(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
@@ -221,6 +205,21 @@ class UserChapter(models.Model):
 
     class Meta(Answer.Meta):
         verbose_name = 'פתרון משתמש'
-        verbose_name_plural = 'פתרונות משתמשים'
+        verbose_name_plural = '*פתרונות משתמשים'
         unique_together = ('chapter', 'user')
+
+class UserAnswer(models.Model):
+    user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
+    user_chapter = models.ForeignKey(UserChapter, verbose_name='פתרון פרק', on_delete=models.CASCADE)
+    question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
+    correct = models.BooleanField(verbose_name='תשובה נכונה')
+
+    def __unicode__(self):
+        return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
+
+    class Meta(Answer.Meta):
+        verbose_name = 'תשובת משתמש'
+        verbose_name_plural = '*תשובות משתמשים'
+        unique_together = ('chapter', 'user', 'question_number')
 

@@ -74,7 +74,8 @@ class UserAnswerAdmin(admin.ModelAdmin):
 
 class UserChapterAdmin(admin.ModelAdmin):
     #TODO: link this model with UserAnswer so for delete cascade?
-    list_display = ['user', 'chapter_number', 'percent_correct']
+    list_display = ['user', 'chapter', 'percent_correct']
+    list_filter = ['user', 'chapter']
     ordering = ['chapter', 'user']
     readonly_fields = ['user', 'chapter']
     actions = [export_as_csv_action(fields={

@@ -92,16 +92,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         chapter = Chapter.objects.get(number=chnum)
         question = Question._get(chapter__number=chnum, number=qnum)
         correct = Choice.objects.get(id=request.POST['choice']).is_correct
-        user_ans, created = UserAnswer.objects.update_or_create(
-            user=request.user,
-            chapter=chapter,
-            question_number=question.number,
-            defaults={'correct':correct},
-        )
-        UserChapter.objects.update_or_create(
+        user_chapter, _ = UserChapter.objects.update_or_create(
             user=request.user,
             chapter=chapter,
             defaults={},
+        )
+        user_ans, created = UserAnswer.objects.update_or_create(
+            user=request.user,
+            chapter=chapter,
+            user_chapter=user_chapter,
+            question_number=question.number,
+            defaults={'correct':correct},
         )
         print 'answer', request.user, 'is', user_ans, 'created:', created
         return JsonResponse({
