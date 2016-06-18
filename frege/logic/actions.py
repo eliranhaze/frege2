@@ -4,11 +4,12 @@ import csv
 from django.http import HttpResponse
 
 """
-Base on: https://djangosnippets.org/snippets/2369/
+Based on: https://djangosnippets.org/snippets/2369/
 """
 
+# TODO: i don't have to use this general purpose function. can just write my own with all i need
 def export_as_csv_action(description="ייצוא נתונים לאקסל",
-                         fields=None, exclude=None, header=True):
+                         fields=None, header=True):
     """
     This function returns an export csv action
     'fields' and 'exclude' work like in django ModelForm
@@ -19,22 +20,16 @@ def export_as_csv_action(description="ייצוא נתונים לאקסל",
         Generic csv export admin action.
         """
         opts = modeladmin.model._meta
-        field_names = set([field.name for field in opts.fields])
-        if fields:
-            fieldset = set(fields)
-            field_names = field_names & fieldset
-        elif exclude:
-            excludeset = set(exclude)
-            field_names = field_names - excludeset
+        filename = unicode(opts).replace('.', '_')
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(opts).replace('.', '_')
+        response['Content-Disposition'] = 'attachment; filename=%s.csv' % filename
 
         writer = csv.writer(response)
         if header:
-            writer.writerow(list(field_names))
+            writer.writerow(fields.keys())
         for obj in queryset:
-            writer.writerow([unicode(getattr(obj, field)).encode("utf-8","replace") for field in field_names])
+            writer.writerow([unicode(getattr(obj, field)).encode("utf-8","replace") for field in fields.values()])
         return response
     export_as_csv.short_description = description
     return export_as_csv

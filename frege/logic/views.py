@@ -11,6 +11,7 @@ from .models import (
     ChoiceQuestion,
     Choice,
     UserAnswer,
+    UserChapter,
 )
 
 def get_question_or_404(**kwargs):
@@ -96,6 +97,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             chapter=chapter,
             question_number=question.number,
             defaults={'correct':correct},
+        )
+        UserChapter.objects.update_or_create(
+            user=request.user,
+            chapter=chapter,
+            defaults={},
         )
         print 'answer', request.user, 'is', user_ans, 'created:', created
         return JsonResponse({

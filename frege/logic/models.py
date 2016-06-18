@@ -194,3 +194,33 @@ class UserAnswer(models.Model):
         verbose_name_plural = 'תשובות משתמשים'
         unique_together = ('chapter', 'user', 'question_number')
 
+class UserChapter(models.Model):
+    user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
+
+    @property
+    def percent_correct_f(self):
+        return self.percent_correct()
+
+    def percent_correct(self):
+        user_answers = UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
+        num_correct = sum(1 for u in user_answers if u.correct)
+        return num_correct * 100. / self.chapter.num_questions()
+    percent_correct.short_description = 'ציון'
+
+    @property
+    def chapter_number_f(self):
+        return self.chapter.number
+
+    def chapter_number(self):
+        return self.chapter.number
+    chapter_number.short_description = 'פרק'
+
+    def __unicode__(self):
+        return '%s/%s' % (self.user, self.chapter.number)
+
+    class Meta(Answer.Meta):
+        verbose_name = 'פתרון משתמש'
+        verbose_name_plural = 'פתרונות משתמשים'
+        unique_together = ('chapter', 'user')
+

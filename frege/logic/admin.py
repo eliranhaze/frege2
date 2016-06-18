@@ -12,6 +12,7 @@ from .models import (
     TruthTableQuestion,
     DeductionQuestion,
     UserAnswer,
+    UserChapter,
 )
 
 class FormulationAnswerInline(admin.StackedInline):
@@ -71,6 +72,20 @@ class UserAnswerAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
+class UserChapterAdmin(admin.ModelAdmin):
+    #TODO: link this model with UserAnswer so for delete cascade?
+    list_display = ['user', 'chapter_number', 'percent_correct']
+    ordering = ['chapter', 'user']
+    readonly_fields = ['user', 'chapter']
+    actions = [export_as_csv_action(fields={
+        'user': 'user',
+        'chapter': 'chapter_number_f',
+        'percent': 'percent_correct_f',
+    })]
+ 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']
     search_fields = ['title']
@@ -89,3 +104,4 @@ admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, QuestionAdmin)
 admin.site.register(DeductionQuestion, QuestionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)
+admin.site.register(UserChapter, UserChapterAdmin)
