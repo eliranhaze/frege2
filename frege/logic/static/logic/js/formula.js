@@ -11,7 +11,7 @@
 var NEG  = '~'
 var CON = '*'
 var DIS = '|'
-var IMPL = '>'
+var IMP = '>'
 var EQV  = '='
 
 /* *** ************* *** */
@@ -50,7 +50,7 @@ Formula.prototype.analyse = function(f) {
 			nesting--;
 		} else if (nesting === 0) {	
 			// We are on the highest nesting level. Check for main connective.
-			if (c === CON || c === DIS || c === IMPL || c === EQV) {
+			if (c === CON || c === DIS || c === IMP || c === EQV) {
 				// Binary connective found. Create 2 sub-formulas.
 				this.con = c;
 				this.sf1 = new Formula(f.slice(0, i));
@@ -83,7 +83,7 @@ Formula.prototype.assign = function(assignment) {
 	        return this.sf1.assign(assignment) && this.sf2.assign(assignment);
 	    case DIS:
 	        return this.sf1.assign(assignment) || this.sf2.assign(assignment);
-	    case IMPL:
+	    case IMP:
 	        return !this.sf1.assign(assignment) || this.sf2.assign(assignment);
 	    case EQV:
 	        return this.sf1.assign(assignment) == this.sf2.assign(assignment);
