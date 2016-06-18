@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 
 """
@@ -57,6 +58,12 @@ class Question(models.Model):
     
     def user_answer(self, user):
         return UserAnswer.objects.filter(user=user, chapter=self.chapter, question_number=self.number)
+
+    def clean(self):
+        super(Question, self).clean()
+        chapter_questions = Question._filter(chapter=self.chapter)
+        if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
+            raise ValidationError('כבר קיימת שאלה מספר %d בפרק זה' % (self.number))
     
     @classmethod
     def _all(cls):
@@ -88,10 +95,6 @@ class Question(models.Model):
 
     class Meta:
         abstract = True
-        # this is insufficient since it is enforced on a table level only so
-        # i can e.g. get deduction and open question with the same number and chapter
-        # so... TODO: custom validation
-        unique_together = ('chapter', 'number')
         ordering = ['number']
 
 class TextualQuestion(Question):
@@ -107,8 +110,11 @@ class TextualQuestion(Question):
     class Meta(Question.Meta):
         abstract = True
 
+def validate_formula(formula):
+    pass
+
 class FormalQuestion(Question):
-    formula = models.CharField(verbose_name='נוסחה', max_length=30)
+    formula = models.CharField(verbose_name='נוסחה', max_length=30, validators=[validate_formula])
 
     def __unicode__(self):
         return '%s. %s' % (self.number, self.formula)
@@ -141,14 +147,10 @@ class TruthTableQuestion(FormalQuestion):
         verbose_name_plural = 'שאלות טבלת אמת'
 
 class DeductionQuestion(FormalQuestion):
-    premises = models.CharField(verbose_name='הנחות', max_length=300)
-    # TODO: list? see: http://stackoverflow.com/questions/22340258/django-list-field-in-model
-    # TODO: also, this should be optional (e.g. theorems)
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'
         verbose_name_plural = 'שאלות דדוקציה'
-DeductionQuestion._meta.get_field('formula').verbose_name = 'מסקנה'
 
 class Answer(models.Model):
     text = models.CharField(verbose_name='טקסט', max_length=200)
