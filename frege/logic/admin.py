@@ -4,11 +4,12 @@ from .models import (
     Chapter,
     OpenQuestion,
     FormulationQuestion,
+    FormulationAnswer,
     ChoiceQuestion,
+    Choice,
     TruthTableQuestion,
     DeductionQuestion,
-    FormulationAnswer,
-    Choice,
+    UserAnswer,
 )
 
 class FormulationAnswerInline(admin.StackedInline):
@@ -59,6 +60,14 @@ class ChoiceQuestionAdmin(TextualQuestionAdmin):
         ChoiceInline,
     ]
 
+class UserAnswerAdmin(admin.ModelAdmin):
+    list_display = ['user', 'chapter', 'question_number', 'correct']
+    ordering = ['user', 'chapter', 'question_number']
+    readonly_fields = ['user', 'chapter', 'question_number', 'correct']
+ 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']
     search_fields = ['title']
@@ -74,5 +83,6 @@ admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
-admin.site.register(TruthTableQuestion)
-admin.site.register(DeductionQuestion)
+admin.site.register(TruthTableQuestion, QuestionAdmin)
+admin.site.register(DeductionQuestion, QuestionAdmin)
+admin.site.register(UserAnswer, UserAnswerAdmin)

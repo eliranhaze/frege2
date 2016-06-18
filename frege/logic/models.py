@@ -187,10 +187,10 @@ class UserAnswer(models.Model):
     correct = models.BooleanField(verbose_name='תשובה נכונה')
 
     def __unicode__(self):
-        return 'UserAnswer: %s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, self.correct)
+        return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
 
     class Meta(Answer.Meta):
         verbose_name = 'תשובת משתמש'
-        verbose_name_plural = 'תשובות משתמש'
+        verbose_name_plural = 'תשובות משתמשים'
         unique_together = ('chapter', 'user', 'question_number')
 
