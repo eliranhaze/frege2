@@ -7,7 +7,7 @@ function post_answer(url, data, csrf) {
             type: "warning",
             delay: 1000,
         });
-        return false
+        return false;
     }
     $("#answer").html("בודק...");
     data['csrfmiddlewaretoken'] = csrf;
