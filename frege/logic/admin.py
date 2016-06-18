@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
 
+from .actions import export_as_csv_action
 from .models import (
     Chapter,
     OpenQuestion,
@@ -64,6 +66,7 @@ class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct']
     ordering = ['user', 'chapter', 'question_number']
     readonly_fields = ['user', 'chapter', 'question_number', 'correct']
+    actions = [export_as_csv_action(fields=['user', 'question_number', 'correct'])]
  
     def has_add_permission(self, request, obj=None):
         return False
