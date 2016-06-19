@@ -104,6 +104,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             chapter=chapter,
             user_chapter=user_chapter,
             question_number=question.number,
+            defaults={'correct':correct},
         )
         # save only if value changed
         if user_ans.correct != correct:
