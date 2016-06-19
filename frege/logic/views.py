@@ -10,6 +10,7 @@ from .models import (
     Question,
     ChoiceQuestion,
     Choice,
+    TruthTableQuestion,
     UserAnswer,
     UserChapter,
 )
@@ -86,6 +87,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
         if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
+        elif type(question) == TruthTableQuestion:
+            self.template_name = 'logic/truth_table.html'
         return context
 
     def post(self, request, chnum, qnum):
@@ -96,13 +99,16 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user=request.user,
             chapter=chapter,
         )
-        user_ans, created = UserAnswer.objects.update_or_create(
+        user_ans, created = UserAnswer.objects.get_or_create(
             user=request.user,
             chapter=chapter,
             user_chapter=user_chapter,
             question_number=question.number,
-            defaults={'correct':correct},
         )
+        # save only if value changed
+        if user_ans.correct != correct:
+            user_ans.correct = correct
+            user_ans.save()
         print 'answer', request.user, 'is', user_ans, 'created:', created
         return JsonResponse({
             'correct' : user_ans.correct,
