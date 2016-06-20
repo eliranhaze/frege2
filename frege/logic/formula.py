@@ -125,3 +125,35 @@ class Formula(object):
 
     def is_binary(self):
         return self.con in BINARY_CONNECTIVES
+
+    def __unicode__(self):
+        return self.literal
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+
+    __str__ = __unicode__
+
+class TruthTable(object):
+
+    def __init__(self, formula):
+        self.formula = formula
+        self.variables = formula.variables()
+        self.values = self._values(self.variables)
+
+    def size(self)
+        return len(self.values)
+
+    def _values(self, variables):
+        values = []
+        num_rows = 2**len(variables)
+        num_cols = len(variables)
+        for i in range(num_rows):
+            row = []
+            for j in range(num_cols):
+                streak = 2**j
+                relative = i % (streak * 2)
+                row.insert(0, relative < streak)
+            values.append(row)
+        return values
+

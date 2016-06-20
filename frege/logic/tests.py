@@ -10,6 +10,7 @@ from django.test import TestCase
 
 from .formula import (
     Formula,
+    TruthTable,
     NEG,
     CON,
     DIS,
@@ -319,3 +320,28 @@ class FormulaTests(TestCase):
         self.assertEqual(Formula('p%sq' % IMP).variables(), ['p','q'])
         self.assertEqual(Formula('(q%sr)%s(p%sr)' % (IMP, IMP, IMP)).variables(), ['p','q', 'r'])
         self.assertEqual(Formula('((q%sq)%s(p%sp))%s(t%st)' % (IMP, IMP, IMP, IMP, IMP)).variables(), ['p','q', 't'])
+
+class TruthTableTests(TestCase):
+
+    def test_values1(self):
+        tt = TruthTable(Formula('p'))
+        self.assertEquals(tt.values, [[True], [False]])
+
+    def test_values2(self):
+        tt = TruthTable(Formula('p%sq' % IMP))
+        self.assertEquals(tt.values, [[True,  True],
+                                      [True,  False],
+                                      [False, True],
+                                      [False, False]])
+
+    def test_values3(self):
+        tt = TruthTable(Formula('(p%sq)%sr' % (IMP, IMP)))
+        self.assertEquals(tt.values, [[True,  True,  True],
+                                      [True,  True,  False],
+                                      [True,  False, True],
+                                      [True,  False, False],
+                                      [False, True,  True],
+                                      [False, True,  False],
+                                      [False, False, True],
+                                      [False, False, False]])
+
