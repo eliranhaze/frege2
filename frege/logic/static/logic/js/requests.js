@@ -23,6 +23,7 @@ function post_answer(url, data, csrf) {
             $("#answer").html("המשך");
             $("#answer").attr("onclick", data['next_url']);
             $("#answer").attr("class", "btn btn-primary btn-lg");
+            on_success();
         } else {
             $.notify({
                 icon: "glyphicon glyphicon-remove",

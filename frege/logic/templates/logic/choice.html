@@ -24,6 +24,9 @@
             post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
         });
     }
+    function on_success() {
+        $('input[name=choice]:not(:checked)').attr('disabled','disabled');
+    }
     $(document).ready(register_event);
   </script>
 {% endblock question_content %} 
