@@ -141,7 +141,7 @@ class TruthTable(object):
         self.variables = formula.variables()
         self.values = self._values(self.variables)
 
-    def size(self)
+    def size(self):
         return len(self.values)
 
     def _values(self, variables):
