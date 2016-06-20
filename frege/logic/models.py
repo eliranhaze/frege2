@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .formula import Formula, TruthTable
+
 """
 This module contains definitions for the app's entities.
 
@@ -61,9 +63,10 @@ class Question(models.Model):
 
     def clean(self):
         super(Question, self).clean()
-        chapter_questions = Question._filter(chapter=self.chapter)
-        if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
-            raise ValidationError('כבר קיימת שאלה מספר %d בפרק זה' % (self.number))
+        if self.chapter_id:
+            chapter_questions = Question._filter(chapter=self.chapter)
+            if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
+                raise ValidationError('כבר קיימת שאלה מספר %d בפרק זה' % (self.number))
     
     @classmethod
     def _all(cls):
@@ -111,10 +114,17 @@ class TextualQuestion(Question):
         abstract = True
 
 def validate_formula(formula):
-    pass
+    try:
+        Formula(formula)
+    except:
+        raise ValidationError('הנוסחה שהוזנה אינה תקינה')
 
 class FormalQuestion(Question):
     formula = models.CharField(verbose_name='נוסחה', max_length=30, validators=[validate_formula])
+
+    def _formula(self):
+        print 'FORMULA CALLED!!!', self
+        return Formula(self.formula)
 
     def __unicode__(self):
         return '%s. %s' % (self.number, self.formula)
@@ -141,6 +151,9 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name_plural = 'שאלות בחירה'
 
 class TruthTableQuestion(FormalQuestion):
+
+    def _truthtable(self):
+        return TruthTable(self._formula())
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
