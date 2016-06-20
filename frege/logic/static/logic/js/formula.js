@@ -8,11 +8,11 @@
  */
 
 /* Connectives */
-var NEG  = '~'
+var NEG = '~'
 var CON = '*'
 var DIS = '|'
 var IMP = '>'
-var EQV  = '='
+var EQV = '='
 
 /* *** ************* *** */
 /* *** Formula class *** */
@@ -60,6 +60,7 @@ Formula.prototype.analyse = function(f) {
 				// Unary connective found. Create 1 sub-formula.
 				this.con = c;
 				this.sf1 = new Formula(f.slice(i + 1));
+                                // THERE'S A BUG HERE - SEE PYTHON VERSION
 				// We don't return here since a binary connective might be found
 				// later and, if so, that connective would be the main one.
 			}
