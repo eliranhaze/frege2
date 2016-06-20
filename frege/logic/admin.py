@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
+from django.db import models
+from django.forms.widgets import TextInput
 
 from .actions import export_as_csv_action
 from .models import (
@@ -63,6 +65,13 @@ class ChoiceQuestionAdmin(TextualQuestionAdmin):
         ChoiceInline,
     ]
 
+class FormalQuestionAdmin(QuestionAdmin):
+    search_fields = ['formula']
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
+    }
+
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct']
     ordering = ['user', 'chapter', 'question_number']
@@ -102,7 +111,7 @@ admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
-admin.site.register(TruthTableQuestion, QuestionAdmin)
-admin.site.register(DeductionQuestion, QuestionAdmin)
+admin.site.register(TruthTableQuestion, FormalQuestionAdmin)
+admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)
 admin.site.register(UserChapter, UserChapterAdmin)
