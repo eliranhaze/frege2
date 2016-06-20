@@ -102,7 +102,26 @@ class Formula(object):
                 assert self.sf2
 
     def variables(self):
-        pass
+        """ return a list of variables, merged and sorted """
+        var_list = self._var_list()
+        var_list = list(set(var_list))
+        var_list.sort()
+        return var_list
+
+    def _var_list(self):
+        """ return a list of variables, not merged """
+        if self.is_atomic():
+            return [self.literal]
+        if self.is_unary():
+            return self.sf1._var_list()
+        # binary
+        return self.sf1._var_list() + self.sf2._var_list() 
 
     def is_atomic(self):
         return not self.con
+
+    def is_unary(self):
+        return self.con == NEG
+
+    def is_binary(self):
+        return self.con in BINARY_CONNECTIVES

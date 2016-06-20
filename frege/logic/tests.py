@@ -313,3 +313,9 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, '()')
         self.assertRaises(ValueError, Formula, '(@%s@)' % CON)
         self.assertRaises(ValueError, Formula, '(1%s2)' % CON)
+
+    def test_variables(self):
+        self.assertEqual(Formula('%sp' % NEG).variables(), ['p'])
+        self.assertEqual(Formula('p%sq' % IMP).variables(), ['p','q'])
+        self.assertEqual(Formula('(q%sr)%s(p%sr)' % (IMP, IMP, IMP)).variables(), ['p','q', 'r'])
+        self.assertEqual(Formula('((q%sq)%s(p%sp))%s(t%st)' % (IMP, IMP, IMP, IMP, IMP)).variables(), ['p','q', 't'])
