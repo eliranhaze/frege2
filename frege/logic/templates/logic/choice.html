@@ -5,7 +5,6 @@
 {% block question_content %}
 
   <div>
-
       <form id=cq>
       {% for choice in question.choice_set.all %}
           <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
