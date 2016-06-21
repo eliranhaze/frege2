@@ -9,10 +9,12 @@
     </div>
     <div class="list-group">
     {% for chapter in chapter_list %}
+        {% if chapter.num_questions > 0 %}
         <a class="list-group-item text-center" href="{% url 'logic:chapter' chapter.number %}">
         <span class="pull-right"><h4 class="text-muted">{{ chapter.number }}</h4></span>
         <h4>{{ chapter.title }}</h4>
         </a>
+        {% endif %}
     {% endfor %}
     </div>
     </div>
