@@ -41,9 +41,17 @@ class TruthTableQuestionInline(admin.StackedInline):
     model = TruthTableQuestion
     extra = 0
 
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
+    }
+
 class DeductionQuestionInline(admin.StackedInline):
     model = DeductionQuestion
     extra = 0
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
+    }
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
