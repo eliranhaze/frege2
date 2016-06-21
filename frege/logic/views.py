@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views import generic
 
+from .formula import Formula, TruthTable
 from .models import (
     Chapter,
     Question,
@@ -88,6 +89,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if type(question) == ChoiceQuestion:
             self.template_name = 'logic/choice.html'
         elif type(question) == TruthTableQuestion:
+            formula = Formula(question.formula)
+            context['formula'] = formula
+            context['truth_table'] = TruthTable(formula)
             self.template_name = 'logic/truth_table.html'
         return context
 

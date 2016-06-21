@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .formula import Formula, TruthTable
+from .formula import Formula
 
 """
 This module contains definitions for the app's entities.
@@ -122,9 +122,8 @@ def validate_formula(formula):
 class FormalQuestion(Question):
     formula = models.CharField(verbose_name='נוסחה', max_length=30, validators=[validate_formula])
 
-    def _formula(self):
-        print 'FORMULA CALLED!!!', self
-        return Formula(self.formula)
+    def __init__(self, *args, **kwargs):
+        super(FormalQuestion, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
         return '%s. %s' % (self.number, self.formula)
@@ -151,9 +150,6 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name_plural = 'שאלות בחירה'
 
 class TruthTableQuestion(FormalQuestion):
-
-    def _truthtable(self):
-        return TruthTable(self._formula())
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
