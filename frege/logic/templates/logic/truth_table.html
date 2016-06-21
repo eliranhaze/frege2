@@ -5,7 +5,7 @@
 {% block question_content %}
 
   <div>
-    <table class="table table-bordered table-condensed table-hover noselect" dir="ltr">
+    <table class="table table-bordered table-condensed table-hover noselect" style="font-family: 'Lucida Console', Monaco, monospace;" dir="ltr">
       <thead>
         <tr style="font-size: 110%;">
         {% for var in formula.variables %}
@@ -20,8 +20,8 @@
         {% for value in row %}
           <td>{{ value|yesno:"T,F" }}</td>
         {% endfor %}
-          <td>
-            <div class="btn-group" role="group" style="font-size: 120%;">
+          <td id='td{{ forloop.counter }}'>
+            <div class="btn-group" role="group" style="font-size: 130%;">
               <label class="label label-default" style="opacity: 0.5;" id='t{{ forloop.counter }}' onclick="select('t', '{{ forloop.counter }}')">T</label>
               <label class="label" style="visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
               <label class="label label-default" style="opacity: 0.5;" id='f{{ forloop.counter }}' onclick="select('f', '{{ forloop.counter }}')">F</label>
