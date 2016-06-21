@@ -162,7 +162,6 @@ class Formula(object):
         return self.sf1._var_list() + self.sf2._var_list() 
 
     def options(self):
-        print 'OPS', [(f, f.num, f.desc) for f in FORMULA_OPTIONS]
         return FORMULA_OPTIONS
 
     @property
