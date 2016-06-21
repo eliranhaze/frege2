@@ -189,10 +189,7 @@ class Formula(object):
     def correct_option(self):
         tt = TruthTable(self)
         options = set([Tautology, Contradiction])
-        for var_values in tt.values:
-            satisfied = self.assign({
-                var : value for var, value in zip(tt.variables, var_values)
-            })
+        for satisfied in tt.result:
             if not satisfied and Tautology in options:
                 options.remove(Tautology)
             elif satisfied and Contradiction in options:
@@ -227,8 +224,18 @@ class TruthTable(object):
         self.variables = formula.variables
         self.values = self._values(self.variables)
 
+    @property
     def size(self):
         return len(self.values)
+
+    @property
+    def result(self):
+        return [
+            self.formula.assign({
+                var : value for var, value in zip(self.variables, var_values)
+            })
+            for var_values in self.values
+        ]
 
     def _values(self, variables):
         values = []
