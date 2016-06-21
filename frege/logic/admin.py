@@ -47,6 +47,7 @@ class DeductionQuestionInline(admin.StackedInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
+    list_filter = ['chapter']
     ordering = ['chapter', 'number']
 
 class TextualQuestionAdmin(QuestionAdmin):
@@ -66,6 +67,7 @@ class ChoiceQuestionAdmin(TextualQuestionAdmin):
     ]
 
 class FormalQuestionAdmin(QuestionAdmin):
+    list_display = ['number', 'chapter', 'formula']
     search_fields = ['formula']
 
     formfield_overrides = {
