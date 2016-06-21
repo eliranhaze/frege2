@@ -20,7 +20,7 @@
         {% for value in row %}
           <td>{{ value|yesno:"T,F" }}</td>
         {% endfor %}
-          <td id='td{{ forloop.counter }}'>
+          <td>
             <div class="btn-group" role="group" style="font-size: 130%;">
               <label class="label label-default" style="opacity: 0.5;" id='t{{ forloop.counter }}' onclick="select('t', '{{ forloop.counter }}')">T</label>
               <label class="label" style="visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
