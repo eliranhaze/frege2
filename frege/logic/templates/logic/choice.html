@@ -14,7 +14,8 @@
 
   <script>
     function is_empty() {
-        return !$('input[name=choice]:checked', '#choices').val();
+        if (!$('input[name=choice]:checked', '#choices').val())
+            return 'לא נבחרה תשובה';
     }
     function get_post_data() {
         return {'choice':$('input[name=choice]:checked', '#choices').val()};

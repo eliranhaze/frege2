@@ -66,10 +66,10 @@
     var table_size = {{ truth_table.size }}
     function is_empty() {
         if (!$('input[name=option]:checked', '#options').val())
-            return true;
+            return 'לא נבחרה תשובה';
         for (i = 1; i <= table_size; i++) {
             if ($('#ans'+i).css('visibility') == 'hidden')
-                return true;
+                return 'הטבלה אינה מלאה';
         }
     }
     function get_post_data() {

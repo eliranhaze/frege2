@@ -1,8 +1,9 @@
 function post_answer(url, data, csrf) {
-    if (is_empty()) {
+    empty_msg = is_empty()
+    if (empty_msg) {
         $.notify({
             icon: "glyphicon glyphicon-pencil",
-            message: "<strong>לא נבחרה תשובה</strong>"
+            message: "<strong>"+empty_msg+"</strong>"
         },{
             type: "warning",
             delay: 1000,
