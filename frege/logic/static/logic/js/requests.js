@@ -13,6 +13,7 @@ function post_answer(url, data, csrf) {
     $("#answer").html("בודק...");
     data['csrfmiddlewaretoken'] = csrf;
     $.post(url, data, function(data, status) {
+        on_response(data);
         if (data['correct']) {
             $.notify({
                 icon: "glyphicon glyphicon-ok",

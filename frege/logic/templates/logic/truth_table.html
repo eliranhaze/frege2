@@ -1,0 +1,100 @@
+{% extends "logic/question_base.html" %}
+
+{% block pre_question %}האם הנוסחה הבאה הנה טאוטולוגיה/קונטינגנציה/סתירה?{% endblock %}
+
+{% block question_content %}
+
+  <div>
+    <table class="table table-bordered table-condensed table-hover noselect" dir="ltr">
+      <thead>
+        <tr style="font-size: 110%;">
+        {% for var in formula.variables %}
+          <th class="text-center">{{ var }}</th>
+        {% endfor %}
+          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left" style="opacity: 0; font-size: 80%;"></span>{{ question.formula }}<span id="formula-head" class="glyphicon glyphicon-warning-sign pull-right" style="color: crimson; opacity: 0; font-size: 80%;"></span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in truth_table.values %}
+        <tr class="text-center">
+        {% for value in row %}
+          <td>{{ value|yesno:"T,F" }}</td>
+        {% endfor %}
+          <td>
+            <div class="btn-group" role="group" style="font-size: 120%;">
+              <label class="label label-default" style="opacity: 0.5;" id='t{{ forloop.counter }}' onclick="select('t', '{{ forloop.counter }}')">T</label>
+              <label class="label" style="opacity: 1;visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
+              <label class="label label-default" style="opacity: 0.5;" id='f{{ forloop.counter }}' onclick="select('f', '{{ forloop.counter }}')">F</label>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <script>
+    function select(type, i) {
+        clicked = '#'+type+i
+        ans = '#ans'+i
+        if (type == 't') {
+            other = '#f'+i
+        } else {
+            other = '#t'+i
+        }
+        $(clicked).css('visibility', 'hidden');
+        $(other).css('visibility', 'hidden');
+        $(ans).css('visibility', 'visible');
+        $(ans).text($(clicked).text());
+    }
+    function unselect(i) {
+        $('#t'+i).css('visibility', 'visible');
+        $('#f'+i).css('visibility', 'visible');
+        $('#ans'+i).css('visibility', 'hidden');
+    }
+    </script>
+  </div>
+
+  <div>
+    <form id=options>
+    {% for option in formula.options %}
+        <input name="option" value="{{ option.num }}" type="radio"> {{ option.desc }}<br>
+    {% endfor %}
+    </form>
+  </div>
+
+  <script>
+    var table_size = {{ truth_table.size }}
+    function is_empty() {
+        if (!$('input[name=option]:checked', '#options').val())
+            return true;
+        for (i = 1; i <= table_size; i++) {
+            if ($('#ans'+i).css('visibility') == 'hidden')
+                return true;
+        }
+    }
+    function get_post_data() {
+        return {
+            'option':$('input[name=option]:checked', '#options').val(),
+            'values':[
+                {% for row in truth_table.values %}
+                $('#ans{{ forloop.counter }}').text(),
+                {% endfor %}
+            ]
+        };
+    }
+    function on_success() {
+        $('input[name=option]:not(:checked)').attr('disabled','disabled');
+        for (i = 1; i <= table_size; i++) {
+            $('label[id=ans'+i+']').attr('onclick','');
+        }
+    }
+    function on_response(data){
+        if (data['tt_correct']) {
+            $('#formula-head').css('opacity', 0)
+        } else {
+            $('#formula-head').css('opacity', 0.8)
+        }
+    }
+  </script>
+
+{% endblock question_content %} 

@@ -98,7 +98,15 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def post(self, request, chnum, qnum):
         chapter = Chapter.objects.get(number=chnum)
         question = Question._get(chapter__number=chnum, number=qnum)
-        correct = Choice.objects.get(id=request.POST['choice']).is_correct
+        ext_data = None
+
+        # handle answer according to question type
+        if type(question) == ChoiceQuestion:
+            correct = self._handle_choice_post(request)
+        elif type(question) == TruthTableQuestion:
+            correct, ext_data = self._handle_truth_table_post(request, question)
+
+        # register user answer
         user_chapter, _ = UserChapter.objects.get_or_create(
             user=request.user,
             chapter=chapter,
@@ -110,13 +118,30 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             question_number=question.number,
             defaults={'correct':correct},
         )
+
         # save only if value changed
         if user_ans.correct != correct:
             user_ans.correct = correct
             user_ans.save()
-        print 'answer', request.user, 'is', user_ans, 'created:', created
-        return JsonResponse({
+
+        # make a response
+        response = {
             'correct' : user_ans.correct,
             'next_url' : ('location.href="%s";' % next_question_url(question.chapter, self.request.user)),
-        })
+        }
+        if ext_data:
+            response.update(ext_data)
+        print 'resp', response
+        return JsonResponse(response)
+
+    def _handle_choice_post(self, request):
+        return Choice.objects.get(id=request.POST['choice']).is_correct
+
+    def _handle_truth_table_post(self, request, question):
+        formula = Formula(question.formula)
+        values = [v == 'T' for v in request.POST.getlist('values[]')]
+        option_correct = int(request.POST['option']) == formula.correct_option.num
+        tt_correct = values == TruthTable(formula).result
+        return (option_correct and tt_correct), {'tt_correct':tt_correct}
+
 
