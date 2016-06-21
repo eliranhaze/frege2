@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Code for handling classical propositional logic formulas.
 """
@@ -10,6 +11,43 @@ IMP = '>'
 EQV = '='
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
+
+class Option(object):
+
+    def __init__(self, num, desc):
+        self.num = num
+        self.desc = desc
+
+    @classmethod
+    def for_formula(cls):
+        return [cls.Tautology, cls.Contingency, cls.Contradiction]
+
+    @classmethod
+    def for_argument(cls):
+        return [cls.Valid, cls.Invalid]
+
+    @classmethod
+    def for_set(cls):
+        return [cls.Consistent, cls.Inconsistent]
+
+    def __unicode__(self):
+        return self.desc
+
+    __repr__ = __unicode__
+    __str__ = __unicode__
+
+# set options
+Tautology = Option(1, 'טאוטולוגיה')
+Contingency = Option(2, 'קונטינגנציה')
+Contradiction = Option(3, 'סתירה')
+Valid = Option(4, 'תקף')
+Invalid = Option(5, 'בטל')
+Consistent = Option(6, 'עקבית')
+Inconsistent = Option(7, 'לא עקבית')
+
+FORMULA_OPTIONS = [Tautology, Contingency, Contradiction]
+ARGUMENT_OPTIONS = [Valid, Invalid]
+SET_OPTIONS = [Consistent, Inconsistent]
 
 class Formula(object):
 
@@ -46,8 +84,14 @@ class Formula(object):
                     if c in BINARY_CONNECTIVES:
                         # binary connective, create 2 sub formulas and return
                         self.con = c
-                        self.sf1 = Formula(self.literal[:i])
-                        self.sf2 = Formula(self.literal[i+1:])
+                        literals = self.literal[:i], self.literal[i+1:]
+                        self.sf1 = Formula(literals[0])
+                        self.sf2 = Formula(literals[1])
+                        # check that sub formulas are properly formed
+                        for i, sf in enumerate([self.sf1, self.sf2]):
+                            literal = literals[i]
+                            if sf.is_binary and not (literal[0] == '(' and literal[-1] == ')'):
+                                raise ValueError('missing parentheses in sub formula') 
                         return
                     if c == NEG:
                         # unary connective, create 1 sub formula
@@ -84,9 +128,9 @@ class Formula(object):
                 elif c == '(':
                     nesting += 1
         return string 
-    
+
     def _validate(self):
-        if self.is_atomic():
+        if self.is_atomic:
             assert not self.sf1 and not self.sf2
             if len(self.literal) > 1:
                 raise ValueError('%s is invalid; only 1 letter atoms are allowed' % self.literal)
@@ -110,19 +154,24 @@ class Formula(object):
 
     def _var_list(self):
         """ return a list of variables, not merged """
-        if self.is_atomic():
+        if self.is_atomic:
             return [self.literal]
-        if self.is_unary():
+        if self.is_unary:
             return self.sf1._var_list()
         # binary
         return self.sf1._var_list() + self.sf2._var_list() 
 
+    def options(self):
+        print 'OPS', [(f, f.num, f.desc) for f in FORMULA_OPTIONS]
+        return FORMULA_OPTIONS
+
+    @property
     def is_atomic(self):
         return not self.con
-
+    @property
     def is_unary(self):
         return self.con == NEG
-
+    @property
     def is_binary(self):
         return self.con in BINARY_CONNECTIVES
 
