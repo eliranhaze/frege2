@@ -1,9 +1,8 @@
 {% extends "logic/chapter_base.html" %}
 
+{% block topic_header %}סיכום{% endblock %}
+
 {% block chapter_content %}
-    <div class="page-header">
-    <h3>סיכום <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
-    </div>
     <div class="panel panel-default">
       <div class="panel-body">
         <p style="white-space: pre-wrap;">ענית נכון על {{ num_correct }} שאלות מתוך {{ chap_questions|length }}.</p>

@@ -10,23 +10,17 @@
           <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
       {% endfor %}
       </form>
-      <div style="padding: 10px;margin-top: 20px;">
-        <button class="btn btn-default btn-lg" id="answer">אישור</button>
-      </div>
   </div>
 
   <script>
     function is_empty() {
         return !$('input[name=choice]:checked', '#cq').val();
     }
-    function register_event() {
-        $('#answer').one('click', function() {
-            post_answer('{% url 'logic:question' chapter.number question.number %}', {'choice':$('input[name=choice]:checked', '#cq').val()}, '{{ csrf_token }}');
-        });
+    function get_post_data() {
+        return {'choice':$('input[name=choice]:checked', '#cq').val()};
     }
     function on_success() {
         $('input[name=choice]:not(:checked)').attr('disabled','disabled');
     }
-    $(document).ready(register_event);
   </script>
 {% endblock question_content %} 
