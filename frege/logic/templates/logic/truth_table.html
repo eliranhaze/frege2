@@ -11,7 +11,7 @@
         {% for var in formula.variables %}
           <th class="text-center">{{ var }}</th>
         {% endfor %}
-          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left" style="opacity: 0; font-size: 80%;"></span>{{ question.formula }}<span id="formula-head" class="glyphicon glyphicon-warning-sign pull-right" style="color: crimson; opacity: 0; font-size: 80%;"></span></th>
+          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left" style="visibility: hidden; font-size: 80%;"></span>{{ question.formula }}<span class="pull-right"><span id="formula-head" class="glyphicon glyphicon-warning-sign" style="color: crimson; visibility: hidden; opacity: 0.8; font-size: 80%;"></span></span></th>
         </tr>
       </thead>
       <tbody>
@@ -23,7 +23,7 @@
           <td>
             <div class="btn-group" role="group" style="font-size: 120%;">
               <label class="label label-default" style="opacity: 0.5;" id='t{{ forloop.counter }}' onclick="select('t', '{{ forloop.counter }}')">T</label>
-              <label class="label" style="opacity: 1;visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
+              <label class="label" style="visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
               <label class="label label-default" style="opacity: 0.5;" id='f{{ forloop.counter }}' onclick="select('f', '{{ forloop.counter }}')">F</label>
             </div>
           </td>
@@ -90,9 +90,9 @@
     }
     function on_response(data){
         if (data['tt_correct']) {
-            $('#formula-head').css('opacity', 0)
+            $('#formula-head').css('visibility', 'hidden')
         } else {
-            $('#formula-head').css('opacity', 0.8)
+            $('#formula-head').css('visibility', 'visible')
         }
     }
   </script>
