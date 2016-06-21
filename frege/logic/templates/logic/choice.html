@@ -5,7 +5,7 @@
 {% block question_content %}
 
   <div>
-      <form id=cq>
+      <form id=choices>
       {% for choice in question.choice_set.all %}
           <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
       {% endfor %}
@@ -14,10 +14,10 @@
 
   <script>
     function is_empty() {
-        return !$('input[name=choice]:checked', '#cq').val();
+        return !$('input[name=choice]:checked', '#choices').val();
     }
     function get_post_data() {
-        return {'choice':$('input[name=choice]:checked', '#cq').val()};
+        return {'choice':$('input[name=choice]:checked', '#choices').val()};
     }
     function on_success() {
         $('input[name=choice]:not(:checked)').attr('disabled','disabled');
