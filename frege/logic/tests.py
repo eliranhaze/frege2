@@ -300,6 +300,7 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, '((p%sq)' % CON)
         self.assertRaises(ValueError, Formula, '(p%sq))' % CON)
         self.assertRaises(ValueError, Formula, '(p%sq))' % CON)
+        self.assertRaises(ValueError, Formula, '(p%sq%sr)' % (CON, CON))
         self.assertRaises(ValueError, Formula, '%s%s%s%sq' % (CON, DIS, IMP, EQV))
         self.assertRaises(ValueError, Formula, '(p%s%s%s%sq)' % (CON, DIS, IMP, EQV))
 
