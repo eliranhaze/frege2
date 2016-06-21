@@ -11,7 +11,7 @@
         {% for var in formula.variables %}
           <th class="text-center">{{ var }}</th>
         {% endfor %}
-          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left" style="visibility: hidden; font-size: 80%;"></span>{{ question.formula }}<span class="pull-right"><span id="formula-head" class="glyphicon glyphicon-warning-sign" style="color: crimson; visibility: hidden; opacity: 0.8; font-size: 80%;"></span></span></th>
+          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{{ question.formula }}<span id="formula-head" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
         </tr>
       </thead>
       <tbody>
@@ -34,12 +34,12 @@
 
     <script>
     function select(type, i) {
-        clicked = '#'+type+i
-        ans = '#ans'+i
+        clicked = '#'+type+i;
+        ans = '#ans'+i;
         if (type == 't') {
-            other = '#f'+i
+            other = '#f'+i;
         } else {
-            other = '#t'+i
+            other = '#t'+i;
         }
         $(clicked).css('visibility', 'hidden');
         $(other).css('visibility', 'hidden');
@@ -50,6 +50,7 @@
         $('#t'+i).css('visibility', 'visible');
         $('#f'+i).css('visibility', 'visible');
         $('#ans'+i).css('visibility', 'hidden');
+        $('#formula-head').css('visibility', 'hidden');
     }
     </script>
   </div>
@@ -90,9 +91,9 @@
     }
     function on_response(data){
         if (data['tt_correct']) {
-            $('#formula-head').css('visibility', 'hidden')
+            $('#formula-head').css('visibility', 'hidden');
         } else {
-            $('#formula-head').css('visibility', 'visible')
+            $('#formula-head').css('visibility', 'visible');
         }
     }
   </script>
