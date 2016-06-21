@@ -131,7 +131,6 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         }
         if ext_data:
             response.update(ext_data)
-        print 'resp', response
         return JsonResponse(response)
 
     def _handle_choice_post(self, request):
