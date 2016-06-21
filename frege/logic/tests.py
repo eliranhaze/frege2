@@ -16,6 +16,9 @@ from .formula import (
     DIS,
     IMP,
     EQV,
+    Tautology,
+    Contingency,
+    Contradiction,
 )
 
 from .models import (
@@ -317,10 +320,124 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, '(1%s2)' % CON)
 
     def test_variables(self):
-        self.assertEqual(Formula('%sp' % NEG).variables(), ['p'])
-        self.assertEqual(Formula('p%sq' % IMP).variables(), ['p','q'])
-        self.assertEqual(Formula('(q%sr)%s(p%sr)' % (IMP, IMP, IMP)).variables(), ['p','q', 'r'])
-        self.assertEqual(Formula('((q%sq)%s(p%sp))%s(t%st)' % (IMP, IMP, IMP, IMP, IMP)).variables(), ['p','q', 't'])
+        self.assertEqual(Formula('%sp' % NEG).variables, ['p'])
+        self.assertEqual(Formula('p%sq' % IMP).variables, ['p','q'])
+        self.assertEqual(Formula('(q%sr)%s(p%sr)' % (IMP, IMP, IMP)).variables, ['p','q', 'r'])
+        self.assertEqual(Formula('((q%sq)%s(p%sp))%s(t%st)' % (IMP, IMP, IMP, IMP, IMP)).variables, ['p','q', 't'])
+
+    def test_assign_simple(self):
+       self.assertTrue(Formula('p').assign({'p':True}))
+       self.assertFalse(Formula('p').assign({'p':False}))
+       self.assertTrue(Formula('%sp' % NEG).assign({'p':False}))
+       self.assertFalse(Formula('%sp' % NEG).assign({'p':True}))
+
+    def test_assign_complex1(self):
+       f = Formula('q%s(p%sq)' % (IMP, IMP))
+       self.assertTrue(f.assign({
+           'p' : True,
+           'q' : True,
+       }))
+       self.assertTrue(f.assign({
+           'p' : True,
+           'q' : False,
+       }))
+       self.assertTrue(f.assign({
+           'p' : False,
+           'q' : True,
+       }))
+       self.assertTrue(f.assign({
+           'p' : False,
+           'q' : False,
+       }))
+       self.assertTrue(f.correct_option, Tautology)
+
+    def test_assign_complex2(self):
+       f = Formula('(p%s%sp)%s(r%s(q%sr))' % (CON, NEG, CON, IMP, EQV))
+       self.assertFalse(f.assign({
+           'p' : True,
+           'q' : True,
+           'r' : True,
+       }))
+       self.assertFalse(f.assign({
+           'p' : True,
+           'q' : True,
+           'r' : False,
+       }))
+       self.assertFalse(f.assign({
+           'p' : True,
+           'q' : False,
+           'r' : True,
+       }))
+       self.assertFalse(f.assign({
+           'p' : True,
+           'q' : False,
+           'r' : False,
+       }))
+       self.assertFalse(f.assign({
+           'p' : False,
+           'q' : True,
+           'r' : True,
+       }))
+       self.assertFalse(f.assign({
+           'p' : False,
+           'q' : True,
+           'r' : False,
+       }))
+       self.assertFalse(f.assign({
+           'p' : False,
+           'q' : False,
+           'r' : True,
+       }))
+       self.assertFalse(f.assign({
+           'p' : False,
+           'q' : False,
+           'r' : False,
+       }))
+       self.assertTrue(f.correct_option, Contradiction)
+
+    def test_assign_complex3(self):
+       f = Formula('(p%sq)%s(q%sr)' % (DIS, EQV, DIS))
+       self.assertTrue(f.assign({
+           'p' : True,
+           'q' : True,
+           'r' : True,
+       }))
+       self.assertTrue(f.assign({
+           'p' : True,
+           'q' : True,
+           'r' : False,
+       }))
+       self.assertTrue(f.assign({
+           'p' : True,
+           'q' : False,
+           'r' : True,
+       }))
+       self.assertFalse(f.assign({
+           'p' : True,
+           'q' : False,
+           'r' : False,
+       }))
+       self.assertTrue(f.assign({
+           'p' : False,
+           'q' : True,
+           'r' : True,
+       }))
+       self.assertTrue(f.assign({
+           'p' : False,
+           'q' : True,
+           'r' : False,
+       }))
+       self.assertFalse(f.assign({
+           'p' : False,
+           'q' : False,
+           'r' : True,
+       }))
+       self.assertTrue(f.assign({
+           'p' : False,
+           'q' : False,
+           'r' : False,
+       }))
+       self.assertTrue(f.correct_option, Contingency)
 
 class TruthTableTests(TestCase):
 

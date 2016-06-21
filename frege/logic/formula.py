@@ -145,12 +145,15 @@ class Formula(object):
             if self.con in BINARY_CONNECTIVES:
                 assert self.sf2
 
+    @property
     def variables(self):
         """ return a list of variables, merged and sorted """
-        var_list = self._var_list()
-        var_list = list(set(var_list))
-        var_list.sort()
-        return var_list
+        if not hasattr(self, '_vars'):
+            var_list = self._var_list()
+            var_list = list(set(var_list))
+            var_list.sort()
+            self._vars = var_list
+        return self._vars
 
     def _var_list(self):
         """ return a list of variables, not merged """
@@ -161,8 +164,43 @@ class Formula(object):
         # binary
         return self.sf1._var_list() + self.sf2._var_list() 
 
+    def assign(self, assignment):
+        if len(self.variables) > len(assignment):
+            raise ValueError('incorrect assignment size, should be %d' % len(self.variables))
+        if any (v not in assignment for v in self.variables):
+            raise ValueError('missing variables in assignment %s' % assignment)
+        if self.is_atomic:
+            return assignment[self.literal]
+        if self.con == NEG: 
+            return not self.sf1.assign(assignment)
+        elif self.con == CON:
+            return self.sf1.assign(assignment) and self.sf2.assign(assignment)
+        elif self.con == DIS:
+           return  self.sf1.assign(assignment) or self.sf2.assign(assignment)
+        elif self.con == IMP:
+           return  not self.sf1.assign(assignment) or self.sf2.assign(assignment)
+        elif self.con == EQV:
+           return  self.sf1.assign(assignment) == self.sf2.assign(assignment)
+
     def options(self):
         return FORMULA_OPTIONS
+
+    @property
+    def correct_option(self):
+        tt = TruthTable(self)
+        options = set([Tautology, Contradiction])
+        for var_values in tt.values:
+            satisfied = self.assign({
+                var : value for var, value in zip(tt.variables, var_values)
+            })
+            if not satisfied and Tautology in options:
+                options.remove(Tautology)
+            elif satisfied and Contradiction in options:
+                options.remove(Contradiction)
+            if not options:
+                return Contingency
+        assert len(options) == 1
+        return options.pop()
 
     @property
     def is_atomic(self):
@@ -186,7 +224,7 @@ class TruthTable(object):
 
     def __init__(self, formula):
         self.formula = formula
-        self.variables = formula.variables()
+        self.variables = formula.variables
         self.values = self._values(self.variables)
 
     def size(self):
