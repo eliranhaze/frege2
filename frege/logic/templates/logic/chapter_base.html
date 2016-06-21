@@ -15,7 +15,7 @@
     <div class="page-header">
     </div>
     <div class="panel panel-default">
-      <div class="panel-body">
+      <div class="panel-body noselect">
 {% for qnum, correct in chap_questions.iteritems %}
   {% if question and qnum == question.number %}
         <button class="btn btn-primary">{{ qnum }}</button>
