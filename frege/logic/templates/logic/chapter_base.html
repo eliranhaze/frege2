@@ -5,6 +5,9 @@
 
 {% block content %}
   <div class="container">
+    <div class="page-header noselect">
+    <h3>{% block topic_header %}{% endblock %} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
+    </div>
   {% block chapter_content %}
   {% endblock %}
     

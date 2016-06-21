@@ -1,16 +1,13 @@
 {% extends "logic/chapter_base.html" %}
 
 {% block title %}שאלה {{question.number }} פרק {{ chapter.number }}{% endblock %}
+{% block topic_header %}שאלה {{ question.number }}{% endblock %}
 
 {% block chapter_content %}
-    <!-- Question panel -->
-    <div class="page-header">
-    <h3>שאלה {{ question.number }} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
-    </div>
     <div class="panel panel-default">
       <div class="panel-body">
         <p style="white-space: pre-wrap; font-size: 110%;">{{ question.text }}</p>
-        <p><b>{% block pre_question %}הזמן תשובה{% endblock %}</b></p>
+        <p class="noselect"><b>{% block pre_question %}הזמן תשובה{% endblock %}</b></p>
 
         {% block question_content %}
         {% endblock %}
