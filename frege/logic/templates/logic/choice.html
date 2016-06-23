@@ -23,6 +23,7 @@
     function on_success() {
         $('input[name=choice]:not(:checked)').attr('disabled','disabled');
     }
+    function notify_incorrect(data){return true;}
     function on_response(data){}
   </script>
 {% endblock question_content %} 

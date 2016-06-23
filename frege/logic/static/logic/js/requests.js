@@ -27,12 +27,14 @@ function post_answer(url, data, csrf) {
             $("#answer").attr("class", "btn btn-primary btn-lg");
             on_success();
         } else {
-            $.notify({
-                icon: "glyphicon glyphicon-remove",
-                message: "<strong>תשובה שגויה</strong>"
-            },{
-                type: "danger",
-            });
+            if (notify_incorrect(data)) {
+                $.notify({
+                    icon: "glyphicon glyphicon-remove",
+                    message: "<strong>תשובה שגויה</strong>"
+                },{
+                    type: "danger",
+                });
+            }
             $("#answer").html("אישור");
             register_event();
         }
