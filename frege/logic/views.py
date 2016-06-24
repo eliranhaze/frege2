@@ -5,7 +5,13 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views import generic
 
-from .formula import Formula, TruthTable
+from .formula import (
+    Formula,
+    FormulaSet,
+    Argument,
+    TruthTable,
+    MultiTruthTable,
+)
 from .models import (
     Chapter,
     Question,
@@ -78,6 +84,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
     context_object_name = 'question'
 
+    def __init__(self, *args, **kwargs):
+        super(QuestionView, self).__init__(*args, **kwargs)
+        self.context_handlers = {
+            ChoiceQuestion : self._handle_choice_context,
+            TruthTableQuestion : self._handle_truth_table_context,
+        }
+        self.post_handlers = {
+            ChoiceQuestion : self._handle_choice_post,
+            TruthTableQuestion : self._handle_truth_table_post,
+        }
+
     def get_object(self):
         return get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
 
@@ -86,13 +103,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = self.object
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
-        if type(question) == ChoiceQuestion:
-            self.template_name = 'logic/choice.html'
-        elif type(question) == TruthTableQuestion:
-            formula = Formula(question.formula)
-            context['formula'] = formula
-            context['truth_table'] = TruthTable(formula)
-            self.template_name = 'logic/truth_table.html'
+        context.update(
+            self.context_handlers[type(question)](question)
+        )
         return context
 
     def post(self, request, chnum, qnum):
@@ -101,10 +114,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         ext_data = None
 
         # handle answer according to question type
-        if type(question) == ChoiceQuestion:
-            correct = self._handle_choice_post(request)
-        elif type(question) == TruthTableQuestion:
-            correct, ext_data = self._handle_truth_table_post(request, question)
+        correct, ext_data = self.post_handlers[type(question)](request, question)
 
         # register user answer
         user_chapter, _ = UserChapter.objects.get_or_create(
@@ -133,14 +143,56 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             response.update(ext_data)
         return JsonResponse(response)
 
-    def _handle_choice_post(self, request):
-        return Choice.objects.get(id=request.POST['choice']).is_correct
+    # ========================
+    # Question types
+    # ========================
+
+    def _handle_choice_context(self, *args):
+        self.template_name = 'logic/choice.html'
+        return {}
+
+    def _handle_choice_post(self, request, *args):
+        return Choice.objects.get(id=request.POST['choice']).is_correct, None
+
+    def _handle_truth_table_context(self, question):
+        self.template_name = 'logic/truth_table.html'
+        context = {}
+        if question.is_formula:
+            formulas = [Formula(question.formula)]
+            options = formulas[0].options
+        elif question.is_set:
+            formulas = FormulaSet(question.formula)
+            options = formulas.options
+        elif question.is_argument:
+            formulas = Argument(question.formula)
+            options = formulas.options
+        context['formulas'] = formulas
+        context['truth_table'] = MultiTruthTable(formulas)
+        context['options'] = options
+        return context
 
     def _handle_truth_table_post(self, request, question):
-        formula = Formula(question.formula)
-        values = [v == 'T' for v in request.POST.getlist('values[]')]
-        option_correct = int(request.POST['option']) == formula.correct_option.num
-        tt_correct = values == TruthTable(formula).result
-        return (option_correct and tt_correct), {'tt_correct':tt_correct}
+        answers = []
+        for i in xrange(1000):
+            l = request.POST.getlist('values[%d][]' % i)
+            if not l:
+                break
+            answers.append(l)
+        answers = [[v == 'T' for v in values] for values in answers]
+  
+        if question.is_formula:
+            formulas = [Formula(question.formula)]
+            correct_option = formulas[0].correct_option
+        elif question.is_set:
+            formulas = FormulaSet(question.formula)
+            correct_option = formulas.correct_option
+        elif question.is_argument:
+            formulas = Argument(question.formula)
+            correct_option = formulas.correct_option
 
+        truth_table = MultiTruthTable(formulas)
+        tt_corrects = [answer_values == result_values for answer_values, result_values in zip(answers, truth_table.result)]
+        option_correct = int(request.POST['option']) == correct_option.num
+
+        return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}
 

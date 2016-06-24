@@ -1,6 +1,7 @@
 {% extends "logic/question_base.html" %}
 
-{% block pre_question %}בחר/י תשובה{% endblock %}
+{% block question_text %}{{ question.text }}{% endblock %}
+{% block question_instruction %}בחר/י תשובה{% endblock %}
 
 {% block question_content %}
 

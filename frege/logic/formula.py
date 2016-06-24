@@ -295,8 +295,8 @@ class TruthTable(object):
 class MultiTruthTable(TruthTable):
 
     def __init__(self, formulas):
-        self.formulas = list(formulas) # to maintain order
-        super(MultiTruthTable, self).__init__(self.formulas[0])
+        super(MultiTruthTable, self).__init__(formulas[0])
+        self.formulas = formulas
         self.variables = list(set([v for var_list in [f.variables for f in formulas] for v in var_list]))
         self.variables.sort()
         self.values = self._values(self.variables)
@@ -340,6 +340,12 @@ class FormulaSet(object):
     def is_consistent(self):
         return self.correct_option == Consistent
 
+    def __iter__(self):
+        return iter(self.formulas)
+
+    def __getitem__(self, key):
+        return self.formulas[key]
+
     def __eq__(self, other):
         return self.formulas == other.formulas
 
@@ -361,8 +367,8 @@ class Argument(object):
         try:
             premises, conclusion = string.split(self.THEREFORE)
             self.conclusion = Formula(conclusion)
-            self.premises = FormulaSet(string=premises) if premises else None
-        except:
+            self.premises = FormulaSet(string=premises) if premises else []
+        except Exception, e:
             raise ValueError('illegal argument: %r' % string)
 
     @property
@@ -378,6 +384,12 @@ class Argument(object):
     @property
     def is_valid(self):
         return self.correct_option == Valid
+
+    def __iter__(self):
+        return iter(list(self.premises) + [self.conclusion])
+
+    def __getitem__(self, key):
+        return self.conclusion
 
     def __eq__(self, other):
         return self.conclusion == other.conclusion and self.premises == other.premises

@@ -5,7 +5,11 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .formula import Formula, FormulaSet, Argument
+from .formula import (
+    Formula,
+    FormulaSet,
+    Argument,
+)
 
 """
 This module contains definitions for the app's entities.
@@ -180,7 +184,28 @@ class TruthTableQuestion(FormalQuestion):
     )
     table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES,default=FORMULA)
     formula = models.CharField(verbose_name='טקסט', max_length=60)
-    
+
+    @property
+    def options(self):
+        if self.table_type == TruthTableQuestion.FORMULA:
+            return FORMULA_OPTIONS
+        elif self.table_type == TruthTableQuestion.SET:
+            return SET_OPTIONS
+        elif self.table_type == TruthTableQuestion.ARGUMENT:
+            return ARGUMENT_OPTIONS
+
+    @property
+    def is_formula(self):
+        return self.table_type == self.FORMULA
+ 
+    @property
+    def is_set(self):
+        return self.table_type == self.SET
+ 
+    @property
+    def is_argument(self):
+        return self.table_type == self.ARGUMENT
+ 
     def clean(self):
         super(TruthTableQuestion, self).clean()
         if self.table_type == self.FORMULA:
@@ -189,6 +214,9 @@ class TruthTableQuestion(FormalQuestion):
             validate_formula_set(self.formula)
         elif self.table_type == self.ARGUMENT:
             validate_argument(self.formula)
+
+    def display(self):
+        return '{%s}' % self.formula if self.is_set else self.formula
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'

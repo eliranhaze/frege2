@@ -13,6 +13,10 @@ body {
     padding: 2px;
 }
 
+.formal {
+    font-family: 'Lucida Console', Monaco, monospace;
+}
+
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -26,6 +30,14 @@ body {
 .tt-notice {
     color: crimson;
     visibility: hidden;
+    opacity: 0.8;
+    font-size: 80%;
+    padding: 7px;
+}
+
+.tt-notice-correct {
+   /* color: crimson; */
+    visibility: visible;
     opacity: 0.8;
     font-size: 80%;
     padding: 7px;

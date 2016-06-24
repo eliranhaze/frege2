@@ -591,7 +591,7 @@ class ArgumentTests(TestCase):
 
     def test_create(self):
         arg = Argument(':p')
-        self.assertEquals(arg.premises, None)
+        self.assertEquals(arg.premises, [])
         self.assertEquals(arg.conclusion, Formula('p'))
         arg = Argument('p,q:r')
         self.assertEquals(arg.premises, FormulaSet('p,q'))

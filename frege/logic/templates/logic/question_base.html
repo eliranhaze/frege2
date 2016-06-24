@@ -6,8 +6,8 @@
 {% block chapter_content %}
     <div class="panel panel-default">
       <div class="panel-body">
-        <p style="white-space: pre-wrap; font-size: 110%;">{{ question.text }}</p>
-        <p class="noselect"><b>{% block pre_question %}הזמן תשובה{% endblock %}</b></p>
+        <p style="white-space: pre-wrap; font-size: 110%;">{% block question_text %}{% endblock %}</p>
+        <p class="noselect"><b>{% block question_instruction %}{% endblock %}</b></p>
 
         {% block question_content %}
         {% endblock %}

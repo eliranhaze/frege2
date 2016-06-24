@@ -1,32 +1,37 @@
 {% extends "logic/question_base.html" %}
 
-{% block pre_question %}האם הנוסחה הבאה הנה טאוטולוגיה/קונטינגנציה/סתירה?{% endblock %}
+{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal" style="font-size: 150%; margin-top: -30px;" dir="ltr">{{question.display}}</p>{% endblock %}
+{% block question_instruction %}מלא/י את הטבלה ובחר/י את התשובה הנכונה{% endblock %}
 
 {% block question_content %}
 
   <div>
-    <table class="table table-bordered table-condensed table-hover noselect" style="font-family: 'Lucida Console', Monaco, monospace;" dir="ltr">
+    <table class="table table-bordered table-condensed table-hover noselect formal" dir="ltr">
       <thead>
         <tr style="font-size: 110%;">
-        {% for var in formula.variables %}
-          <th class="text-center">{{ var }}</th>
+        {% for var in truth_table.variables %}
+          <th class="text-center">{{var}}</th>
         {% endfor %}
-          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{{ question.formula }}<span id="formula-head" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
+        {% for formula in formulas %}
+          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}<span id="formula-head{{forloop.counter}}" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
+        {% endfor %}
         </tr>
       </thead>
       <tbody>
       {% for row in truth_table.values %}
         <tr class="text-center">
         {% for value in row %}
-          <td>{{ value|yesno:"T,F" }}</td>
+          <td>{{value|yesno:"T,F"}}</td>
         {% endfor %}
+        {% for formula in formulas %} 
           <td>
             <div class="btn-group" role="group" style="font-size: 130%;">
-              <label class="label label-default" style="opacity: 0.5;" id='t{{ forloop.counter }}' onclick="select('t', '{{ forloop.counter }}')">T</label>
-              <label class="label" style="visibility: hidden; color: black;" id='ans{{ forloop.counter }}' onclick="unselect('{{ forloop.counter }}')">?</label>
-              <label class="label label-default" style="opacity: 0.5;" id='f{{ forloop.counter }}' onclick="select('f', '{{ forloop.counter }}')">F</label>
+              <label class="label label-default" style="opacity: 0.5;" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
+              <label class="label" style="visibility: hidden; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">?</label>
+              <label class="label label-default" style="opacity: 0.5;" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
             </div>
           </td>
+        {% endfor %}
         </tr>
       {% endfor %}
       </tbody>
@@ -46,57 +51,79 @@
         $(ans).css('visibility', 'visible');
         $(ans).text($(clicked).text());
     }
-    function unselect(i) {
+    function unselect(i, j) {
         $('#t'+i).css('visibility', 'visible');
         $('#f'+i).css('visibility', 'visible');
         $('#ans'+i).css('visibility', 'hidden');
-        $('#formula-head').css('visibility', 'hidden');
+        $('#formula-head'+j).css('visibility', 'hidden');
     }
     </script>
   </div>
 
   <div>
     <form id=options>
-    {% for option in formula.options %}
-        <input name="option" value="{{ option.num }}" type="radio"> {{ option.desc }}<br>
+    {% for option in options %}
+        <input name="option" value="{{option.num}}" type="radio"> {{option.desc}}<br>
     {% endfor %}
     </form>
   </div>
 
   <script>
-    var table_size = {{ truth_table.size }}
     function is_empty() {
         if (!$('input[name=option]:checked', '#options').val())
             return 'לא נבחרה תשובה';
-        for (i = 1; i <= table_size; i++) {
-            if ($('#ans'+i).css('visibility') == 'hidden')
-                return 'הטבלה אינה מלאה';
-        }
+      {% for formula in formulas %} 
+        {% for row in truth_table.values %}
+        if ($('label[id=ans{{forloop.counter}}{{forloop.parentloop.counter}}]').css('visibility') == 'hidden')
+            return 'הטבלה אינה מלאה';
+        {% endfor %}
+      {% endfor %}
     }
     function get_post_data() {
         return {
             'option':$('input[name=option]:checked', '#options').val(),
             'values':[
+              {% for formula in formulas %} 
+                [
                 {% for row in truth_table.values %}
-                $('#ans{{ forloop.counter }}').text(),
+                  $('#ans{{forloop.counter}}{{forloop.parentloop.counter}}').text(),
                 {% endfor %}
+                ],
+              {% endfor %}
             ]
         };
     }
     function on_success() {
         $('input[name=option]:not(:checked)').attr('disabled','disabled');
-        for (i = 1; i <= table_size; i++) {
-            $('label[id=ans'+i+']').attr('onclick','');
-        }
+      {% for formula in formulas %} 
+        {% for row in truth_table.values %}
+        $('label[id=ans{{forloop.counter}}{{forloop.parentloop.counter}}]').attr('onclick','');
+        {% endfor %}
+      {% endfor %}
     }
     function notify_incorrect(data){
-        return data['tt_correct'];
+        corrects = data['tt_corrects'];
+        for (i = 0; i < corrects.length; i++) {
+            if (!corrects[i]) {
+                // do not notify if the table is incorrect
+                return false;
+            }
+        }
+        return true;
     }
     function on_response(data){
-        if (data['tt_correct']) {
-            $('#formula-head').css('visibility', 'hidden');
-        } else {
-            $('#formula-head').css('visibility', 'visible');
+        corrects = data['tt_corrects'];
+        console.log('response ' + corrects)
+        for (i = 0; i < corrects.length; i++) {
+            label = '#formula-head'+(i+1)
+            if (corrects[i]) {
+                $(label).removeClass('glyphicon-warning-sign').addClass('glyphicon-ok');
+                $(label).removeClass('tt-notice').addClass('tt-notice-correct');
+            } else {
+                $(label).removeClass('glyphicon-ok').addClass('glyphicon-warning-sign');
+                $(label).removeClass('tt-notice-correct').addClass('tt-notice');
+            }
+            $(label).css('visibility', 'visible');
         }
     }
   </script>
