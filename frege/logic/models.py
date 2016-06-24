@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from django.db.models.signals import pre_delete 
+from django.dispatch import receiver
+
 from .formula import (
     Formula,
     FormulaSet,
@@ -71,7 +74,7 @@ class Question(models.Model):
             chapter_questions = Question._filter(chapter=self.chapter)
             if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
                 raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
-    
+
     @classmethod
     def _all(cls):
         return cls._sub_func('all')
@@ -103,6 +106,14 @@ class Question(models.Model):
     class Meta:
         abstract = True
         ordering = ['number']
+
+@receiver(pre_delete)   
+def delete_stuff(instance, sender, **kwargs):
+    # delete question-related entities upon question deletion
+    if issubclass(sender, Question):
+        self = instance
+        for ua in self.user_answers():
+            ua.delete()
 
 class TextualQuestion(Question):
     text = models.TextField(verbose_name='טקסט')
