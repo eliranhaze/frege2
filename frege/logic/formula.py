@@ -343,6 +343,10 @@ class Argument(object):
             raise ValueError('illegal argument: %r' % string)
 
     @property
+    def options(self):
+        return ARGUMENT_OPTIONS
+
+    @property
     def correct_option(self):
         if Formula.from_argument(self).is_tautology:
             return Valid

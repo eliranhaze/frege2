@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .formula import Formula
+from .formula import Formula, FormulaSet, Argument
 
 """
 This module contains definitions for the app's entities.
@@ -19,7 +19,7 @@ Here's a brief summary:
 - DeductionQuestion: a question that is answered by a deduction in gui.
 """
 
-def shorten_text(text, size=40):
+def shorten_text(text, size=50):
     return text if len(text) <= size else '%s...' % text[:size-3]
 
 def _concrete_sub_classes(cls):
@@ -120,10 +120,6 @@ def validate_formula(formula):
         raise ValidationError('הנוסחה שהוזנה אינה תקינה')
 
 class FormalQuestion(Question):
-    formula = models.CharField(verbose_name='נוסחה', max_length=30, validators=[validate_formula])
-
-    def __init__(self, *args, **kwargs):
-        super(FormalQuestion, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
         return '%s. %s' % (self.number, self.formula)
@@ -149,13 +145,62 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name = 'שאלת בחירה'
         verbose_name_plural = 'שאלות בחירה'
 
+def validate_truth_table(text):
+    try:
+        if Argument.THEREFORE in text:
+            Argument(text)
+        elif FormulaSet.SEP in text:
+            FormulaSet(text)
+        else:
+            Formula(text)
+    except:
+        raise ValidationError('הטקסט שהוזן אינו תקין')
+
+def validate_formula(formula):
+    try:
+        Formula(formula)
+    except:
+        raise ValidationError('הנוסחה שהוזנה אינה תקינה')
+
+def validate_formula_set(fset):
+    try:
+        FormulaSet(fset)
+    except:
+        raise ValidationError('הקבוצה שהוזנה אינה תקינה')
+
+def validate_argument(arg):
+    try:
+        Argument(arg)
+    except:
+        raise ValidationError('הטיעון שהוזן אינו תקין')
+
 class TruthTableQuestion(FormalQuestion):
+    FORMULA = 'F'
+    SET = 'S'
+    ARGUMENT = 'A'
+    TABLE_CHOICES = (
+        (FORMULA, 'נוסחה'),
+        (SET,'קבוצה'),
+        (ARGUMENT, 'טיעון'),
+    )
+    TYPE_VALIDATION = {
+        FORMULA : validate_formula,
+        SET : validate_formula_set,
+        ARGUMENT : validate_argument,
+    }
+    table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES,default=FORMULA)
+    formula = models.CharField(verbose_name='טקסט', max_length=60, validators=[validate_truth_table])
+    
+    def clean(self):
+        super(TruthTableQuestion, self).clean()
+        self.TYPE_VALIDATION[self.table_type](self.formula)
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
         verbose_name_plural = 'שאלות טבלת אמת'
 
 class DeductionQuestion(FormalQuestion):
+    formula = models.CharField(verbose_name='טיעון', max_length=60, validators=[validate_argument])
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'

@@ -82,6 +82,10 @@ class FormalQuestionAdmin(QuestionAdmin):
         models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
     }
 
+class TruthTableQuestionAdmin(FormalQuestionAdmin):
+    list_display = ['number', 'chapter', 'table_type', 'formula']
+    list_filter = QuestionAdmin.list_filter + ['table_type']
+
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct']
     ordering = ['user', 'chapter', 'question_number']
@@ -121,7 +125,7 @@ admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
-admin.site.register(TruthTableQuestion, FormalQuestionAdmin)
+admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)
 admin.site.register(UserChapter, UserChapterAdmin)
