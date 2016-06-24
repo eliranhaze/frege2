@@ -5,10 +5,10 @@ Code for handling classical propositional logic formulas.
 
 # Connectives
 NEG = '~'
-CON = '*'
-DIS = '|'
-IMP = '>'
-EQV = '='
+CON = u'·'
+DIS = u'∨'
+IMP = u'⊃'
+EQV = u'≡'
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
 
