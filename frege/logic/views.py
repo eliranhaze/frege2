@@ -73,6 +73,12 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     def get_object(self):
         return get_object_or_404(Chapter, number=self.kwargs['chnum'])
 
+    def dispatch(self, request, chnum):
+        chapter = get_object_or_404(Chapter, number=chnum)
+        if chapter.num_questions() == 0:
+            return HttpResponseRedirect(reverse('logic:index'))
+        return super(ChapterSummaryView, self).dispatch(request, chnum)
+
     def get_context_data(self, **kwargs):
         context = super(ChapterSummaryView, self).get_context_data(**kwargs)
         chap_questions = chapter_questions_user_data(self.object, self.request.user)
