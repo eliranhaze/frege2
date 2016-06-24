@@ -11,6 +11,8 @@ from django.test import TestCase
 from .formula import (
     Formula,
     TruthTable,
+    FormulaSet,
+    Argument,
     NEG,
     CON,
     DIS,
@@ -45,6 +47,10 @@ class IndexViewTests(TestCase):
     def setUp(self):
         login(self)
 
+    def _create_for_chapters(self, chapters):
+        for c in chapters:
+            TruthTableQuestion.objects.create(chapter=c, number=1, formula='p')
+
     def _assertHas(self, response, chapters):
         self.assertQuerysetEqual(response.context['chapter_list'], [repr(c) for c in chapters])
         for chapter in chapters:
@@ -57,11 +63,13 @@ class IndexViewTests(TestCase):
 
     def test_index_one_chapter(self):
         chapters = [Chapter.objects.create(title='chapternum1', number=1)]
+        self._create_for_chapters(chapters)
         response = self.client.get(reverse('logic:index'))
         self._assertHas(response, chapters)
  
     def test_index_many_chapters(self):
         chapters = [Chapter.objects.create(title='chapternum%s'%i, number=i) for i in range(1,6)]
+        self._create_for_chapters(chapters)
         response = self.client.get(reverse('logic:index'))
         self._assertHas(response, chapters)
 
@@ -300,6 +308,7 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, 'pq')
         self.assertRaises(ValueError, Formula, '%sp' % IMP)
         self.assertRaises(ValueError, Formula, 'p%s' % IMP)
+        self.assertRaises(ValueError, Formula, 'p%sq' % NEG)
         self.assertRaises(ValueError, Formula, '((p%sq)' % CON)
         self.assertRaises(ValueError, Formula, '(p%sq))' % CON)
         self.assertRaises(ValueError, Formula, '(p%sq))' % CON)
@@ -349,7 +358,8 @@ class FormulaTests(TestCase):
            'p' : False,
            'q' : False,
        }))
-       self.assertTrue(f.correct_option, Tautology)
+       self.assertEquals(f.correct_option, Tautology)
+       self.assertTrue(f.is_tautology)
 
     def test_assign_complex2(self):
        f = Formula('(p%s%sp)%s(r%s(q%sr))' % (CON, NEG, CON, IMP, EQV))
@@ -393,7 +403,8 @@ class FormulaTests(TestCase):
            'q' : False,
            'r' : False,
        }))
-       self.assertTrue(f.correct_option, Contradiction)
+       self.assertEquals(f.correct_option, Contradiction)
+       self.assertTrue(f.is_contradiction)
 
     def test_assign_complex3(self):
        f = Formula('(p%sq)%s(q%sr)' % (DIS, EQV, DIS))
@@ -437,7 +448,7 @@ class FormulaTests(TestCase):
            'q' : False,
            'r' : False,
        }))
-       self.assertTrue(f.correct_option, Contingency)
+       self.assertEquals(f.correct_option, Contingency)
 
 class TruthTableTests(TestCase):
 
@@ -463,3 +474,61 @@ class TruthTableTests(TestCase):
                                       [False, False, True],
                                       [False, False, False]])
 
+class FormulaSetTests(TestCase):
+
+    def test_create(self):
+        self.assertEquals(FormulaSet('p,q,r,s').formulas, set([Formula('p'), Formula('q'), Formula('r'), Formula('s')]))
+        self.assertEquals(FormulaSet('p, q, r,s').formulas, set([Formula('p'), Formula('q'), Formula('r'), Formula('s')]))
+        self.assertEquals(FormulaSet('p,p,q,q').formulas, set([Formula('p'), Formula('q')]))
+        self.assertEquals(FormulaSet('p,p%sq' % CON).formulas, set([Formula('p'), Formula('p%sq' % CON)]))
+
+    def test_create_invalid(self):
+        self.assertRaises(ValueError, FormulaSet, '')
+        self.assertRaises(ValueError, FormulaSet, 'p,,q')
+        self.assertRaises(ValueError, FormulaSet, '{p,q}')
+        self.assertRaises(ValueError, FormulaSet, 'pqrs')
+        self.assertRaises(ValueError, FormulaSet, 'p,q,r%s,' % CON)
+
+    def test_consistent(self):
+        self.assertTrue(FormulaSet('p').is_consistent)
+        self.assertTrue(FormulaSet('p,q,r').is_consistent)
+        self.assertTrue(FormulaSet('p%sq,q%sr' % (CON, IMP)).is_consistent)
+        self.assertTrue(FormulaSet('p,p,r').is_consistent)
+        self.assertTrue(FormulaSet('p%sq,p%sp,(p%s(q%sr))%sr' % (CON, IMP, IMP, DIS, EQV)).is_consistent)
+
+    def test_inconsistent(self):
+        self.assertFalse(FormulaSet('p,%sp' % NEG).is_consistent)
+        self.assertFalse(FormulaSet('p,%sp,q,r,s' % NEG).is_consistent)
+        self.assertFalse(FormulaSet('p%sq,p%sq,%sp%sq' % (CON, DIS, NEG, EQV)).is_consistent)
+
+class ArgumentTests(TestCase):
+
+    def test_create(self):
+        arg = Argument(':p')
+        self.assertEquals(arg.premises, None)
+        self.assertEquals(arg.conclusion, Formula('p'))
+        arg = Argument('p,q:r')
+        self.assertEquals(arg.premises, FormulaSet('p,q'))
+        self.assertEquals(arg.conclusion, Formula('r'))
+        prem = 'p%sr,%sq,(r%sq)%sp' % (CON, NEG, DIS, EQV)
+        conc = '(p%sr)%sq' % (CON, IMP)
+        arg = Argument('%s:%s' % (prem, conc))
+        self.assertEquals(arg.premises, FormulaSet(prem))
+        self.assertEquals(arg.conclusion, Formula(conc))
+
+    def test_create_invalid(self):
+        self.assertRaises(ValueError, Argument, 'p')
+        self.assertRaises(ValueError, Argument, 'p,q,r')
+        self.assertRaises(ValueError, Argument, 'p,q,r:')
+
+    def test_valid_argument(self):
+        self.assertTrue(Argument(':(p%s%sp)' % (DIS, NEG)).is_valid)
+        self.assertTrue(Argument('p,p%sq:q' % IMP).is_valid)
+        self.assertTrue(Argument('p%sq,q%sr:p%sr' % (IMP, IMP, IMP)).is_valid)
+        self.assertTrue(Argument('p%sq,q%sp:p%sq' % (IMP, IMP, EQV)).is_valid)
+        self.assertTrue(Argument('p,%sp:(p%sp)' % (NEG, CON)).is_valid)
+
+    def test_invalid_argument(self):
+        self.assertFalse(Argument(':(p%sp)' % DIS).is_valid)
+        self.assertFalse(Argument('p,q,r,s,t,u,v:(p%sx)' % CON).is_valid)
+        self.assertFalse(Argument('p,q,p:(p%s%sp)' % (CON, NEG)).is_valid)

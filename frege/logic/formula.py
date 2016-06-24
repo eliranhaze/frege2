@@ -36,7 +36,7 @@ class Option(object):
     __repr__ = __unicode__
     __str__ = __unicode__
 
-# set options
+# options
 Tautology = Option(1, 'טאוטולוגיה')
 Contingency = Option(2, 'קונטינגנציה')
 Contradiction = Option(3, 'סתירה')
@@ -46,8 +46,8 @@ Consistent = Option(6, 'עקבית')
 Inconsistent = Option(7, 'לא עקבית')
 
 FORMULA_OPTIONS = [Tautology, Contingency, Contradiction]
-ARGUMENT_OPTIONS = [Valid, Invalid]
 SET_OPTIONS = [Consistent, Inconsistent]
+ARGUMENT_OPTIONS = [Valid, Invalid]
 
 class Formula(object):
 
@@ -107,6 +107,10 @@ class Formula(object):
 	            raise ValueError('%s is not a syntactically valid formula' % string)
             elif nesting < 0:
                 raise ValueError('unbalanced parentheses in %s' % string)
+        if self.con == NEG:
+            # if this formula is a negation, make sure all literals were consumed
+            if self.literal[0] != self.con or self.sf1.literal not in self.literal[1:]:
+                raise ValueError('ill-formed negation formula %s' % string)
 
     def _strip(self, string):
         """ strip all outmost brackets of a string representation of a formula """
@@ -144,6 +148,22 @@ class Formula(object):
             assert self.sf1
             if self.con in BINARY_CONNECTIVES:
                 assert self.sf2
+
+    @classmethod
+    def from_set(cls, formula_set):
+        f_str = ''
+        for f in formula_set.formulas:
+            if not f_str:
+                f_str = f.literal
+            else:
+                f_str = '(%s)%s(%s)' % (f_str, CON, f.literal)
+        return Formula(f_str)
+
+    @classmethod
+    def from_argument(cls, argument):
+        if argument.premises:
+            return Formula('(%s)%s(%s)' % (cls.from_set(argument.premises).literal, IMP, argument.conclusion.literal))
+        return argument.conclusion
 
     @property
     def variables(self):
@@ -200,6 +220,14 @@ class Formula(object):
         return options.pop()
 
     @property
+    def is_tautology(self):
+        return self.correct_option == Tautology
+
+    @property
+    def is_contradiction(self):
+        return self.correct_option == Contradiction
+
+    @property
     def is_atomic(self):
         return not self.con
     @property
@@ -208,6 +236,20 @@ class Formula(object):
     @property
     def is_binary(self):
         return self.con in BINARY_CONNECTIVES
+
+    def __eq__(self, other):
+        if not isinstance(other, Formula):
+            return False
+        return self.literal == other.literal \
+            and self.con == other.con \
+            and self.sf1 == other.sf1 \
+            and self.sf2 == other.sf2
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self.literal)
 
     def __unicode__(self):
         return self.literal
@@ -250,3 +292,68 @@ class TruthTable(object):
             values.append(row)
         return values
 
+class FormulaSet(object):
+
+    SEP = ','
+
+    def __init__(self, string = None, formulas = None):
+        if not string and not formulas:
+            raise ValueError('formula set cannot be empty')
+        if string:
+            self.formulas = set([Formula(p) for p in string.split(self.SEP)])
+        else:
+            self.formulas = set(formulas)
+
+    def options(self):
+        return SET_OPTIONS
+
+    @property
+    def correct_option(self):
+        if Formula.from_set(self).is_contradiction:
+            return Inconsistent
+        return Consistent
+
+    @property
+    def is_consistent(self):
+        return self.correct_option == Consistent
+
+    def __eq__(self, other):
+        return self.formulas == other.formulas
+
+    def __ne__(self, other):
+        return not self == other
+
+class Argument(object):
+
+    THEREFORE = ':'
+
+    def __init__(self, string = None, conclusion = None, premises = None):
+        if string:
+            self._analyze(string)
+        else:
+            self.conclusion = conclusion
+            self.premises = FormulaSet(formulas=premises)
+
+    def _analyze(self, string):
+        try:
+            premises, conclusion = string.split(self.THEREFORE)
+            self.conclusion = Formula(conclusion)
+            self.premises = FormulaSet(string=premises) if premises else None
+        except:
+            raise ValueError('illegal argument: %r' % string)
+
+    @property
+    def correct_option(self):
+        if Formula.from_argument(self).is_tautology:
+            return Valid
+        return Invalid
+        
+    @property
+    def is_valid(self):
+        return self.correct_option == Valid
+
+    def __eq__(self, other):
+        return self.conclusion == other.conclusion and self.premises == other.premises
+
+    def __ne__(self, other):
+        return not self == other
