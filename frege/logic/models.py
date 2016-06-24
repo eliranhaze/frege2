@@ -66,7 +66,7 @@ class Question(models.Model):
         if self.chapter_id:
             chapter_questions = Question._filter(chapter=self.chapter)
             if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
-                raise ValidationError('כבר קיימת שאלה מספר %d בפרק זה' % (self.number))
+                raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
     
     @classmethod
     def _all(cls):
@@ -113,12 +113,6 @@ class TextualQuestion(Question):
     class Meta(Question.Meta):
         abstract = True
 
-def validate_formula(formula):
-    try:
-        Formula(formula)
-    except:
-        raise ValidationError('הנוסחה שהוזנה אינה תקינה')
-
 class FormalQuestion(Question):
 
     def __unicode__(self):
@@ -145,34 +139,35 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name = 'שאלת בחירה'
         verbose_name_plural = 'שאלות בחירה'
 
-def validate_truth_table(text):
-    try:
-        if Argument.THEREFORE in text:
-            Argument(text)
-        elif FormulaSet.SEP in text:
-            FormulaSet(text)
-        else:
-            Formula(text)
-    except:
-        raise ValidationError('הטקסט שהוזן אינו תקין')
-
 def validate_formula(formula):
     try:
         Formula(formula)
     except:
-        raise ValidationError('הנוסחה שהוזנה אינה תקינה')
+        raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
 
 def validate_formula_set(fset):
     try:
         FormulaSet(fset)
     except:
-        raise ValidationError('הקבוצה שהוזנה אינה תקינה')
+        raise ValidationError({'formula':'הקבוצה שהוזנה אינה תקינה'})
 
 def validate_argument(arg):
     try:
         Argument(arg)
     except:
+        msg = 'הטיעון שהוזן אינו תקין'
+        raise ValidationError({'formula':msg})
+
+def validate_deduction_argument(arg):
+    try:
+        a = Argument(arg)
+    except:
         raise ValidationError('הטיעון שהוזן אינו תקין')
+    if not a.is_valid:
+        raise ValidationError('הטיעון שהוזן אינו ניתן להוכחה')
+
+def validate_truth_table(x):
+    pass
 
 class TruthTableQuestion(FormalQuestion):
     FORMULA = 'F'
@@ -183,28 +178,30 @@ class TruthTableQuestion(FormalQuestion):
         (SET,'קבוצה'),
         (ARGUMENT, 'טיעון'),
     )
-    TYPE_VALIDATION = {
-        FORMULA : validate_formula,
-        SET : validate_formula_set,
-        ARGUMENT : validate_argument,
-    }
     table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES,default=FORMULA)
-    formula = models.CharField(verbose_name='טקסט', max_length=60, validators=[validate_truth_table])
+    formula = models.CharField(verbose_name='טקסט', max_length=60)
     
     def clean(self):
         super(TruthTableQuestion, self).clean()
-        self.TYPE_VALIDATION[self.table_type](self.formula)
+        if self.table_type == self.FORMULA:
+            validate_formula(self.formula)
+        elif self.table_type == self.SET:
+            validate_formula_set(self.formula)
+        elif self.table_type == self.ARGUMENT:
+            validate_argument(self.formula)
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
         verbose_name_plural = 'שאלות טבלת אמת'
+        unique_together = ('chapter', 'formula')
 
 class DeductionQuestion(FormalQuestion):
-    formula = models.CharField(verbose_name='טיעון', max_length=60, validators=[validate_argument])
+    formula = models.CharField(verbose_name='טיעון', max_length=60, validators=[validate_deduction_argument])
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'
         verbose_name_plural = 'שאלות דדוקציה'
+        unique_together = ('chapter', 'formula')
 
 class Answer(models.Model):
     text = models.CharField(verbose_name='טקסט', max_length=200)
