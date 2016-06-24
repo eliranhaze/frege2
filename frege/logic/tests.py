@@ -11,6 +11,7 @@ from django.test import TestCase
 from .formula import (
     Formula,
     TruthTable,
+    MultiTruthTable,
     FormulaSet,
     Argument,
     NEG,
@@ -474,13 +475,98 @@ class TruthTableTests(TestCase):
                                       [False, False, True],
                                       [False, False, False]])
 
+    def test_result_simple(self):
+        tt = TruthTable(Formula('p'))
+        self.assertEquals(tt.result, [True, False])
+
+    def test_result_neg(self):
+        tt = TruthTable(Formula('%sp' % NEG))
+        self.assertEquals(tt.result, [False, True])
+
+    def test_result_con(self):
+        tt = TruthTable(Formula('p%sq' % CON))
+        self.assertEquals(tt.result, [True,
+                                      False,
+                                      False,
+                                      False])
+
+    def test_result_dis(self):
+        tt = TruthTable(Formula('p%sq' % DIS))
+        self.assertEquals(tt.result, [True,
+                                      True,
+                                      True,
+                                      False])
+
+    def test_result_eqv(self):
+        tt = TruthTable(Formula('p%sq' % EQV))
+        self.assertEquals(tt.result, [True,
+                                      False,
+                                      False,
+                                      True])
+
+    def test_result_imp(self):
+        tt = TruthTable(Formula('p%sq' % IMP))
+        self.assertEquals(tt.result, [True,
+                                      False,
+                                      True,
+                                      True])
+
+    def test_result_complex(self):
+        tt = TruthTable(Formula('(p%s%sq)%s(r%sq)' % (CON, NEG, DIS, EQV))) # (p&~q)v(r=q)
+        self.assertEquals(tt.result, [True,  # TTT
+                                      False, # TTF
+                                      True,  # TFT
+                                      True,  # TFF
+                                      True,  # FTT
+                                      False, # FTF
+                                      False, # FFT
+                                      True]) # FFF
+
+class MultiTruthTableTests(TestCase):
+
+    def test_values1(self):
+        tt = MultiTruthTable(FormulaSet('p').formulas)
+        self.assertEquals(tt.values, [[True], [False]])
+
+    def test_values2(self):
+        tt = MultiTruthTable(FormulaSet('p%sq,%sp,r' % (EQV, NEG)).formulas)
+        self.assertEquals(tt.values, [[True,  True,  True],
+                                      [True,  True,  False],
+                                      [True,  False, True],
+                                      [True,  False, False],
+                                      [False, True,  True],
+                                      [False, True,  False],
+                                      [False, False, True],
+                                      [False, False, False]])
+
+    def test_result_simple(self):
+        tt = MultiTruthTable(FormulaSet('p%sq,p%sq,p%sq,p%sq' % (CON, DIS, EQV, IMP)).formulas)
+        self.assertEquals(tt.result,[
+            [True,
+             False,
+             False,
+             False],
+            [True,
+             True,
+             True,
+             False],
+            [True,
+             False,
+             False,
+             True],
+            [True,
+             False,
+             True,
+             True],
+        ])
+
 class FormulaSetTests(TestCase):
 
     def test_create(self):
-        self.assertEquals(FormulaSet('p,q,r,s').formulas, set([Formula('p'), Formula('q'), Formula('r'), Formula('s')]))
-        self.assertEquals(FormulaSet('p, q, r,s').formulas, set([Formula('p'), Formula('q'), Formula('r'), Formula('s')]))
-        self.assertEquals(FormulaSet('p,p,q,q').formulas, set([Formula('p'), Formula('q')]))
-        self.assertEquals(FormulaSet('p,p%sq' % CON).formulas, set([Formula('p'), Formula('p%sq' % CON)]))
+        self.assertEquals(FormulaSet('p,q,r,s').formulas, [Formula('p'), Formula('q'), Formula('r'), Formula('s')])
+        self.assertEquals(FormulaSet('p, q, r,s').formulas, [Formula('p'), Formula('q'), Formula('r'), Formula('s')])
+        self.assertEquals(FormulaSet('p,p,q,q').formulas, [Formula('p'), Formula('q')])
+        self.assertEquals(FormulaSet('p,p%sq' % CON).formulas, [Formula('p'), Formula('p%sq' % CON)])
 
     def test_create_invalid(self):
         self.assertRaises(ValueError, FormulaSet, '')

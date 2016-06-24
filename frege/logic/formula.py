@@ -292,6 +292,23 @@ class TruthTable(object):
             values.append(row)
         return values
 
+class MultiTruthTable(TruthTable):
+
+    def __init__(self, formulas):
+        self.formulas = list(formulas) # to maintain order
+        super(MultiTruthTable, self).__init__(self.formulas[0])
+        self.variables = list(set([v for var_list in [f.variables for f in formulas] for v in var_list]))
+        self.variables.sort()
+        self.values = self._values(self.variables)
+
+    @property
+    def result(self):
+        result = []
+        for f in self.formulas:
+            self.formula = f
+            result.append(super(MultiTruthTable, self).result)
+        return result
+            
 class FormulaSet(object):
 
     SEP = ','
@@ -300,9 +317,15 @@ class FormulaSet(object):
         if not string and not formulas:
             raise ValueError('formula set cannot be empty')
         if string:
-            self.formulas = set([Formula(p) for p in string.split(self.SEP)])
+            self.formulas = [Formula(p) for p in string.split(self.SEP)]
         else:
-            self.formulas = set(formulas)
+            self.formulas = formulas
+        self.formulas = self._uniqify(self.formulas)
+
+    def _uniqify(self, formulas):
+        """ remove duplicates from a list while perserving order """
+        seen = set()
+        return [f for f in formulas if not (f in seen or seen.add(f))]
 
     def options(self):
         return SET_OPTIONS
