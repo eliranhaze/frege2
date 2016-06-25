@@ -80,6 +80,10 @@
       {% endfor %}
     }
     function get_post_data() {
+        // clear warnings before posting
+        {% for formula in formulas %}
+        $('#formula-head{{forloop.counter}}').css('visibility', 'hidden');
+        {% endfor %}
         return {
             'option':$('input[name=option]:checked', '#options').val(),
             'values':[
