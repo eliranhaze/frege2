@@ -23,8 +23,11 @@
                             <input type="button" class="formula-btn" id="dis" value="∨"/>
                             <input type="button" class="formula-btn" id="imp" value="⊃"/>
                             <input type="button" class="formula-btn" id="eqv" value="≡"/>
+                            {% if opts.verbose_name != 'שאלת טבלת אמת' %}
                             <input type="button" class="formula-btn" id="all" value="∀"/>
                             <input type="button" class="formula-btn" id="exs" value="∃"/>
+                            {% endif %}
+                            <input type="button" class="formula-btn" id="thf" value="∴"/>
                             {% endif %}
                         {% endif %}
                     {% endif %}
@@ -89,6 +92,9 @@ $(document).ready(function() {
     });
     $("#exs").click(function() {
         insert('∃');
+    });
+    $("#thf").click(function() {
+        insert('∴');
     });
 });
 </script>
