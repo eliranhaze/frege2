@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 
 from datetime import datetime, timedelta
@@ -590,31 +591,31 @@ class FormulaSetTests(TestCase):
 class ArgumentTests(TestCase):
 
     def test_create(self):
-        arg = Argument(':p')
+        arg = Argument(u'∴p')
         self.assertEquals(arg.premises, [])
         self.assertEquals(arg.conclusion, Formula('p'))
-        arg = Argument('p,q:r')
+        arg = Argument(u'p,q∴r')
         self.assertEquals(arg.premises, FormulaSet('p,q'))
         self.assertEquals(arg.conclusion, Formula('r'))
         prem = 'p%sr,%sq,(r%sq)%sp' % (CON, NEG, DIS, EQV)
         conc = '(p%sr)%sq' % (CON, IMP)
-        arg = Argument('%s:%s' % (prem, conc))
+        arg = Argument(u'%s∴%s' % (prem, conc))
         self.assertEquals(arg.premises, FormulaSet(prem))
         self.assertEquals(arg.conclusion, Formula(conc))
 
     def test_create_invalid(self):
         self.assertRaises(ValueError, Argument, 'p')
         self.assertRaises(ValueError, Argument, 'p,q,r')
-        self.assertRaises(ValueError, Argument, 'p,q,r:')
+        self.assertRaises(ValueError, Argument, u'p,q,r∴')
 
     def test_valid_argument(self):
-        self.assertTrue(Argument(':(p%s%sp)' % (DIS, NEG)).is_valid)
-        self.assertTrue(Argument('p,p%sq:q' % IMP).is_valid)
-        self.assertTrue(Argument('p%sq,q%sr:p%sr' % (IMP, IMP, IMP)).is_valid)
-        self.assertTrue(Argument('p%sq,q%sp:p%sq' % (IMP, IMP, EQV)).is_valid)
-        self.assertTrue(Argument('p,%sp:(p%sp)' % (NEG, CON)).is_valid)
+        self.assertTrue(Argument(u'∴(p%s%sp)' % (DIS, NEG)).is_valid)
+        self.assertTrue(Argument(u'p,p%sq∴q' % IMP).is_valid)
+        self.assertTrue(Argument(u'p%sq,q%sr∴p%sr' % (IMP, IMP, IMP)).is_valid)
+        self.assertTrue(Argument(u'p%sq,q%sp∴p%sq' % (IMP, IMP, EQV)).is_valid)
+        self.assertTrue(Argument(u'p,%sp∴(p%sp)' % (NEG, CON)).is_valid)
 
     def test_invalid_argument(self):
-        self.assertFalse(Argument(':(p%sp)' % DIS).is_valid)
-        self.assertFalse(Argument('p,q,r,s,t,u,v:(p%sx)' % CON).is_valid)
-        self.assertFalse(Argument('p,q,p:(p%s%sp)' % (CON, NEG)).is_valid)
+        self.assertFalse(Argument(u'∴(p%sp)' % DIS).is_valid)
+        self.assertFalse(Argument(u'p,q,r,s,t,u,v∴(p%sx)' % CON).is_valid)
+        self.assertFalse(Argument(u'p,q,p∴(p%s%sp)' % (CON, NEG)).is_valid)

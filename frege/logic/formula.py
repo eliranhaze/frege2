@@ -354,7 +354,7 @@ class FormulaSet(object):
 
 class Argument(object):
 
-    THEREFORE = ':'
+    THEREFORE = u'∴'
 
     def __init__(self, string = None, conclusion = None, premises = None):
         if string:
