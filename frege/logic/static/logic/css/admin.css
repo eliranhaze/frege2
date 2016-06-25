@@ -6,3 +6,18 @@
 .form-row {
     direction: rtl;
 }
+.formula-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0px !important;
+    margin: 0px !important;
+    text-align: center;
+    background-color: rgb(220,220,220) !important;
+    color: rgb(20,20,20) !important;
+    font-family: 'Lucida Console', Monaco, monospace;
+    font-size: 120%;
+    direction: ltr;
+}
+.formula-btn:hover {
+    background-color: rgb(200,200,200) !important;
+}

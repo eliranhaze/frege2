@@ -17,6 +17,12 @@ from .models import (
     UserChapter,
 )
 
+formal_text_widget = {'widget': TextInput(attrs={
+    'dir' : 'ltr',
+    'size' :'60',
+    'autocomplete' : 'off',
+})}
+    
 class FormulationAnswerInline(admin.StackedInline):
     model = FormulationAnswer
     extra = 0
@@ -37,21 +43,18 @@ class ChoiceQuestionInline(admin.StackedInline):
     model = ChoiceQuestion
     extra = 0
 
-class TruthTableQuestionInline(admin.StackedInline):
+class FormalQuestionInline(admin.StackedInline):
+    formfield_overrides = {
+        models.CharField: formal_text_widget
+    }
+
+class TruthTableQuestionInline(FormalQuestionInline):
     model = TruthTableQuestion
     extra = 0
 
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
-    }
-
-class DeductionQuestionInline(admin.StackedInline):
+class DeductionQuestionInline(FormalQuestionInline):
     model = DeductionQuestion
     extra = 0
-
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
-    }
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
@@ -79,7 +82,7 @@ class FormalQuestionAdmin(QuestionAdmin):
     search_fields = ['formula']
 
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'dir': 'ltr'})}
+        models.CharField: formal_text_widget
     }
 
 class TruthTableQuestionAdmin(FormalQuestionAdmin):
