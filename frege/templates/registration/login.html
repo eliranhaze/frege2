@@ -5,12 +5,18 @@
 {% block body_content %}
 
 <div class="container" style="max-width: 500px;">
-  <div class="page-header"></div>
+  <div class="page-header"><h2>כניסה</h2></div>
   <div class="panel panel-default">
   <div class="panel-body">
 
-<p id="errmsg">
+<div id="errors" class="errmsg">
+{% if form.errors and not form.non_field_errors %}
+שגיאה:
+{{form.username.errors}}
+{{form.password.errors}}
+{% endif %}
 {% if form.non_field_errors %}
+שגיאה:
 {% for error in form.non_field_errors %}
     {{ error }}
 {% endfor %}
@@ -18,7 +24,7 @@
 {% if user.is_authenticated %}
 <p>כבר מחובר!</p>
 {% endif %}
-<p>
+</div>
 
   <form class="form-signin" method="post" id="login-form">{% csrf_token %}
     <label for="id_username" class="sr-only">שם משתמש/ת</label>
@@ -43,8 +49,9 @@
 <script>
 $(document).ready(function() {
     $("#login-form").submit(function(e) {
+        $("#errors").empty();
         if (!$("#id_username").val() || !$("#id_password").val()) {
-            $("#errmsg").text("נא להזין שם וסיסמה");
+            $("#errors").text("נא להזין שם וסיסמה");
             e.preventDefault();
         }
     });

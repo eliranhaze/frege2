@@ -26,6 +26,12 @@ input:-webkit-autofill {
 .mono {
     font-family: 'Lucida Console', Monaco, monospace;
 }
+
+.errmsg {
+    font-size: 90%;
+    color: crimson;
+}
+
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;

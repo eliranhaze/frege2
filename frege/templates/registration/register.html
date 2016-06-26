@@ -1,54 +1,59 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/login.css" %}" />
-{{ form.media }}
-{% endblock %}
+{% extends "logic/basic_base.html" %}
 
-{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block title %}רישם{% endblock %}
 
-{% block usertools %}{% endblock %}
+{% block body_content %}
 
-{% block nav-global %}{% endblock %}
+<div class="container" style="max-width: 500px;">
+  <div class="page-header"><h2>רישום לאתר</h1></div>
+  <div class="panel panel-default">
+  <div class="panel-body">
 
-{% block content_title %}{% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
-
-{% block content %}
-
+<div id="errors" class="errmsg">
+{% if form.errors and not form.non_field_errors %}
+שגיאה:
+{{form.username.errors}}
+{{form.password1.errors}}
+{{form.password2.errors}}
+{% endif %}
 {% if form.non_field_errors %}
+שגיאה:
 {% for error in form.non_field_errors %}
-<p class="errornote">
     {{ error }}
-</p>
 {% endfor %}
 {% endif %}
-
-<div id="content-main">
-
-<form action="/accounts/register/" method="post">{% csrf_token %}
-  <div class="form-row">
-    {{ form.username.errors }}
-    <label for="id_username">שם משתמש:</label>
-    <input id="id_username" maxlength="30" name="username" type="text" />
-    <p class="help">שדה חובה. 30 תווים או פחות. אותיות, ספרות ו-@/./+/-/_ בלבד.</p>
-  </div>
-  <div class="form-row field-password1">
-    {{ form.password1.errors }}
-    <label class="required" for="id_password1">סיסמה:</label>
-    <input id="id_password1" name="password1" type="password" />
-    <label class="required" for="id_password2">אימות סיסמה:</label>
-    <input id="id_password2" name="password2" type="password" />
-     <p class="help">יש להזין את אותה סיסמה כמו קודם, לאימות.</p>
-    {{ form.password2.errors }}
-  </div>
-  <div class="submit-row">
-    <label>&nbsp;</label><input type="submit" value="רישום" />
-  </div>
-</form>
-
-<script type="text/javascript">
-document.getElementById('id_username').focus()
-</script>
 </div>
-{% endblock %}
+
+  <form method="post" id="login-form" autocomplete="off" style="color: rgb(16,16,16); font-size: 110%;">{% csrf_token %}
+    <label for="id_username">שם משתמש/ת</label>
+    <input autocomplete="off" value="{%if form.username.value %}{{form.username.value}}{% endif %}" type="text" id="id_username" name="username" class="form-control" autofocus style="margin-top: -10px;"/>
+    <label for="id_password1" style="margin-top: 20px;">סיסמה</label>
+    <input  autocomplete="off" value="{%if form.password1.value %}{{form.password1.value}}{% endif %}" type="password" id="id_password1" name="password1" class="form-control" style="margin-top: -10px;">
+    <label for="id_password2" style="margin-top: 20px;">אימות סיסמה</label>
+    <input  autocomplete="off" value="{%if form.password2.value %}{{form.password2.value}}{% endif %}" type="password" id="id_password2" name="password2" class="form-control" style="margin-top: -10px;">
+    <div>
+      <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
+        רישום
+      </button>
+    </div>
+  </form>
+  </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#login-form").submit(function(e) {
+        $("#errors").empty();
+        if (!$("#id_username").val() || !$("#id_password1").val()) {
+            $("#errors").text("נא להזין שם וסיסמה");
+            e.preventDefault();
+        }
+        else if ($("#id_password1").val() != $("#id_password2").val()) {
+            $("#errors").text("סיסמאות לא זהות");
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock body_content %}
