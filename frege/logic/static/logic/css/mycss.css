@@ -14,8 +14,11 @@ body {
     padding: 2px;
 }
 
-p {
+input:-webkit-autofill {
+    /* disable autofill color in chrome */
+    -webkit-box-shadow: inset 0px -1px 0px 0px rgba(0, 0, 0, 0.075), inset 0 0 0 100px white !important;
 }
+
 .formal {
      font-family: 'Trirong', serif;
 }

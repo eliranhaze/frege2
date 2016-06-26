@@ -1,61 +1,6 @@
-{% load staticfiles %}
+{% extends "logic/basic_base.html" %}
 
-<!DOCTYPE html>
-<html dir="rtl" lang="he">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        
-    <!-- Icon -->
-    <link rel="apple-touch-icon" sizes="57x57" href="/static/logic/images/apple-touch-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/static/logic/images/apple-touch-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/static/logic/images/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/static/logic/images/apple-touch-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/static/logic/images/apple-touch-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/static/logic/images/apple-touch-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/static/logic/images/apple-touch-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/static/logic/images/apple-touch-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/logic/images/apple-touch-icon-180x180.png">
-    <link rel="icon" type="image/png" href="/static/logic/images/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="/static/logic/images/favicon-194x194.png" sizes="194x194">
-    <link rel="icon" type="image/png" href="/static/logic/images/favicon-96x96.png" sizes="96x96">
-    <link rel="icon" type="image/png" href="/static/logic/images/android-chrome-192x192.png" sizes="192x192">
-    <link rel="icon" type="image/png" href="/static/logic/images/favicon-16x16.png" sizes="16x16">
-    <link rel="manifest" href="/static/logic/images/manifest.json">
-    <link rel="mask-icon" href="/static/logic/images/safari-pinned-tab.svg" color="#5bbad5">
-    <link rel="shortcut icon" href="/static/logic/images/favicon.ico">
-    <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="msapplication-TileImage" content="/static/logic/images/mstile-144x144.png">
-    <meta name="msapplication-config" content="/static/logic/images/browserconfig.xml">
-    <meta name="theme-color" content="#ffffff">
-
-    <title>{% block title %}Frege rulz{% endblock%} | לוגיקה</title>
-
-    <!-- Bootstrap -->
-    <link href="{% static 'logic/bootstrap/css/bootstrap.min.css'%}" rel="stylesheet">
-    <!-- Bootstrap theme from bootswatch.com -->
-    <link href="{% static 'logic/bootstrap/css/bootstrap-paper.min.css'%}" rel="stylesheet">
-    <!-- My own CSS overrides -->
-    <link href="{% static 'logic/css/mycss.css'%}" rel="stylesheet" media="screen">
-    <link href="{% static 'logic/css/animate.css'%}" rel="stylesheet" media="screen">
-    <!-- Pretty fonts courtesy of Google -->
-    <link href="https://fonts.googleapis.com/css?family=Trirong|Alef" rel="stylesheet">
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="{% static 'logic/bootstrap/js/bootstrap.min.js'%}"></script>
-    <script src="{% static 'logic/bootstrap/js/bootstrap-notify.min.js'%}"></script>
-    <!-- My own JS code 
-    <script src="{% static 'logic/js/controller.js'%}"></script>
-    <script src="{% static 'logic/js/formula.js'%}"></script>
-    <script src="{% static 'logic/js/truthtable.js'%}"></script>-->
-    <script src="{% static 'logic/js/requests.js'%}"></script>
-  </head>
-
-  <body role="document">
-
+{% block body_content %}
     <!-- Fixed navbar -->
     <nav class="navbar navbar-default navbar-fixed-top noselect">
       <div class="container">
@@ -83,17 +28,6 @@
     </nav>
 
 {% block content %}
-{% endblock %} 
+{% endblock content %} 
 
-    <footer class="footer noselect">
-      <div class="container">
-        <p class="text-muted text-center small"><small>
-          <!--<a href="{% url 'logic:about'%}">אודות</a>-->
-          <a class="text-muted" target="_blank" href="https://github.com/eliranhaze/frege2">פותח על ידי אלירן חזיזה</a> עבור אוניברסיטת תל אביב
-        </small></p>
-      </div>
-    </footer>
-
-  </body>
-<html>
-
+{% endblock body_content %}

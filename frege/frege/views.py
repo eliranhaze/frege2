@@ -15,8 +15,6 @@ def _get_default_redirect():
 def login(request):
     context = {}
     if request.method == 'GET':
-        context['site_header'] = 'התחברות'
-        context['site_title'] = 'התחברות'
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
     return auth_login(request, extra_context=context)
