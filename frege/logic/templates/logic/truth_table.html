@@ -13,7 +13,7 @@
           <th class="text-center">{{var}}</th>
         {% endfor %}
         {% for formula in formulas %}
-          <th class="text-center"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}<span id="formula-head{{forloop.counter}}" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
+          <th class="text-center" ondblclick="unselectall({{forloop.counter}})"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}<span id="formula-head{{forloop.counter}}" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
         {% endfor %}
         </tr>
       </thead>
@@ -56,6 +56,11 @@
         $('#f'+i).css('visibility', 'visible');
         $('#ans'+i).css('visibility', 'hidden');
         $('#formula-head'+j).css('visibility', 'hidden');
+    }
+    function unselectall(i) {
+        {% for row in truth_table.values %}
+        unselect('{{forloop.counter}}'+i, i);
+        {% endfor %}
     }
     </script>
   </div>
