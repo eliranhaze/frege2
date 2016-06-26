@@ -9,30 +9,22 @@
   <div class="panel panel-default">
   <div class="panel-body">
 
-{% if form.errors and not form.non_field_errors %}
-<p class="errornote">
-{% if form.errors.items|length == 1 %}"Please correct the error below."{% else %}"Please correct the errors below."{% endif %}
-</p>
-{% endif %}
-
+<p id="errmsg">
 {% if form.non_field_errors %}
 {% for error in form.non_field_errors %}
-<p class="errornote">
     {{ error }}
-</p>
 {% endfor %}
 {% endif %}
+{% if user.is_authenticated %}
+<p>כבר מחובר!</p>
+{% endif %}
+<p>
 
-  {% if user.is_authenticated %}
-  <p>כבר מחובר!</p>
-  {% endif %}
   <form class="form-signin" method="post" id="login-form">{% csrf_token %}
     <label for="id_username" class="sr-only">שם משתמש/ת</label>
-    <input type="text" id="id_username" name="username" class="form-control" placeholder="שם משתמש/ת" required autofocus
-     oninvalid="this.setCustomValidity('יש להזין שם משתמש/ת')">
+    <input type="text" id="id_username" name="username" class="form-control" placeholder="שם משתמש/ת" autofocus>
     <label for="id_password" class="sr-only">סיסמה</label>
-    <input type="password" id="id_password" name="password" class="form-control" style="margin-top: 10px;" placeholder="סיסמה" required
-     oninvalid="this.setCustomValidity('יש להזין סיסמה')">
+    <input type="password" id="id_password" name="password" class="form-control" style="margin-top: 10px;" placeholder="סיסמה">
     <div>
       <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
         התחברות
@@ -47,4 +39,15 @@
   </div>
   </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    $("#login-form").submit(function(e) {
+        if (!$("#id_username").val() || !$("#id_password").val()) {
+            $("#errmsg").text("נא להזין שם וסיסמה");
+            e.preventDefault();
+        }
+    });
+});
+</script>
 {% endblock body_content %}

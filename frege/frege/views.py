@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.auth.views import login as auth_login
 from django.contrib.auth.views import logout as auth_logout
-from django.template.context_processors import csrf
 from django.core.urlresolvers import reverse
+from django.forms import ValidationError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
+from django.template.context_processors import csrf
 
 DEFAULT_REDIRECT = 'logic:index'
 
@@ -15,9 +17,16 @@ def _get_default_redirect():
 def login(request):
     context = {}
     if request.method == 'GET':
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
-    return auth_login(request, extra_context=context)
+    return auth_login(
+        request,
+        redirect_field_name = 'next',
+        authentication_form = UserAuthForm,
+        extra_context = context
+    )
 
 def logout(request):
     return auth_logout(request, next_page=_get_default_redirect())
@@ -33,7 +42,7 @@ def register(request):
             post['password'] = request.POST['password1']
             post['next'] = _get_default_redirect()
             request.POST = post
-            return auth_login(request)
+            return auth_login(request, redirect_field_name='next')
     else:
         form = UserCreationForm()
 
@@ -46,3 +55,12 @@ def register(request):
 
     return render_to_response('registration/register.html', context)
 
+class UserAuthForm(AuthenticationForm):
+
+    def __init__(self, *args, **kwargs):
+        super(UserAuthForm, self).__init__(*args, **kwargs)
+
+    def clean(self, *args, **kwargs):
+        if not User.objects.filter(username=self.cleaned_data.get('username')):
+            raise ValidationError('שם לא קיים')
+        super(UserAuthForm, self).clean(*args, **kwargs)
