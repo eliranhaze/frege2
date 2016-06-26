@@ -17,10 +17,12 @@ body {
 p {
 }
 .formal {
- /*   font-family: 'Lucida Console', Monaco, monospace; */
-      font-family: 'Trirong', serif;
+     font-family: 'Trirong', serif;
 }
 
+.mono {
+    font-family: 'Lucida Console', Monaco, monospace;
+}
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
