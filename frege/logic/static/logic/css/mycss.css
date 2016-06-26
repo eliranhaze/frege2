@@ -7,14 +7,18 @@ body {
     direction: rtl;
     font-family: 'Alef', sans-serif;
     font-size: large;
+    color: rgb(85,85,85) !important;
 }
 
 .table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td{
     padding: 2px;
 }
 
+p {
+}
 .formal {
-    font-family: 'Lucida Console', Monaco, monospace;
+ /*   font-family: 'Lucida Console', Monaco, monospace; */
+      font-family: 'Trirong', serif;
 }
 
 .noselect {

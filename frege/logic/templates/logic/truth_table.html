@@ -1,7 +1,7 @@
 {% extends "logic/question_base.html" %}
 
-{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal" style="font-size: 150%; margin-top: -30px;color: rgb(24,24,24);" dir="ltr">{{question.display}}</p>{% endblock %}
-{% block question_instruction %}מלא/י את הטבלה ובחר/י את התשובה הנכונה{% endblock %}
+{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(20,20,20); font-style: normal;" dir="ltr">{{question.display}}</p>{% endblock %}
+{% block question_instruction %}טבלת אמת{% endblock %}
 
 {% block question_content %}
 
@@ -61,6 +61,7 @@
   </div>
 
   <div>
+    <p style="font-weight: bold;">{% if question.is_formula %}הנוסחה היא...{% elif question.is_set %}הקבוצה...{% else %}הטיעון...{% endif %}</p>
     <form id=options>
     {% for option in options %}
         <input name="option" value="{{option.num}}" type="radio"> {{option.desc}}<br>
