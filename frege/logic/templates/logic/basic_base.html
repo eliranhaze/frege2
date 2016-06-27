@@ -60,12 +60,17 @@
 {% endblock %} 
 
     <footer class="footer noselect">
-      <div class="container">
-        <p class="text-muted text-center small"><small>
-          <!--<a href="{% url 'logic:about'%}">אודות</a>-->
-          <a class="text-muted" target="_blank" href="https://github.com/eliranhaze/frege2">פותח על ידי אלירן חזיזה</a> עבור אוניברסיטת תל אביב
-        </small></p>
+        <p class="text-muted text-center small" id="about">
+          <a class="text-muted">אודות</a>
+        </p>
       </div>
+<script>
+$(document).ready(function() {
+    $("#about").click(function() {
+        $("#about").html('<a class="text-muted" target="_blank" href="https://github.com/eliranhaze/frege2">פותח על ידי אלירן חזיזה</a> עבור אוניברסיטת תל אביב');
+    });
+});
+</script>
     </footer>
 
   </body>
