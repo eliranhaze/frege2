@@ -21,6 +21,8 @@ def login(request):
             return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
+    else:
+        print 'LOGIN', request.POST['username']
     return auth_login(
         request,
         redirect_field_name = 'next',

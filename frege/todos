@@ -1,0 +1,6 @@
+- move to apache server
+- (after moving to apache) see why icons dont show when using localtunnel
+- fonts not working in mobile
+- with localtunnel, when down error says server error instead of connection error (not good!)
+- big tables not looking good on mobile, also when window has small width
+- 
