@@ -1,8 +1,18 @@
+general
 - move to apache server
 - (after moving to apache) see why icons dont show when using localtunnel
+
+mobile
 - fonts not working in mobile
 - with localtunnel, when down error says server error instead of connection error (not good!)
 - big tables not looking good on mobile, also when window has small width
-- user answers should always be created, i.e. not override previous ones 
+
+business logic
 - there is the 'no overriding previous answer' in the requirements, think what to do following dana's answer (if only next year students is the issue, then delete old answers on login).
+- chapter exercise mode, which is open after deadline, in which answers are not submitted
+- display user own answers when viewing questions (that have been answered)
+
+users
 - change login to i.d number, with first time detection, no signup
+- exercise group selection for users
+
