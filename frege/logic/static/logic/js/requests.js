@@ -1,3 +1,8 @@
+/*
+ * functions for handling question-related server requests
+ */
+
+
 function post_answer(url, data, csrf) {
     empty_msg = is_empty()
     if (empty_msg) {
