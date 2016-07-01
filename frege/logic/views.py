@@ -18,6 +18,7 @@ from .models import (
     ChoiceQuestion,
     Choice,
     TruthTableQuestion,
+    DeductionQuestion,
     UserAnswer,
     UserChapter,
 )
@@ -97,13 +98,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def __init__(self, *args, **kwargs):
         super(QuestionView, self).__init__(*args, **kwargs)
+        
+        # question type handlers
         self.context_handlers = {
             ChoiceQuestion : self._handle_choice_context,
             TruthTableQuestion : self._handle_truth_table_context,
+            DeductionQuestion : self._handle_deduction_context,
         }
         self.post_handlers = {
             ChoiceQuestion : self._handle_choice_post,
             TruthTableQuestion : self._handle_truth_table_post,
+            DeductionQuestion : self._handle_deduction_post,
         }
 
     def get_object(self):
@@ -207,3 +212,14 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}
 
+    def _handle_deduction_context(self, question):
+        self.template_name = 'logic/deduction.html'
+        argument = Argument(question.formula)
+        context = {
+            'argument': argument,
+            'premises': argument.premises,
+        }
+        return context
+
+    def _handle_deduction_post(self, request, *args):
+        return 'HI!!'

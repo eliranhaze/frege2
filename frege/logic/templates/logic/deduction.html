@@ -1,0 +1,51 @@
+{% extends "logic/question_base.html" %}
+{% load staticfiles %}
+
+{% block question_text %}נתון הטיעון:<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(24,24,24); font-style: normal;" dir="ltr">{{question.formula}}</p>{% endblock %}
+{% block question_instruction %}הוכחה בדדוקציה טבעית{% endblock %}
+
+{% block question_content %}
+
+  <div dir="ltr">
+    <table id="deduction" class="">
+      <tbody>
+        {% for premise in premises %}
+        <tr>
+          <td><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" class="dd-num">{{forloop.counter}}. </input></td>
+          <td id="f{{forloop.counter}}">{{premise}}</td>
+          <td class="dd-just">prem</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div>
+      <button class="btn btn-default" id="imp-e">E ⊃</button>
+      <button class="btn btn-default" id="con-i">I ·</button>
+    </div>
+    <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.9;"></p></div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+        $("#imp-e").click(function() {
+            applyRule(impE, 2, symbolImpE);
+        });
+        $("#con-i").click(function() {
+            applyRule(conI, 2, symbolConI);
+        });
+    });
+    function is_empty() {
+        if (!$('input[name=choice]:checked', '#choices').val())
+            return 'לא נבחרה תשובה';
+    }
+    function get_post_data() {
+        return {'choice':$('input[name=choice]:checked', '#choices').val()};
+    }
+    function on_success() {
+        $('input[name=choice]:not(:checked)').attr('disabled','disabled');
+    }
+    function notify_incorrect(data){return true;}
+    function on_response(data){}
+  </script>
+  <script src="{% static 'logic/js/deduction.js'%}"></script>
+{% endblock question_content %} 

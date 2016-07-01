@@ -58,6 +58,15 @@ input:-webkit-autofill {
     padding: 7px;
 }
 
+.dd-num {
+    padding-right: 4px;
+}
+.dd-just {
+    opacity: 0.55;
+    font-size: 88%;
+    padding-left: 33px;
+}
+
 /*
 .btn-success {
     background-color: #50BF7F;
