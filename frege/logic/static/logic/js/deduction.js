@@ -30,6 +30,13 @@ function _impE(implication, antecedent) {
     }
 }
 
+// conjunction elimination
+function conE(f) {
+    a = analyze(f);
+    if (a.con === CON) {
+        return [stripBrackets(a.sf1), stripBrackets(a.sf2)];
+    }
+}
 // conjunction introduction
 function conI(f1, f2) {
     return wrap(f1)+CON+wrap(f2);
@@ -126,20 +133,17 @@ function applyRule(ruleFunc, numLines, ruleSymbolFunc) {
             return errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
         }
     }
-    lines = getLines(checked);
-    // get new line number
-    var n = $("#deduction >tbody >tr").length + 1;
     // apply the rule
-    consq = ruleFunc.apply(this, lines);
+    consq = ruleFunc.apply(this, getLines(checked));
     if (consq) {
-        // add the new line to the deduction
-        $('#deduction tr:last').after(
-            '<tr>'+
-              '<td><input type="checkbox" id="cb'+n+'" name="'+n+'" class="dd-num">'+n+'. </input></td>'+
-              '<td id="f'+n+'">'+consq+'</td>'+
-              '<td class="dd-just">'+ruleSymbolFunc(checked)+'</td>'+
-            '</tr>'
-        );
+        // get new line number
+        var n = $("#deduction >tbody >tr").length + 1;
+        var symbol = ruleSymbolFunc(checked);
+        // add the new line(s) to the deduction
+        if (!(consq instanceof Array)) { consq = [consq];}
+        for (i = 0; i < consq.length; i++) {
+            addLine(n+i, consq[i], symbol);
+        }
         // remove selection
         $("input[type=checkbox]").prop("checked", false);
     } else {
@@ -147,9 +151,23 @@ function applyRule(ruleFunc, numLines, ruleSymbolFunc) {
     }
 }
 
+// add a deduction line with number and symbol
+function addLine(n, content, symbol) {
+    $('#deduction tr:last').after(
+        '<tr>'+
+          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'">'+n+'. </input></td>'+
+          '<td id="f'+n+'">'+content+'</td>'+
+          '<td class="dd-just">'+symbol+'</td>'+
+        '</tr>'
+    );
+}
+
 // symbol functions
 function symbolImpE(lineNums) {
     return "E ⊃ " + lineNums[0] + "," + lineNums[1];
+}
+function symbolConE(lineNums) {
+    return "E · " + lineNums[0];
 }
 function symbolConI(lineNums) {
     return "I · " + lineNums[0] + "," + lineNums[1];

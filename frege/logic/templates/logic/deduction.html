@@ -11,7 +11,7 @@
       <tbody>
         {% for premise in premises %}
         <tr>
-          <td><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" class="dd-num">{{forloop.counter}}. </input></td>
+          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}">{{forloop.counter}}. </input></td>
           <td id="f{{forloop.counter}}">{{premise}}</td>
           <td class="dd-just">prem</td>
         </tr>
@@ -20,6 +20,7 @@
     </table>
     <div>
       <button class="btn btn-default" id="imp-e">E ⊃</button>
+      <button class="btn btn-default" id="con-e">E ·</button>
       <button class="btn btn-default" id="con-i">I ·</button>
     </div>
     <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.9;"></p></div>
@@ -29,6 +30,9 @@
     $(document).ready(function() {
         $("#imp-e").click(function() {
             applyRule(impE, 2, symbolImpE);
+        });
+        $("#con-e").click(function() {
+            applyRule(conE, 1, symbolConE);
         });
         $("#con-i").click(function() {
             applyRule(conI, 2, symbolConI);
