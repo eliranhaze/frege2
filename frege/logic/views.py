@@ -56,7 +56,8 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
     def dispatch(self, request):
         ip = request.META['HTTP_X_FORWARDED_FOR'] if 'HTTP_X_FORWARDED_FOR' in request.META else 'noip'
-        print 'USER', request.user, 'IP', ip, 'AGENT', request.META['HTTP_USER_AGENT']
+        agent = request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else 'noagent'
+        print 'USER', request.user, 'IP', ip, 'AGENT', agent
         return super(IndexView, self).dispatch(request)
 
 class AboutView(LoginRequiredMixin, generic.DetailView):
