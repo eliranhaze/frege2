@@ -347,8 +347,10 @@ function errmsg(msg) {
     $("#errmsg").text(msg);
 }
 function showText(btn) {
-    $("#extra").css("visibility", "visible");
-    $("#extxt").focus();
+    $("#extra").css("opacity","1");
+    setTimeout(function(){ // trick to not miss the focus
+        $("#extxt").focus();
+    }, 5);
     $("#extxt").on("input", function() {
         if (!btn.data("symbol")) {
             // save button symbol before replacing
@@ -365,7 +367,7 @@ function showText(btn) {
     });
 }
 function hideText(btn) {
-    $("#extra").css("visibility", "hidden");
+    $("#extra").css("opacity","0");
     $("#extxt").val("");
     $("#extxt").off("input");
     $(document).off("keypress");
