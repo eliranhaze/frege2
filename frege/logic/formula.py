@@ -63,7 +63,7 @@ class Formula(object):
         self.con = None
         self.sf1 = None
         self.sf2 = None
-        self.literal = self._strip(string)
+        self.literal = self._strip(string.replace(' ',''))
 
         nesting = 0
         if (len(self.literal) == 1):

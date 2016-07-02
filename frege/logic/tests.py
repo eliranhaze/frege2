@@ -236,6 +236,13 @@ class FormulaTests(TestCase):
         self.assertEquals(f.sf2.literal, 'q')
         self.assertEquals(f.literal, literal)
 
+    def test_analyze_with_spaces(self):
+        self.assertEquals(Formula('%s%sp' % (NEG, NEG)), Formula(' %s %sp ' % (NEG, NEG)))
+        self.assertEquals(
+            Formula('%s(q%sp)%s(r%sq)' % (NEG, EQV, IMP, DIS)),
+            Formula(' %s (q  %sp)%s (r%sq )' % (NEG, EQV, IMP, DIS))
+        )
+
     def test_analyze_complex(self):
         literal = '(%s(p%sq)%sp)%sr' % (NEG, IMP, CON, DIS)
         f = Formula('(%s)' % literal)
