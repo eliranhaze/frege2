@@ -11,7 +11,7 @@
       <tbody>
         {% for premise in premises %}
         <tr>
-          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" onclick="errmsg('')">{{forloop.counter}}. </input></td>
+          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" onclick="oncheck()">{{forloop.counter}}. </input></td>
           <td id="f{{forloop.counter}}">{{premise}}</td>
           <td class="dd-just">prem</td>
         </tr>

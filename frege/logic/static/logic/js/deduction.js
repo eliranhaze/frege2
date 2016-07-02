@@ -230,8 +230,11 @@ function wrap(f) {
 // user interaction
 // ==========================
 
+var lastBtn = null;
+
 // perform handling before applying rule
 function doApply(btn, func, num, symFunc, withText) {
+    lastBtn = null;
     if (withText) {
         if (btn.text() === "OK") {
             if (applyRule(func, num, symFunc, withText)) {
@@ -241,6 +244,7 @@ function doApply(btn, func, num, symFunc, withText) {
             hideText(btn);
             if (validateSelection(num)) {
                 showText(btn);
+                lastBtn = btn;
             }
         }
     } else {
@@ -303,7 +307,7 @@ function validateSelection(numLines) {
 function addLine(n, content, symbol) {
     $('#deduction tr:last').after(
         '<tr>'+
-          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="errmsg(\'\')">'+n+'. </input></td>'+
+          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
           '<td id="f'+n+'">'+content+'</td>'+
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
@@ -380,6 +384,12 @@ function hideText(btn) {
 }
 function getText() {
     return $("#extxt").val();
+}
+
+// checkbox click handler
+function oncheck() {
+    errmsg("");
+    hideText(lastBtn);
 }
 
 // function for inserting text at cursor position
