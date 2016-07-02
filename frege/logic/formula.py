@@ -321,6 +321,7 @@ class FormulaSet(object):
         else:
             self.formulas = formulas
         self.formulas = self._uniqify(self.formulas)
+        self.literal = self.SEP.join(f.literal for f in self.formulas)
 
     def _uniqify(self, formulas):
         """ remove duplicates from a list while perserving order """
@@ -352,6 +353,14 @@ class FormulaSet(object):
     def __ne__(self, other):
         return not self == other
 
+    def __unicode__(self):
+        return self.literal
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+
+    __str__ = __unicode__
+
 class Argument(object):
 
     THEREFORE = u'∴'
@@ -368,6 +377,7 @@ class Argument(object):
             premises, conclusion = string.split(self.THEREFORE)
             self.conclusion = Formula(conclusion)
             self.premises = FormulaSet(string=premises) if premises else []
+            self.literal = '%s%s%s' % (self.premises.literal, self.THEREFORE, self.conclusion.literal)
         except Exception, e:
             raise ValueError('illegal argument: %r' % string)
 
@@ -396,3 +406,12 @@ class Argument(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def __unicode__(self):
+        return self.literal
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+
+    __str__ = __unicode__
+
