@@ -325,6 +325,12 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, '(p%sq%sr)' % (CON, CON))
         self.assertRaises(ValueError, Formula, '%s%s%s%sq' % (CON, DIS, IMP, EQV))
         self.assertRaises(ValueError, Formula, '(p%s%s%s%sq)' % (CON, DIS, IMP, EQV))
+        self.assertRaises(ValueError, Formula, '(p%sq)%sq%sr' % (CON, CON, CON))
+        self.assertRaises(ValueError, Formula, '(p%sq)%sq' % (CON, NEG))
+        self.assertRaises(ValueError, Formula, '(p%sq)%s(q%sr)%sp' % (CON, CON, CON, CON))
+        self.assertRaises(ValueError, Formula, '(p%sq)%s(q%sr)%s%sp' % (CON, CON, CON, CON, NEG))
+        self.assertRaises(ValueError, Formula, 'p%s(p%sq)%s(q%sr)' % (CON, CON, CON, CON))
+        self.assertRaises(ValueError, Formula, '((r%sq)%sp)%s(p%sq)%s(q%sr)' % (CON, CON, CON, CON, CON, CON))
 
     def test_analyze_wildly_invalid(self):
         self.assertRaises(ValueError, Formula, 'pqpppppp')

@@ -90,8 +90,11 @@ class Formula(object):
                         # check that sub formulas are properly formed
                         for i, sf in enumerate([self.sf1, self.sf2]):
                             literal = literals[i]
-                            if sf.is_binary and not (literal[0] == '(' and literal[-1] == ')'):
-                                raise ValueError('missing parentheses in sub formula') 
+                            if sf.is_binary and self._strip(literal) == literal:
+                                raise ValueError('missing parentheses in sub formula %s' % literal) 
+                        # create sub formulas
+                        self.sf1 = Formula(literals[0])
+                        self.sf2 = Formula(literals[1])
                         return
                     if c == NEG:
                         # unary connective, create 1 sub formula
@@ -111,6 +114,8 @@ class Formula(object):
             # if this formula is a negation, make sure all literals were consumed
             if self.literal[0] != self.con or self.sf1.literal not in self.literal[1:]:
                 raise ValueError('ill-formed negation formula %s' % string)
+        if nesting > 0:
+            raise ValueError('unbalanced parentheses in %s' % string)
 
     def _strip(self, string):
         """ strip all outmost brackets of a string representation of a formula """
@@ -324,7 +329,7 @@ class FormulaSet(object):
         self.literal = self.SEP.join(f.literal for f in self.formulas)
 
     def _uniqify(self, formulas):
-        """ remove duplicates from a list while perserving order """
+        """ remove duplicates from a list while preserving order """
         seen = set()
         return [f for f in formulas if not (f in seen or seen.add(f))]
 
@@ -376,8 +381,13 @@ class Argument(object):
         try:
             premises, conclusion = string.split(self.THEREFORE)
             self.conclusion = Formula(conclusion)
-            self.premises = FormulaSet(string=premises) if premises else []
-            self.literal = '%s%s%s' % (self.premises.literal, self.THEREFORE, self.conclusion.literal)
+            if premises:
+                self.premises = FormulaSet(string=premises)
+                premises_literal = self.premises.literal 
+            else:
+                self.premises = []
+                premises_literal = ''
+            self.literal = '%s%s%s' % (premises_literal, self.THEREFORE, self.conclusion.literal)
         except Exception, e:
             raise ValueError('illegal argument: %r' % string)
 
