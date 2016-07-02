@@ -156,19 +156,19 @@ class ChoiceQuestion(TextualQuestion):
 
 def validate_formula(formula):
     try:
-        Formula(formula)
+        return Formula(formula).literal
     except:
         raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
 
 def validate_formula_set(fset):
     try:
-        FormulaSet(fset)
+        return FormulaSet(fset).literal
     except:
         raise ValidationError({'formula':'הקבוצה שהוזנה אינה תקינה'})
 
 def validate_argument(arg):
     try:
-        Argument(arg)
+        return Argument(arg).literal
     except:
         msg = 'הטיעון שהוזן אינו תקין'
         raise ValidationError({'formula':msg})
@@ -180,6 +180,7 @@ def validate_deduction_argument(arg):
         raise ValidationError('הטיעון שהוזן אינו תקין')
     if not a.is_valid:
         raise ValidationError('הטיעון שהוזן אינו ניתן להוכחה')
+    return a.literal
 
 def validate_truth_table(x):
     pass
@@ -220,11 +221,11 @@ class TruthTableQuestion(FormalQuestion):
     def clean(self):
         super(TruthTableQuestion, self).clean()
         if self.table_type == self.FORMULA:
-            validate_formula(self.formula)
+            self.formula = validate_formula(self.formula)
         elif self.table_type == self.SET:
-            validate_formula_set(self.formula)
+            self.formula = validate_formula_set(self.formula)
         elif self.table_type == self.ARGUMENT:
-            validate_argument(self.formula)
+            self.formula = validate_argument(self.formula)
 
     def display(self):
         return '{%s}' % self.formula if self.is_set else self.formula
@@ -236,6 +237,10 @@ class TruthTableQuestion(FormalQuestion):
 
 class DeductionQuestion(FormalQuestion):
     formula = models.CharField(verbose_name='טיעון', max_length=60, validators=[validate_deduction_argument])
+
+    def clean(self):
+        super(DeductionQuestion, self).clean()
+        self.formula = validate_argument(self.formula)
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'
