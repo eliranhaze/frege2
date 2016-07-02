@@ -11,7 +11,7 @@
       <tbody>
         {% for premise in premises %}
         <tr>
-          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}">{{forloop.counter}}. </input></td>
+          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" onclick="errmsg('')">{{forloop.counter}}. </input></td>
           <td id="f{{forloop.counter}}">{{premise}}</td>
           <td class="dd-just">prem</td>
         </tr>
@@ -33,7 +33,7 @@
       <input type="text" id="extxt" class="" size="28" maxlength="30" autofocus>
       <label for="extxt" style="margin-left: 10px;">נוסחה</label>
     </div>
-    <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.9;"></p></div>
+    <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.85;"></p></div>
   </div>
 
   <script>

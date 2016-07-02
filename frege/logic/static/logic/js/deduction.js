@@ -255,7 +255,7 @@ function validateSelection(numLines) {
 function addLine(n, content, symbol) {
     $('#deduction tr:last').after(
         '<tr>'+
-          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'">'+n+'. </input></td>'+
+          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="errmsg(\'\')">'+n+'. </input></td>'+
           '<td id="f'+n+'">'+content+'</td>'+
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
