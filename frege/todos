@@ -8,6 +8,7 @@ mobile
 - big tables not looking good on mobile, also when window has small width
 
 business logic
+- (easy) remove type from truth table questions -- use it as a property/function and figure out on my own
 - there is the 'no overriding previous answer' in the requirements, think what to do following dana's answer (if only next year students is the issue, then delete old answers on login).
 - chapter exercise mode, which is open after deadline, in which answers are not submitted
 - display user own answers when viewing questions (that have been answered)
