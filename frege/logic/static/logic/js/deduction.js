@@ -37,6 +37,18 @@ function conE(f) {
         return [stripBrackets(a.sf1), stripBrackets(a.sf2)];
     }
 }
+
+// negation elimination
+function negE(f) {
+    a = analyze(f);
+    if (a.con === NEG) {
+        a2 = analyze(a.sf1);
+        if (a2.con === NEG) {
+            return stripBrackets(a2.sf1);
+        }
+    }
+}
+
 // conjunction introduction
 function conI(f1, f2) {
     return wrap(f1)+CON+wrap(f2);
@@ -168,6 +180,9 @@ function symbolImpE(lineNums) {
 }
 function symbolConE(lineNums) {
     return "E · " + lineNums[0];
+}
+function symbolNegE(lineNums) {
+    return "E ~ " + lineNums[0];
 }
 function symbolConI(lineNums) {
     return "I · " + lineNums[0] + "," + lineNums[1];

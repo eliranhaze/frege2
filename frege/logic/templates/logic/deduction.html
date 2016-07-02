@@ -18,10 +18,15 @@
         {% endfor %}
       </tbody>
     </table>
+    <div class="page-header" style="margin-top: 5px; margin-bottom: 10px;">
+    </div>
     <div>
-      <button class="btn btn-default" id="imp-e">E ⊃</button>
-      <button class="btn btn-default" id="con-e">E ·</button>
-      <button class="btn btn-default" id="con-i">I ·</button>
+      <button class="btn btn-default dd-btn" id="imp-e">E ⊃</button>
+      <button class="btn btn-default dd-btn" id="con-e">E ·</button>
+      <button class="btn btn-default dd-btn" id="neg-e">E ~</button>
+    </div>
+    <div>
+      <button class="btn btn-default dd-btn" id="con-i">I ·</button>
     </div>
     <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.9;"></p></div>
   </div>
@@ -33,6 +38,9 @@
         });
         $("#con-e").click(function() {
             applyRule(conE, 1, symbolConE);
+        });
+        $("#neg-e").click(function() {
+            applyRule(negE, 1, symbolNegE);
         });
         $("#con-i").click(function() {
             applyRule(conI, 2, symbolConI);
