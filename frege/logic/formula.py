@@ -9,6 +9,10 @@ CON = u'·'
 DIS = u'∨'
 IMP = u'⊃'
 EQV = u'≡'
+#CON = '&'
+#DIS = '|'
+#IMP = '>'
+#EQV = '='
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
 
@@ -112,7 +116,7 @@ class Formula(object):
                 raise ValueError('unbalanced parentheses in %s' % string)
         if self.con == NEG:
             # if this formula is a negation, make sure all literals were consumed
-            if self.literal[0] != self.con or self.sf1.literal not in self.literal[1:]:
+            if self.literal[0] != self.con or self.sf1.literal != self._strip(self.literal[1:]):
                 raise ValueError('ill-formed negation formula %s' % string)
         if nesting > 0:
             raise ValueError('unbalanced parentheses in %s' % string)
