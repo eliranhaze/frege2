@@ -204,13 +204,8 @@ function wrap(f) {
 // general function for applying a rule, gets rule-specific parameters and callbacks
 function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     errmsg("");
-    // validate selection
-    if (numLines > 0) {
-        checked = getChecked();
-        if (checked.length != numLines) {
-            words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
-            return errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
-        }
+    if (!validateSelection(numLines)) {
+        return;
     }
     lines = getLines(checked); 
     if (withText) {
@@ -241,6 +236,19 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     } else {
         return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
     }
+}
+
+function validateSelection(numLines) {
+    errmsg("");
+    if (numLines > 0) {
+        checked = getChecked();
+        if (checked.length != numLines) {
+            words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
+            errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
+            return false;
+        }
+    }
+    return true;
 }
 
 // add a deduction line with number and symbol
@@ -299,11 +307,17 @@ function showText(btn) {
         btn.addClass("btn-primary");
         btn.text("OK");
     });
+    $(document).keypress(function(e) {
+        if (e.which == 13) { // Enter 
+            btn.click();
+        }
+    });
 }
 function hideText(btn) {
     $("#extra").hide();
     $("#extxt").val("");
     $("#extxt").off("input");
+    $(document).off("keypress");
     if (btn) {
         // restore button defaults
         btn.addClass("btn-default");

@@ -58,6 +58,10 @@
                     hideText(me);
                 }
             } else {
+                hideText(me);
+                if (!validateSelection(1)) {
+                    return;
+                }
                 showText(me);
             }
         });
