@@ -27,12 +27,18 @@
     </div>
     <div>
       <button class="btn btn-default dd-btn" id="con-i">I ·</button>
+      <button class="btn btn-default dd-btn" id="dis-i">I ∨</button>
+    </div>
+    <div id="extra">
+      <input type="text" id="extxt" class="" size="28" maxlength="30" autofocus>
+      <label for="extxt" style="margin-left: 10px;">נוסחה</label>
     </div>
     <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.9;"></p></div>
   </div>
 
   <script>
     $(document).ready(function() {
+        hideText();
         $("#imp-e").click(function() {
             applyRule(impE, 2, symbolImpE);
         });
@@ -44,6 +50,16 @@
         });
         $("#con-i").click(function() {
             applyRule(conI, 2, symbolConI);
+        });
+        $("#dis-i").click(function() {
+            me = $(this);
+            if (me.text() === "OK") {
+                if (applyRule(disI, 1, symbolDisI, true)) {
+                    hideText(me);
+                }
+            } else {
+                showText(me);
+            }
         });
     });
     function is_empty() {

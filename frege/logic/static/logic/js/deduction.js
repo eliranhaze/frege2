@@ -54,13 +54,59 @@ function conI(f1, f2) {
     return wrap(f1)+CON+wrap(f2);
 }
 
+// disjunction introduction
+function disI(f1, f2) {
+    return wrap(f1)+DIS+wrap(f2);
+}
+
 // ==========================
-// utils
+// formula utils
 // ==========================
+
+// check if a formula is syntactically valid
+function validate(f) {
+    var result = {
+        valid: false,
+        literal: '',
+        err: ''
+    };
+    var _f = stripBrackets(f).replace(/ /g,'');
+    if (isAtomic(_f)) {
+        result.valid = true;
+        result.literal = _f;
+    } else {
+        a = analyze(_f);
+        if (a.con == '') {
+            result.valid = false;
+            result.err = a.err;
+        } else {
+            result.valid = true;
+            result.literal = a.lit;
+        }
+    }
+    return result;
+}
+
+// check that a sub formula is syntactically valid
+function validateSub(f) {
+    // the brackets part checks that the sub formula is surrounded with brackets
+    return isAtomic(f) || (f !== stripBrackets(f)); 
+}
+// check if a formula is atomic
+function isAtomic(f) {
+    return f.length === 1 && f === f.toLowerCase() && f.toLowerCase() !== f.toUpperCase();
+}
 
 // return the main connective and sub formula(s) of a formula
 function analyze(f) {
-    _f = stripBrackets(f);
+    var _f = stripBrackets(f).replace(/ /g,'');
+    var result = {
+        lit: _f,
+        con: '',
+        sf1: '',
+        sf2: ''
+    };
+    var generr = 'נוסחה לא תקינה';
     var maybe_neg = false;
     var nesting = 0;
     for (var i = 0; i < _f.length; i++) {
@@ -69,32 +115,53 @@ function analyze(f) {
             nesting--;
         } else if (c === '(') {
             nesting++;
+            // validate next char
+            if (i+1 < _f.length) {
+                next = _f.charAt(i+1);
+                if (!(isAtomic(next) || next === NEG || next === '(')) {
+                    result.err = generr;
+                    return result;
+                }
+            }
         } else if (nesting === 0) {
             // highest nesting level, check for main connective
             if (c === CON || c === DIS || c === IMP || c === EQV) {
-                return {
-                    con: c,
-                    sf1: _f.slice(0, i),
-                    sf2: _f.slice(i+1)
-                };
+                sf1 = _f.slice(0, i);
+                sf2 = _f.slice(i+1);
+                if (!validateSub(sf1) || !validateSub(sf2) || !validate(sf1).valid || !validate(sf2).valid) {
+                    result.err = generr;
+                    return result;
+                }
+                result.con = c;
+                result.sf1 = sf1;
+                result.sf2 = sf2;
+                return result;
             } else if (c === NEG) {
                 // don't return here since binary connectives take precedence
                 maybe_neg = true;
             }
+        } else if (nesting < 0) {
+            result.err = 'סוגריים לא מאוזנים';
+            return result;
         }
+    }
+    if (nesting !== 0) {
+        result.err = 'סוגריים לא מאוזנים';
+        return result;
     }
     if (maybe_neg) {
-        return {
-            con: NEG,
-            sf1: _f.slice(1),
-            sf2: ''
-        }
+        // validate negation
+        sf = _f.slice(1);
+        if (_f.charAt(0) !== NEG || !validate(sf).valid) {
+            result.err = generr;
+            return result;
+        } 
+        result.con = NEG;
+        result.sf1 = sf;
+        return result;
     }
-    return {
-        con: '',
-        sf1: '',
-        sf2: ''
-    };
+    result.err = generr;
+    return result;
 }
 
 // strip outmost brackets from a formula
@@ -124,7 +191,7 @@ function stripBrackets(f) {
 
 // wrap a formula with brackets if needed
 function wrap(f) {
-    if (f.length > 2) {
+    if (f.length > 1 && analyze(f).con != NEG) {
         return '('+f+')';
     }
     return f;
@@ -135,7 +202,7 @@ function wrap(f) {
 // ==========================
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
-function applyRule(ruleFunc, numLines, ruleSymbolFunc) {
+function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     errmsg("");
     // validate selection
     if (numLines > 0) {
@@ -145,12 +212,24 @@ function applyRule(ruleFunc, numLines, ruleSymbolFunc) {
             return errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
         }
     }
+    lines = getLines(checked); 
+    if (withText) {
+        text = getText();
+        if (!text) {
+            return errmsg("יש להזין נוסחה");
+        }
+        result = validate(text);
+        if (!result.valid) {
+            return errmsg(result.err);
+        }
+        lines.push(result.literal);
+    }
     // apply the rule
-    consq = ruleFunc.apply(this, getLines(checked));
+    consq = ruleFunc.apply(this, lines);
     if (consq) {
         // get new line number
         var n = $("#deduction >tbody >tr").length + 1;
-        var symbol = ruleSymbolFunc(checked);
+        var symbol = symbolFunc(checked);
         // add the new line(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (i = 0; i < consq.length; i++) {
@@ -158,8 +237,9 @@ function applyRule(ruleFunc, numLines, ruleSymbolFunc) {
         }
         // remove selection
         $("input[type=checkbox]").prop("checked", false);
+        return true;
     } else {
-        errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
+        return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
     }
 }
 
@@ -187,6 +267,9 @@ function symbolNegE(lineNums) {
 function symbolConI(lineNums) {
     return "I · " + lineNums[0] + "," + lineNums[1];
 }
+function symbolDisI(lineNums) {
+    return "I ∨ " + lineNums[0];
+}
 
 // utils
 function getLines(nums) {
@@ -203,4 +286,31 @@ function getChecked() {
 }
 function errmsg(msg) {
     $("#errmsg").text(msg);
+}
+function showText(btn) {
+    $("#extra").show();
+    $("#extxt").focus();
+    $("#extxt").on("input", function() {
+        if (!btn.data("symbol")) {
+            // save button symbol before replacing
+            btn.data("symbol", btn.text());
+        }
+        btn.removeClass("btn-default");
+        btn.addClass("btn-primary");
+        btn.text("OK");
+    });
+}
+function hideText(btn) {
+    $("#extra").hide();
+    $("#extxt").val("");
+    $("#extxt").off("input");
+    if (btn) {
+        // restore button defaults
+        btn.addClass("btn-default");
+        btn.removeClass("btn-primary");
+        btn.text(btn.data("symbol"));
+    }
+}
+function getText() {
+    return $("#extxt").val();
 }
