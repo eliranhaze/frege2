@@ -30,16 +30,22 @@
       <button class="btn btn-default dd-btn" id="con-i">I ·</button>
       <button class="btn btn-default dd-btn" id="dis-i">I ∨</button>
     </div>
-    <div id="extra">
-      <input type="text" id="extxt" class="" size="28" maxlength="30" autofocus>
+    <div id="extra" style="visibility: hidden;">
+      <input type="text" id="extxt" style="margin-top: 10px;" class="" size="28" maxlength="30" autofocus>
       <label for="extxt" style="margin-left: 10px;">נוסחה</label>
+      <div>
+        <input type="button" class="btn sym-btn" id="neg" value="~"/>
+        <input type="button" class="btn sym-btn" id="con" value="·"/>
+        <input type="button" class="btn sym-btn" id="dis" value="∨"/>
+        <input type="button" class="btn sym-btn" id="imp" value="⊃"/>
+        <input type="button" class="btn sym-btn" id="eqv" value="≡"/>
+      </div>
     </div>
     <div class="text-center"><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.85;" dir="rtl"></p></div>
   </div>
 
   <script>
     $(document).ready(function() {
-        hideText();
         $("#imp-e").click(function() {
             applyRule(impE, 2, symbolImpE);
         });

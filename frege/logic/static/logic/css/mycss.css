@@ -73,6 +73,14 @@ input:-webkit-autofill {
     height: 35px;
     width: 45px;
 }
+.sym-btn {
+    background-color: rgb(233,233,233);
+    font-size: 85%;
+    margin-top: 5px;
+    width: 30px;
+    height: 30px;
+    padding: 0px;
+}
 /*
 .btn-success {
     background-color: #50BF7F;
