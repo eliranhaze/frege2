@@ -118,7 +118,7 @@ class Formula(object):
             # if this formula is a negation, make sure all literals were consumed
             if self.literal[0] != self.con or self.sf1.literal != self._strip(self.literal[1:]):
                 raise ValueError('ill-formed negation formula %s' % string)
-        if nesting > 0:
+        if nesting != 0:
             raise ValueError('unbalanced parentheses in %s' % string)
 
     def _strip(self, string):
