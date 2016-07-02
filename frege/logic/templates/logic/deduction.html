@@ -47,33 +47,22 @@
   <script>
     $(document).ready(function() {
         $("#imp-e").click(function() {
-            applyRule(impE, 2, symbolImpE);
+            doApply($(this), impE, 2, symbolImpE);
         });
         $("#con-e").click(function() {
-            applyRule(conE, 1, symbolConE);
+            doApply($(this), conE, 1, symbolConE);
         });
         $("#dis-e").click(function() {
-            applyRule(disE, 3, symbolDisE);
+            doApply($(this), disE, 3, symbolDisE);
         });
         $("#neg-e").click(function() {
-            applyRule(negE, 1, symbolNegE);
+            doApply($(this), negE, 1, symbolNegE);
         });
         $("#con-i").click(function() {
-            applyRule(conI, 2, symbolConI);
+            doApply($(this), conI, 2, symbolConI);
         });
         $("#dis-i").click(function() {
-            me = $(this);
-            if (me.text() === "OK") {
-                if (applyRule(disI, 1, symbolDisI, true)) {
-                    hideText(me);
-                }
-            } else {
-                hideText(me);
-                if (!validateSelection(1)) {
-                    return;
-                }
-                showText(me);
-            }
+            doApply($(this), disI, 1, symbolDisI, true);
         });
     });
     function is_empty() {

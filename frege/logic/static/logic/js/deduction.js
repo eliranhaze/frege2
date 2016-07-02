@@ -230,6 +230,25 @@ function wrap(f) {
 // user interaction
 // ==========================
 
+// perform handling before applying rule
+function doApply(btn, func, num, symFunc, withText) {
+    if (withText) {
+        if (btn.text() === "OK") {
+            if (applyRule(func, num, symFunc, withText)) {
+                hideText(btn);
+            }
+        } else {
+            hideText(btn);
+            if (validateSelection(num)) {
+                showText(btn);
+            }
+        }
+    } else {
+        applyRule(func, num, symFunc, withText);
+    }
+    btn.blur();
+}
+
 // general function for applying a rule, gets rule-specific parameters and callbacks
 function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     errmsg("");
