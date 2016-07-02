@@ -82,23 +82,28 @@ input:-webkit-autofill {
     padding: 0px;
 }
 
-/*
-.btn-success {
-    background-color: #50BF7F;
+input[type=text], textarea {
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  outline: none;
+  box-shadow: none;
+  border: 1px solid rgb(233,233,233);
 }
 
-.alert-success {
-    background-color: #50BF7F;
+input[type=text]:focus {
+  box-shadow: 0 0 2px rgba(200,200,200,1);
+  border: 1px solid rgba(200,200,200,1);
 }
 
-.btn-danger {
-    background-color: #F05146;
+/* text selection color */
+::selection {
+  background: #a8d1ff; /* WebKit/Blink Browsers */
 }
-
-.alert-danger {
-    background-color: #F05146;
+::-moz-selection {
+  background: #a8d1ff; /* Gecko Browsers */
 }
-*/
 
 /* Sticky footer styles
 -------------------------------------------------- */
