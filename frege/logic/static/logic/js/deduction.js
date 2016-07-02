@@ -17,6 +17,7 @@ var EQV = '≡';
 // ==========================
 
 // implication elimination
+// A⊃B,A => B
 function impE(f1, f2) {
     if (f1.length > f2.length) {
         return _impE(f1, f2);
@@ -31,6 +32,7 @@ function _impE(implication, antecedent) {
 }
 
 // conjunction elimination
+// A·B => A,B
 function conE(f) {
     a = analyze(f);
     if (a.con === CON) {
@@ -38,7 +40,32 @@ function conE(f) {
     }
 }
 
+// disjunction elimination
+// A∨B,A⊃C,B⊃C => C
+function disE(f1, f2, f3) {
+    a1 = analyze(f1);
+    a2 = analyze(f2);
+    a3 = analyze(f3);
+    if (a1.con === DIS && a2.con === IMP && a3.con === IMP) {
+        return _disE(a1, a2, a3);
+    }
+    if (a2.con === DIS && a1.con === IMP && a3.con === IMP) {
+        return _disE(a2, a1, a3);
+    }
+    if (a3.con === DIS && a2.con === IMP && a1.con === IMP) {
+        return _disE(a3, a2, a1);
+    }
+}
+function _disE(aDis, aImp1, aImp2) {
+    if (aImp1.sf2 === aImp2.sf2) {
+        if ((aDis.sf1 === aImp1.sf1 && aDis.sf2 === aImp2.sf1) || (aDis.sf1 === aImp2.sf1 && aDis.sf2 === aImp1.sf1)) {
+            return stripBrackets(aImp1.sf2);
+        }
+    }
+}
+
 // negation elimination
+// ~~A => A
 function negE(f) {
     a = analyze(f);
     if (a.con === NEG) {
@@ -50,11 +77,13 @@ function negE(f) {
 }
 
 // conjunction introduction
+// A,B => A·B
 function conI(f1, f2) {
     return wrap(f1)+CON+wrap(f2);
 }
 
 // disjunction introduction
+// A => A∨B
 function disI(f1, f2) {
     return wrap(f1)+DIS+wrap(f2);
 }
@@ -268,6 +297,9 @@ function symbolImpE(lineNums) {
 }
 function symbolConE(lineNums) {
     return "E · " + lineNums[0];
+}
+function symbolDisE(lineNums) {
+    return "E ∨ " + lineNums[0] + "," + lineNums[1] + "," + lineNums[2];
 }
 function symbolNegE(lineNums) {
     return "E ~ " + lineNums[0];

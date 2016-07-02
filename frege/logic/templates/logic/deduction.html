@@ -23,6 +23,7 @@
     <div>
       <button class="btn btn-default dd-btn" id="imp-e">E ⊃</button>
       <button class="btn btn-default dd-btn" id="con-e">E ·</button>
+      <button class="btn btn-default dd-btn" id="dis-e">E ∨</button>
       <button class="btn btn-default dd-btn" id="neg-e">E ~</button>
     </div>
     <div>
@@ -33,7 +34,7 @@
       <input type="text" id="extxt" class="" size="28" maxlength="30" autofocus>
       <label for="extxt" style="margin-left: 10px;">נוסחה</label>
     </div>
-    <div><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.85;"></p></div>
+    <div class="text-center"><p id="errmsg" style="color: crimson; font-size: 95%; opacity: 0.85;" dir="rtl"></p></div>
   </div>
 
   <script>
@@ -44,6 +45,9 @@
         });
         $("#con-e").click(function() {
             applyRule(conE, 1, symbolConE);
+        });
+        $("#dis-e").click(function() {
+            applyRule(disE, 3, symbolDisE);
         });
         $("#neg-e").click(function() {
             applyRule(negE, 1, symbolNegE);
