@@ -16,18 +16,28 @@ var EQV = '≡';
 // deduction state
 // ==========================
 
-var nestings = [];
+// holds starting positions of open nestings
+var nestingStack = [];
+var lastNestingStart = null;
 
 function currentNesting() {
-    return nestings[currentLine()];
+    return nestingStack.length;
 }
 
-function currentLine() {
-    var currLine = -1;
-    for (line in nestings) {
-        if (line > currLine) currLine = line;
-    }
-    return currLine;
+function currentNestingStart() {
+    return nestingStack[nestingStack.length-1];
+}
+
+function endNesting() {
+    lastNestingStart = nestingStack.pop();
+}
+
+function startNesting() {
+    nestingStack.push(nextLineNumber());
+}
+
+function isOpenNested(lineNum) {
+    return nestingStack.length > 0 && lineNum > nestingStack[0];
 }
 
 // ==========================
@@ -94,6 +104,16 @@ function negE(f) {
     }
 }
 
+// implication introduction
+// A ... B => A⊃B
+function impI() {
+    if (currentNesting() > 0) {
+        formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        endNesting();
+        return wrap(formulas[0])+IMP+wrap(formulas[1]);
+    }
+}
+
 // conjunction introduction
 // A,B => A·B
 function conI(f1, f2) {
@@ -108,9 +128,7 @@ function disI(f1, f2) {
 
 // hypothesis
 function hyp(f) {
-    currLine = currentLine();
-    // increase nesting
-    nestings[currLine+1] = nestings[currLine] + 1;
+    startNesting();
     return f;
 }
 
@@ -188,7 +206,7 @@ function analyze(f) {
                     return result;
                 }
                 result.con = c;
-                result.sf1 = _f.slice(0, i); // dont use sf1, it's overwritten
+                result.sf1 = _f.slice(0, i); // dont use sf1, it's overwritten TODO: can probably use it with `var`
                 result.sf2 = _f.slice(i+1); // same
                 return result;
             } else if (c === NEG) {
@@ -286,7 +304,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
         return;
     }
     checked = getChecked();
-    lines = getLines(checked); 
+    formulas = getFormulas(checked); 
     if (withText) {
         text = getText();
         if (!text) {
@@ -296,10 +314,10 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
         if (!result.valid) {
             return errmsg(result.err);
         }
-        lines.push(result.literal);
+        formulas.push(result.literal);
     }
     // apply the rule
-    consq = ruleFunc.apply(this, lines);
+    consq = ruleFunc.apply(this, formulas);
     if (consq) {
         // get new line number
         var n = nextLineNumber();
@@ -309,16 +327,25 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
         for (i = 0; i < consq.length; i++) {
             addLine(n+i, consq[i], symbol);
         }
-        // remove selection
-        $("input[type=checkbox]").prop("checked", false);
+        removeSelection();
         return true;
     } else {
-        return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
+        if (numLines > 0 ) {
+            return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
+        }
+        return errmsg("לא ניתן להשתמש בכלל במצב זה");
     }
 }
 
+function currentLineNumber() {
+    return $("#deduction >tbody >tr").length;
+}
 function nextLineNumber() {
-    return $("#deduction >tbody >tr").length + 1;
+    return currentLineNumber() + 1;
+}
+
+function removeSelection() {
+    $("input[type=checkbox]").prop("checked", false);
 }
 
 function validateSelection(numLines) {
@@ -330,6 +357,8 @@ function validateSelection(numLines) {
             errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
         }
+    } else {
+        removeSelection();
     }
     return true;
 }
@@ -364,6 +393,9 @@ function symbolDisE(lineNums) {
 function symbolNegE(lineNums) {
     return "E ~ " + lineNums[0];
 }
+function symbolImpI() {
+    return "I ⊃ " + lastNestingStart + "-" + currentLineNumber();
+}
 function symbolConI(lineNums) {
     return "I · " + lineNums[0] + "," + lineNums[1];
 }
@@ -375,12 +407,12 @@ function symbolHyp() {
 }
 
 // utils
-function getLines(nums) {
-    var lines = [];
+function getFormulas(nums) {
+    var formulas = [];
     for (var i = 0; i < nums.length; i++) {
-        lines.push($("#f"+nums[i]).text()); 
+        formulas.push($("#f"+nums[i]).text()); 
     }
-    return lines; 
+    return formulas; 
 }
 function getChecked() {
     return $('input:checkbox:checked').map(function() {
