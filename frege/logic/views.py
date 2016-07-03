@@ -20,7 +20,7 @@ from .models import (
     TruthTableQuestion,
     DeductionQuestion,
     UserAnswer,
-    UserChapter,
+    ChapterSubmission,
 )
 
 def get_question_or_404(**kwargs):
@@ -134,14 +134,14 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         correct, ext_data = self.post_handlers[type(question)](request, question)
 
         # register user answer
-        user_chapter, _ = UserChapter.objects.get_or_create(
+        submission, _ = ChapterSubmission.objects.get_or_create(
             user=request.user,
             chapter=chapter,
         )
         user_ans, created = UserAnswer.objects.get_or_create(
             user=request.user,
             chapter=chapter,
-            user_chapter=user_chapter,
+            submission=submission,
             question_number=question.number,
             defaults={'correct':correct},
         )

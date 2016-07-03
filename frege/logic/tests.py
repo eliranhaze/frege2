@@ -36,7 +36,7 @@ from .models import (
     TruthTableQuestion,
     DeductionQuestion,
     UserAnswer,
-    UserChapter,
+    ChapterSubmission,
 )
 
 def login(self):
@@ -127,7 +127,7 @@ class QuestionViewTests(TestCase):
                 self._post_choice(q, choice)
             self.assertEquals(len(q.user_answers()), 1)
             self.assertEquals(q.user_answers().first().correct, is_correct)
-        self.assertEquals(len(UserChapter.objects.filter(chapter=self.chapter,user=self.user)), 1)
+        self.assertEquals(len(ChapterSubmission.objects.filter(chapter=self.chapter,user=self.user)), 1)
 
 class QuestionTests(TestCase):
 
@@ -155,26 +155,26 @@ class QuestionTests(TestCase):
         self.assertEqual(Question._get(number=5), qd)
         self.assertEqual(Question._count(), 5)
 
-class UserChapterTests(TestCase):
+class ChapterSubmissionTests(TestCase):
 
     def test_percent_correct(self):
         user = User.objects.create(username='u', password='pw')
         chapter = Chapter.objects.create(title='chap', number=1)
         # with 1 question
         q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
-        uc = UserChapter.objects.create(chapter=chapter,user=user)
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,user_chapter=uc, question_number=q.number,correct=False)
-        self.assertEquals(uc.percent_correct(), 0)
+        cs = ChapterSubmission.objects.create(chapter=chapter,user=user)
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
+        self.assertEquals(cs.percent_correct(), 0)
         ua.correct = True
         ua.save()
-        self.assertEquals(uc.percent_correct(), 100)
+        self.assertEquals(cs.percent_correct(), 100)
         # 2nd question
         q2 = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
-        ua2 = UserAnswer.objects.create(chapter=chapter,user=user,user_chapter=uc, question_number=q2.number,correct=False)
-        self.assertEquals(uc.percent_correct(), 50)
+        ua2 = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q2.number,correct=False)
+        self.assertEquals(cs.percent_correct(), 50)
         ua2.correct = True
         ua2.save()
-        self.assertEquals(uc.percent_correct(), 100)
+        self.assertEquals(cs.percent_correct(), 100)
 
 class FormulaTests(TestCase):
 

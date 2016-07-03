@@ -14,7 +14,7 @@ from .models import (
     TruthTableQuestion,
     DeductionQuestion,
     UserAnswer,
-    UserChapter,
+    ChapterSubmission,
 )
 
 formal_text_widget = {'widget': TextInput(attrs={
@@ -98,7 +98,7 @@ class UserAnswerAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
-class UserChapterAdmin(admin.ModelAdmin):
+class ChapterSubmissionAdmin(admin.ModelAdmin):
     #TODO: link this model with UserAnswer so for delete cascade?
     list_display = ['user', 'chapter', 'percent_correct']
     list_filter = ['user', 'chapter']
@@ -130,5 +130,4 @@ admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
-admin.site.register(UserAnswer, UserAnswerAdmin)
-admin.site.register(UserChapter, UserChapterAdmin)
+admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)

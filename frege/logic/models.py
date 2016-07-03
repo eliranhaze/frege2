@@ -283,7 +283,7 @@ class Choice(Answer):
         verbose_name = 'בחירה'
         verbose_name_plural = 'בחירות'
 
-class UserChapter(models.Model):
+class ChapterSubmission(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
 
@@ -309,14 +309,14 @@ class UserChapter(models.Model):
         return '%s/%s' % (self.user, self.chapter.number)
 
     class Meta(Answer.Meta):
-        verbose_name = 'פתרון משתמש'
-        verbose_name_plural = '*פתרונות משתמשים'
+        verbose_name = 'הגשת משתמש'
+        verbose_name_plural = 'הגשות משתמשים'
         unique_together = ('chapter', 'user')
 
 class UserAnswer(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
-    user_chapter = models.ForeignKey(UserChapter, verbose_name='פתרון פרק', on_delete=models.CASCADE)
+    submission = models.ForeignKey(ChapterSubmission, verbose_name='הגשת פרק', on_delete=models.CASCADE)
     question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
     correct = models.BooleanField(verbose_name='תשובה נכונה')
 
