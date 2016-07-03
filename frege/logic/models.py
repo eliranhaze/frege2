@@ -228,7 +228,12 @@ class TruthTableQuestion(FormalQuestion):
             self.formula = validate_argument(self.formula)
 
     def display(self):
-        return '{%s}' % self.formula if self.is_set else self.formula
+        if self.is_formula:
+            return self.formula
+        if self.is_set:
+            return FormulaSet(self.formula).display
+        if self.is_argument:
+            return Argument(self.formula).display
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
@@ -241,6 +246,9 @@ class DeductionQuestion(FormalQuestion):
     def clean(self):
         super(DeductionQuestion, self).clean()
         self.formula = validate_argument(self.formula)
+
+    def display(self):
+        return Argument(self.formula).display
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'

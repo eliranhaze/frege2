@@ -337,6 +337,10 @@ class FormulaSet(object):
         seen = set()
         return [f for f in formulas if not (f in seen or seen.add(f))]
 
+    @property
+    def display(self):
+        return '{%s}' % self.literal.replace(self.SEP,'%s ' % self.SEP)
+
     def options(self):
         return SET_OPTIONS
 
@@ -394,6 +398,10 @@ class Argument(object):
             self.literal = '%s%s%s' % (premises_literal, self.THEREFORE, self.conclusion.literal)
         except Exception, e:
             raise ValueError('illegal argument: %r' % string)
+
+    @property
+    def display(self):
+        return self.literal.replace(FormulaSet.SEP,'%s ' % FormulaSet.SEP).replace(self.THEREFORE, ' %s ' % self.THEREFORE)
 
     @property
     def options(self):
