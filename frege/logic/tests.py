@@ -243,6 +243,10 @@ class FormulaTests(TestCase):
             Formula(' %s (q  %sp)%s (r%sq )' % (NEG, EQV, IMP, DIS))
         )
 
+    def test_analyze_ok(self):
+        Formula('q%s%s%s%sp' % (CON, NEG, NEG, NEG))
+        Formula('q%s(%s%s%sp)' % (CON, NEG, NEG, NEG))
+
     def test_analyze_complex(self):
         literal = '(%s(p%sq)%sp)%sr' % (NEG, IMP, CON, DIS)
         f = Formula('(%s)' % literal)
