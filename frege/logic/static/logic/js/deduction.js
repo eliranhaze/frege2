@@ -506,7 +506,6 @@ function getText() {
 
 // checkbox click handler
 function oncheck() {
-    errmsg("");
     hideText(lastBtn);
 }
 
