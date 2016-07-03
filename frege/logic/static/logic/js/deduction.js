@@ -179,6 +179,18 @@ function eqvI(f1, f2) {
     }
 }
 
+// implication introduction
+// A ... B·~B => ~A
+function negI() {
+    if (currentNesting() > 0) {
+        formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        if (isContradiction(formulas[1])) {
+            endNesting();
+            return NEG + wrap(formulas[0]);
+        }
+    }
+}
+
 // hypothesis
 function hyp(f) {
     startNesting();
@@ -216,11 +228,25 @@ function validate(f) {
 // check that a sub formula is syntactically valid
 function validateSub(f) {
     // the brackets part checks that the sub formula is surrounded with brackets
-    return isAtomic(f) || (f !== stripBrackets(f)); 
+    return isAtomic(f) || !isBinary(analyze(f).con) || f !== stripBrackets(f); 
 }
 // check if a formula is atomic
 function isAtomic(f) {
     return f.length === 1 && f === f.toLowerCase() && f.toLowerCase() !== f.toUpperCase();
+}
+
+// check if a formula is a contradiction of the form A·~A
+function isContradiction(f) {
+    var a = analyze(f);
+    if (a.con === CON) {
+        asf1 = analyze(a.sf1);
+        asf2 = analyze(a.sf2);
+        return isNegationOf(asf1, asf2) || isNegationOf(asf2, asf1);
+    }
+}
+
+function isNegationOf(af1, af2) {
+    return af1.con === NEG && stripBrackets(af1.sf1) === af2.lit;
 }
 
 // return the main connective and sub formula(s) of a formula
@@ -251,7 +277,7 @@ function analyze(f) {
             }
         } else if (nesting === 0) {
             // highest nesting level, check for main connective
-            if (c === CON || c === DIS || c === IMP || c === EQV) {
+            if (isBinary(c)) {
                 sf1 = _f.slice(0, i);
                 sf2 = _f.slice(i+1);
                 if (!validateSub(sf1) || !validateSub(sf2) || !validate(sf1).valid || !validate(sf2).valid) {
@@ -313,6 +339,10 @@ function stripBrackets(f) {
         }   
     }
     return f;
+}
+
+function isBinary(c) {
+    return c === CON || c === DIS || c === IMP || c === EQV;
 }
 
 // wrap a formula with brackets if needed
@@ -383,9 +413,9 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
         return true;
     } else {
         if (numLines > 0 ) {
-            return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
+            return errmsg("לא ניתן להשתמש בכלל זה עבור השורות שנבחרו");
         }
-        return errmsg("לא ניתן להשתמש בכלל במצב זה");
+        return errmsg("לא ניתן להשתמש בכלל זה במצב הנוכחי");
     }
 }
 
@@ -464,6 +494,9 @@ function symbolDisI(lineNums) {
 }
 function symbolEqvI(lineNums) {
     return "I ≡ " + lineNums[0] + "," + lineNums[1];
+}
+function symbolNegI() {
+    return "I ~ " + lastNestingStart + "-" + currentLineNumber();
 }
 function symbolHyp() {
     return "hyp";
