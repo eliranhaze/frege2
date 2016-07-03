@@ -84,7 +84,7 @@ function impE(f1, f2) {
     return _impE(f2, f1);   
 }
 function _impE(implication, antecedent) {
-    a = analyze(implication);
+    var a = analyze(implication);
     if (a.con === IMP && stripBrackets(a.sf1) === stripBrackets(antecedent)) {
         return stripBrackets(a.sf2);
     }
@@ -93,7 +93,7 @@ function _impE(implication, antecedent) {
 // conjunction elimination
 // A·B => A,B
 function conE(f) {
-    a = analyze(f);
+    var a = analyze(f);
     if (a.con === CON) {
         return [stripBrackets(a.sf1), stripBrackets(a.sf2)];
     }
@@ -102,9 +102,9 @@ function conE(f) {
 // disjunction elimination
 // A∨B,A⊃C,B⊃C => C
 function disE(f1, f2, f3) {
-    a1 = analyze(f1);
-    a2 = analyze(f2);
-    a3 = analyze(f3);
+    var a1 = analyze(f1);
+    var a2 = analyze(f2);
+    var a3 = analyze(f3);
     if (a1.con === DIS && a2.con === IMP && a3.con === IMP) {
         return _disE(a1, a2, a3);
     }
@@ -123,10 +123,22 @@ function _disE(aDis, aImp1, aImp2) {
     }
 }
 
+// equivalence elimination
+// A≡B => A⊃B,B⊃A
+function eqvE(f) {
+    var a = analyze(f);
+    if (a.con === EQV) {
+        return [
+            a.sf1 + IMP + a.sf2,
+            a.sf2 + IMP + a.sf1
+        ];
+    }
+}
+
 // negation elimination
 // ~~A => A
 function negE(f) {
-    a = analyze(f);
+    var a = analyze(f);
     if (a.con === NEG) {
         a2 = analyze(a.sf1);
         if (a2.con === NEG) {
@@ -155,6 +167,16 @@ function conI(f1, f2) {
 // A => A∨B
 function disI(f1, f2) {
     return wrap(f1)+DIS+wrap(f2);
+}
+
+// equivalence introduction
+// A⊃B,B⊃A => A≡B 
+function eqvI(f1, f2) {
+    var a1 = analyze(f1);
+    var a2 = analyze(f2);
+    if (a1.con === IMP && a2.con === IMP && a1.sf1 === a2.sf2 && a1.sf2 === a2.sf1) {
+        return a1.sf1 + EQV + a2.sf2;
+    }
 }
 
 // hypothesis
@@ -425,6 +447,9 @@ function symbolConE(lineNums) {
 function symbolDisE(lineNums) {
     return "E ∨ " + lineNums[0] + "," + lineNums[1] + "," + lineNums[2];
 }
+function symbolEqvE(lineNums) {
+    return "E ≡ " + lineNums[0];
+}
 function symbolNegE(lineNums) {
     return "E ~ " + lineNums[0];
 }
@@ -436,6 +461,9 @@ function symbolConI(lineNums) {
 }
 function symbolDisI(lineNums) {
     return "I ∨ " + lineNums[0];
+}
+function symbolEqvI(lineNums) {
+    return "I ≡ " + lineNums[0] + "," + lineNums[1];
 }
 function symbolHyp() {
     return "hyp";

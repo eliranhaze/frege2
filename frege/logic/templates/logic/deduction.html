@@ -24,12 +24,14 @@
       <button class="btn btn-default dd-btn" id="imp-e">E ⊃</button>
       <button class="btn btn-default dd-btn" id="con-e">E ·</button>
       <button class="btn btn-default dd-btn" id="dis-e">E ∨</button>
+      <button class="btn btn-default dd-btn" id="eqv-e">E ≡</button>
       <button class="btn btn-default dd-btn" id="neg-e">E ~</button>
     </div>
     <div class="noselect">
       <button class="btn btn-default dd-btn" id="imp-i">I ⊃</button>
       <button class="btn btn-default dd-btn" id="con-i">I ·</button>
       <button class="btn btn-default dd-btn" id="dis-i">I ∨</button>
+      <button class="btn btn-default dd-btn" id="eqv-i">I ≡</button>
     </div>
     <div class="noselect">
       <button class="btn btn-default dd-btn" id="hyp">hyp</button>
@@ -58,6 +60,9 @@
         $("#dis-e").click(function() {
             doApply($(this), disE, 3, symbolDisE);
         });
+        $("#eqv-e").click(function() {
+            doApply($(this), eqvE, 1, symbolEqvE);
+        });
         $("#neg-e").click(function() {
             doApply($(this), negE, 1, symbolNegE);
         });
@@ -69,6 +74,9 @@
         });
         $("#dis-i").click(function() {
             doApply($(this), disI, 1, symbolDisI, true);
+        });
+        $("#eqv-i").click(function() {
+            doApply($(this), eqvI, 2, symbolEqvI);
         });
         $("#hyp").click(function() {
             doApply($(this), hyp, 0, symbolHyp, true);
