@@ -1,7 +1,7 @@
 {% extends "logic/question_base.html" %}
 {% load staticfiles %}
 
-{% block question_text %}נתון הטיעון:<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(24,24,24); font-style: normal;" dir="ltr">{{question.formula}}</p>{% endblock %}
+{% block question_text %}נתון הטיעון:<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(24,24,24); font-style: normal;" dir="ltr">{{question.display}}</p>{% endblock %}
 {% block question_instruction %}הוכחה בדדוקציה טבעית{% endblock %}
 
 {% block question_content %}
@@ -30,6 +30,9 @@
       <button class="btn btn-default dd-btn" id="con-i">I ·</button>
       <button class="btn btn-default dd-btn" id="dis-i">I ∨</button>
     </div>
+    <div class="noselect">
+      <button class="btn btn-default dd-btn" id="hyp">hyp</button>
+    </div>
     <div class="noselect" id="extra" style="opacity: 0;">
       <input type="text" id="extxt" style="margin-top: 10px;" class="formal-txt" size="28" maxlength="30">
       <label for="extxt" style="margin-left: 10px;">נוסחה</label>
@@ -46,6 +49,10 @@
 
   <script>
     $(document).ready(function() {
+        // set nesting levels for premises
+        {% for premise in premises %}
+        nestings[{{forloop.counter}}] = 0;
+        {% endfor %} 
         $("#imp-e").click(function() {
             doApply($(this), impE, 2, symbolImpE);
         });
@@ -63,6 +70,9 @@
         });
         $("#dis-i").click(function() {
             doApply($(this), disI, 1, symbolDisI, true);
+        });
+        $("#hyp").click(function() {
+            doApply($(this), hyp, 0, symbolHyp, true);
         });
     });
     function is_empty() {

@@ -13,6 +13,24 @@ var IMP = '⊃';
 var EQV = '≡';
 
 // ==========================
+// deduction state
+// ==========================
+
+var nestings = [];
+
+function currentNesting() {
+    return nestings[currentLine()];
+}
+
+function currentLine() {
+    var currLine = -1;
+    for (line in nestings) {
+        if (line > currLine) currLine = line;
+    }
+    return currLine;
+}
+
+// ==========================
 // deduction rules
 // ==========================
 
@@ -86,6 +104,14 @@ function conI(f1, f2) {
 // A => A∨B
 function disI(f1, f2) {
     return wrap(f1)+DIS+wrap(f2);
+}
+
+// hypothesis
+function hyp(f) {
+    currLine = currentLine();
+    // increase nesting
+    nestings[currLine+1] = nestings[currLine] + 1;
+    return f;
 }
 
 // ==========================
@@ -162,8 +188,8 @@ function analyze(f) {
                     return result;
                 }
                 result.con = c;
-                result.sf1 = sf1;
-                result.sf2 = sf2;
+                result.sf1 = _f.slice(0, i); // dont use sf1, it's overwritten
+                result.sf2 = _f.slice(i+1); // same
                 return result;
             } else if (c === NEG) {
                 // don't return here since binary connectives take precedence
@@ -186,7 +212,7 @@ function analyze(f) {
             return result;
         } 
         result.con = NEG;
-        result.sf1 = sf;
+        result.sf1 = _f.slice(1); // dont use sf, it's overwritten
         return result;
     }
     result.err = generr;
@@ -259,6 +285,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     if (!validateSelection(numLines)) {
         return;
     }
+    checked = getChecked();
     lines = getLines(checked); 
     if (withText) {
         text = getText();
@@ -275,7 +302,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     consq = ruleFunc.apply(this, lines);
     if (consq) {
         // get new line number
-        var n = $("#deduction >tbody >tr").length + 1;
+        var n = nextLineNumber();
         var symbol = symbolFunc(checked);
         // add the new line(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
@@ -288,6 +315,10 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
     } else {
         return errmsg("לא ניתן להשתמש בכלל עבור השורות שנבחרו");
     }
+}
+
+function nextLineNumber() {
+    return $("#deduction >tbody >tr").length + 1;
 }
 
 function validateSelection(numLines) {
@@ -305,6 +336,7 @@ function validateSelection(numLines) {
 
 // add a deduction line with number and symbol
 function addLine(n, content, symbol) {
+    for (i = 0; i < currentNesting(); i++) content = addNesting(content);
     $('#deduction tr:last').after(
         '<tr>'+
           '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
@@ -312,6 +344,11 @@ function addLine(n, content, symbol) {
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
     );
+}
+
+// add a nesting indication to given html
+function addNesting(content) {
+    return '<div class="dd-hyp">'+content+'</div>';
 }
 
 // symbol functions
@@ -332,6 +369,9 @@ function symbolConI(lineNums) {
 }
 function symbolDisI(lineNums) {
     return "I ∨ " + lineNums[0];
+}
+function symbolHyp() {
+    return "hyp";
 }
 
 // utils
