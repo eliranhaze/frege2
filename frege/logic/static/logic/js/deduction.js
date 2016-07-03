@@ -330,7 +330,6 @@ function doApply(btn, func, num, symFunc, withText) {
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
 function applyRule(ruleFunc, numLines, symbolFunc, withText) {
-    errmsg("");
     if (!validateSelection(numLines)) {
         return;
     }
@@ -380,7 +379,6 @@ function removeSelection() {
 }
 
 function validateSelection(numLines) {
-    errmsg("");
     if (numLines > 0) {
         checked = getChecked();
         if (checked.length != numLines) {
@@ -457,7 +455,18 @@ function getChecked() {
     }).get();
 }
 function errmsg(msg) {
-    $("#errmsg").text(msg);
+    $.notify({
+        message: msg
+    },{
+        allow_dismiss: true,
+        delay: 1400,
+	template:
+          '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note" role="alert">' +
+            '<span data-notify="dismiss">' + 
+              '<span data-notify="message">{2}</span>' +
+            '</span>' +
+          '</div>'
+    });
 }
 function showText(btn) {
     $("#extra").css("opacity","1");
