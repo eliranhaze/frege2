@@ -18,6 +18,11 @@ var EQV = '≡';
 
 // holds starting positions of open nestings
 var nestingStack = [];
+
+// holds nesting levels by line numbers, only when level changes
+var nestingLevels = [];
+nestingLevels[0] = 0;
+
 var lastNestingStart = null;
 
 function currentNesting() {
@@ -30,14 +35,40 @@ function currentNestingStart() {
 
 function endNesting() {
     lastNestingStart = nestingStack.pop();
+    updateNesting();
 }
 
 function startNesting() {
     nestingStack.push(nextLineNumber());
+    updateNesting();
+}
+
+function updateNesting() {
+    nestingLevels[nextLineNumber()] = currentNesting();
 }
 
 function isOpenNested(lineNum) {
-    return nestingStack.length > 0 && lineNum > nestingStack[0];
+    return nestingStack.length > 0 && lineNum >= nestingStack[0];
+}
+
+// return true iff the given line is on the current open nesting level
+function isOnCurrentLevel(lineNum) {
+    var currLevel = currentNesting();
+    if (currLevel === getNesting(lineNum)) {
+        // levels are equal, but are the same only in the following case
+        return currLevel === 0 || isOpenNested(lineNum);
+    } 
+    return false;
+}
+
+function getNesting(lineNum) {
+    var startingLine = 0;
+    for (line in nestingLevels) {
+        if (line > startingLine && line <= lineNum) {
+            startingLine = line; 
+        }
+    }
+    return nestingLevels[startingLine];
 }
 
 // ==========================
@@ -324,7 +355,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
         var symbol = symbolFunc(checked);
         // add the new line(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
-        for (i = 0; i < consq.length; i++) {
+        for (var i = 0; i < consq.length; i++) {
             addLine(n+i, consq[i], symbol);
         }
         removeSelection();
@@ -356,6 +387,12 @@ function validateSelection(numLines) {
             words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
             errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
+        }
+        for (var i = 0; i < checked.length; i++) {
+            if (!isOnCurrentLevel(checked[i])) {
+                errmsg("שורה " + checked[i] + " מחוץ לרמה הנוכחית");
+                return false;
+            }
         }
     } else {
         removeSelection();
