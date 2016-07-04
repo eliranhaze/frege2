@@ -15,7 +15,7 @@ minify --output mycss.min.css mycss.css > /dev/null
 cd - > /dev/null
 
 echo 'Running tests (py)...'
-python tst.py
+python tests.py
 
 echo 'Running tests (js)...'
 cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
