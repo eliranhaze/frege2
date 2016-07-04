@@ -2,8 +2,7 @@
  * functions for handling question-related server requests
  */
 
-
-function post_answer(url, data, csrf) {
+function postAns(url, data, csrf) {
     empty_msg = is_empty()
     if (empty_msg) {
         $.notify({
@@ -13,7 +12,7 @@ function post_answer(url, data, csrf) {
             type: "warning",
             delay: 1000,
         });
-        register_event();
+        reg();
         return false;
     }
     $("#answer").html("בודק...");
@@ -41,11 +40,11 @@ function post_answer(url, data, csrf) {
                 });
             }
             $("#answer").html("אישור");
-            register_event();
+            reg();
         }
     })
     .fail(function(response){
-        register_event();
+        reg();
         if (response.responseText) {
             $.notifyClose();
             $.notify({

@@ -643,8 +643,48 @@ function insert(text) {
     $("#extxt").focus();
 }
 
-// bind symbol buttons to insertions
+// bind rule buttons to functions and symbol buttons to insertions
 $(document).ready(function() {
+    $("#imp-e").click(function() {
+        doApply($(this), impE, 2, symbolImpE);
+    });
+    $("#con-e").click(function() {
+        doApply($(this), conE, 1, symbolConE);
+    });
+    $("#dis-e").click(function() {
+        doApply($(this), disE, 3, symbolDisE);
+    });
+    $("#eqv-e").click(function() {
+        doApply($(this), eqvE, 1, symbolEqvE);
+    });
+    $("#neg-e").click(function() {
+        doApply($(this), negE, 1, symbolNegE);
+    });
+    $("#imp-i").click(function() {
+        doApply($(this), impI, 0, symbolImpI);
+    });
+    $("#con-i").click(function() {
+        doApply($(this), conI, 2, symbolConI);
+    });
+    $("#dis-i").click(function() {
+        doApply($(this), disI, 1, symbolDisI, true);
+    });
+    $("#eqv-i").click(function() {
+        doApply($(this), eqvI, 2, symbolEqvI);
+    });
+    $("#neg-i").click(function() {
+        doApply($(this), negI, 0, symbolNegI);
+    });
+    $("#hyp").click(function() {
+        doApply($(this), hyp, 0, symbolHyp, true);
+    });
+    $("#rep").click(function() {
+        doApply($(this), rep, 1, symbolRep, false, true);
+    });
+    $("#rem").click(function() {
+        removeLine();
+        $(this).blur();
+    });
     $("#neg").click(function() {
         insert('~');
     });

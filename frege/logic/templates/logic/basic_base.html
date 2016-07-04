@@ -24,7 +24,7 @@
     <link rel="icon" type="image/png" href="/static/logic/images/android-chrome-192x192.png" sizes="192x192">
     <link rel="icon" type="image/png" href="/static/logic/images/favicon-16x16.png" sizes="16x16">
     <link rel="manifest" href="/static/logic/images/manifest.json">
-    <link rel="mask-icon" href="/static/logic/images/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="mask-icon" href="/static/logic/images/safari-pinned-tab.svg" color="#5bbad5"> 
     <link rel="shortcut icon" href="/static/logic/images/favicon.ico">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="msapplication-TileImage" content="/static/logic/images/mstile-144x144.png">
@@ -33,25 +33,14 @@
 
     <title>{% block title %}Frege rulz{% endblock %} | לוגיקה</title>
 
-    <!-- Bootstrap -->
     <link href="{% static 'logic/bootstrap/css/bootstrap.min.css'%}" rel="stylesheet">
-    <!-- Bootstrap theme from bootswatch.com -->
     <link href="{% static 'logic/bootstrap/css/bootstrap-paper.min.css'%}" rel="stylesheet">
-    <!-- My own CSS overrides -->
-    <link href="{% static 'logic/css/mycss.css'%}" rel="stylesheet" media="screen">
-    <link href="{% static 'logic/css/animate.css'%}" rel="stylesheet" media="screen">
-    <!-- Pretty fonts courtesy of Google -->
+    <link href="{% static 'logic/css/mycss.min.css'%}" rel="stylesheet" media="screen">
     <link href="https://fonts.googleapis.com/css?family=Trirong|Alef" rel="stylesheet">
-    <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Bootstrap JS -->
     <script src="{% static 'logic/bootstrap/js/bootstrap.min.js'%}"></script>
     <script src="{% static 'logic/bootstrap/js/bootstrap-notify.min.js'%}"></script>
-    <!-- My own JS code 
-    <script src="{% static 'logic/js/controller.js'%}"></script>
-    <script src="{% static 'logic/js/formula.js'%}"></script>
-    <script src="{% static 'logic/js/truthtable.js'%}"></script>-->
-    <script src="{% static 'logic/js/requests.js'%}"></script>
+    <script src="{% static 'logic/js/requests.min.js'%}"></script>
   </head>
 
   <body role="document">

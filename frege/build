@@ -1,0 +1,19 @@
+#! /bin/bash
+
+echo '['`date +'%Y-%m-%d %H:%M:%S'`']'
+echo 'Building...'
+
+echo 'Minifying js...'
+cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
+uglifyjs requests.js -m toplevel -c  -r 'postAns' > requests.min.js
+uglifyjs deduction.js -m toplevel -c  > deduction.min.js
+cd - > /dev/null
+
+echo 'Minifying css...'
+cd /home/eliranh/frege/frege2/frege/logic/static/logic/css
+minify --output mycss.min.css mycss.css > /dev/null
+#minify --output animate.min.css animate.css > /dev/null
+cd - > /dev/null
+
+echo 'Build done'
+echo '['`date +'%Y-%m-%d %H:%M:%S'`']'

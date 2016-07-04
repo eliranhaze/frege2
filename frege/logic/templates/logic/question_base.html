@@ -19,12 +19,12 @@
   </div>
 
   <script>
-    function register_event() {
+    function reg() {
         $('#answer').one('click', function() {
-            post_answer('{% url 'logic:question' chapter.number question.number %}', get_post_data(), '{{ csrf_token }}');
+            postAns('{% url 'logic:question' chapter.number question.number %}', get_post_data(), '{{ csrf_token }}');
         });
     }
-    $(document).ready(register_event);
+    $(document).ready(reg);
   </script>
 
 {% endblock chapter_content %}
