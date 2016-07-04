@@ -12,7 +12,6 @@ cd - > /dev/null
 echo 'Minifying css...'
 cd /home/eliranh/frege/frege2/frege/logic/static/logic/css
 minify --output mycss.min.css mycss.css > /dev/null
-#minify --output animate.min.css animate.css > /dev/null
 cd - > /dev/null
 
 echo 'Running tests (py)...'
