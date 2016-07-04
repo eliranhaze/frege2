@@ -15,8 +15,14 @@ minify --output mycss.min.css mycss.css > /dev/null
 #minify --output animate.min.css animate.css > /dev/null
 cd - > /dev/null
 
-echo 'Running tests...'
+echo 'Running tests (py)...'
 python tst.py
+
+echo 'Running tests (js)...'
+cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
+python js_test_setup.py
+node tests.js
+cd - > /dev/null
 
 echo 'Build done'
 echo '['`date +'%Y-%m-%d %H:%M:%S'`']'

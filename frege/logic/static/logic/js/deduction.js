@@ -258,7 +258,7 @@ function isNegationOf(af1, af2) {
 }
 
 // return the main connective and sub formula(s) of a formula
-function analyze(f) {
+function analyze(f) { // @@export
     var _f = stripBrackets(f).replace(/ /g,'');
     var result = {
         lit: _f,
@@ -611,6 +611,7 @@ function oncheck() {
     hideText(lastBtn);
 }
 
+// @@skipstart
 // function for inserting text at cursor position
 jQuery.fn.extend({
     insertAtCaret: function(myValue){
@@ -701,3 +702,4 @@ $(document).ready(function() {
         insert('≡');
     })
 });
+// @@skipend
