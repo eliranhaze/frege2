@@ -244,7 +244,7 @@ function isAtomic(f) {
 }
 
 // check if a formula is a contradiction of the form A·~A
-function isContradiction(f) {
+function isContradiction(f) { // @@export
     var a = analyze(f);
     if (a.con === CON) {
         var asf1 = analyze(a.sf1);
@@ -253,8 +253,23 @@ function isContradiction(f) {
     }
 }
 
-function isNegationOf(af1, af2) {
-    return af1.con === NEG && stripBrackets(af1.sf1) === af2.lit;
+// return true iff one formula is the negation of the other
+function isNegationOf(af1, af2) { // @@export
+    return af1.con === NEG && equal(af1.sf1, af2.lit);
+}
+
+// return true iff both formulas are equal, up to commutativity and brackets ommission
+function equal(f1, f2) {
+    var a1 = analyze(f1);
+    var a2 = analyze(f2);
+    if (a1.lit === a2.lit) return true;
+    if (a1.con === a2.con) {
+        if (equal(a1.sf1, a2.sf1) && equal(a1.sf2, a2.sf2)) return true;
+        if (isCommutative(a1.con)) {
+            return equal(a1.sf1, a2.sf2) && equal(a1.sf2, a2.sf1);
+        }
+    }
+    return false;
 }
 
 // return the main connective and sub formula(s) of a formula
@@ -266,6 +281,7 @@ function analyze(f) { // @@export
         sf1: '',
         sf2: ''
     };
+    if (isAtomic(_f)) return result;
     var generr = 'נוסחה לא תקינה';
     var maybe_neg = false;
     var nesting = 0;
@@ -351,6 +367,10 @@ function stripBrackets(f) {
 
 function isBinary(c) {
     return c === CON || c === DIS || c === IMP || c === EQV;
+}
+
+function isCommutative(c) {
+    return c === CON || c === DIS || c === EQV;
 }
 
 // wrap a formula with brackets if needed
