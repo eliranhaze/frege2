@@ -55,9 +55,10 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         return Chapter.objects.all()
 
     def dispatch(self, request):
-        ip = request.META['HTTP_X_FORWARDED_FOR'] if 'HTTP_X_FORWARDED_FOR' in request.META else 'noip'
-        agent = request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else 'noagent'
-        print 'USER', request.user, 'IP', ip, 'AGENT', agent
+        ip = request.META['HTTP_X_FORWARDED_FOR'] if 'HTTP_X_FORWARDED_FOR' in request.META else None
+        agent = request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else None
+        if ip and agent:
+            print 'USER', request.user, 'IP', ip, 'AGENT', agent
         return super(IndexView, self).dispatch(request)
 
 class AboutView(LoginRequiredMixin, generic.DetailView):

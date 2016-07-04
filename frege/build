@@ -15,5 +15,8 @@ minify --output mycss.min.css mycss.css > /dev/null
 #minify --output animate.min.css animate.css > /dev/null
 cd - > /dev/null
 
+echo 'Running tests...'
+python tst.py
+
 echo 'Build done'
 echo '['`date +'%Y-%m-%d %H:%M:%S'`']'
