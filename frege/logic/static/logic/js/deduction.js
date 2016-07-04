@@ -30,17 +30,17 @@ function currentNesting() {
 }
 
 function currentNestingStart() {
-    return nestingStack[nestingStack.length-1];
+    return parseInt(nestingStack[nestingStack.length-1]);
 }
 
 function endNesting() {
     endNestingLine();
-    lastNestingStart = nestingStack.pop();
+    lastNestingStart = parseInt(nestingStack.pop());
     updateNesting();
 }
 
 function startNesting() {
-    nestingStack.push(nextLineNumber());
+    nestingStack.push(parseInt(nextLineNumber()));
     updateNesting();
 }
 
@@ -49,7 +49,7 @@ function updateNesting() {
 }
 
 function isOpenNested(lineNum) {
-    return nestingStack.length > 0 && lineNum >= nestingStack[0];
+    return nestingStack.length > 0 && parseInt(lineNum) >= nestingStack[0];
 }
 
 // return true iff the given line is on the current open nesting level
@@ -63,8 +63,10 @@ function isOnCurrentLevel(lineNum) {
 }
 
 function getNesting(lineNum) {
+    lineNum = parseInt(lineNum);
     var startingLine = 0;
     for (line in nestingLevels) {
+        line = parseInt(line);
         if (line > startingLine && line <= lineNum) {
             startingLine = line; 
         }
@@ -195,6 +197,11 @@ function negI() {
 // hypothesis
 function hyp(f) {
     startNesting();
+    return f;
+}
+
+// repetition
+function rep(f) {
     return f;
 }
 
@@ -359,14 +366,14 @@ function wrap(f) {
 // ==========================
 
 var lastBtn = null;
-var okTxt = 'אישור';
+var okTxt = 'OK';
 
 // perform handling before applying rule
-function doApply(btn, func, num, symFunc, withText) {
+function doApply(btn, func, num, symFunc, withText, isRep) {
     lastBtn = null;
     if (withText) {
         if (btn.text() === okTxt) {
-            if (applyRule(func, num, symFunc, withText)) {
+            if (applyRule(func, num, symFunc, withText, isRep)) {
                 hideText(btn);
             }
         } else {
@@ -377,14 +384,14 @@ function doApply(btn, func, num, symFunc, withText) {
             }
         }
     } else {
-        applyRule(func, num, symFunc, withText);
+        applyRule(func, num, symFunc, withText, isRep);
     }
     btn.blur();
 }
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
-function applyRule(ruleFunc, numLines, symbolFunc, withText) {
-    if (!validateSelection(numLines)) {
+function applyRule(ruleFunc, numLines, symbolFunc, withText, isRep) {
+    if (!validateSelection(numLines, isRep)) {
         return;
     }
     checked = getChecked();
@@ -412,6 +419,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText) {
             addLine(n+i, consq[i], symbol);
         }
         removeSelection();
+        $.notifyClose();
         return true;
     } else {
         if (numLines > 0 ) {
@@ -432,14 +440,16 @@ function removeSelection() {
     $("input[type=checkbox]").prop("checked", false);
 }
 
-function validateSelection(numLines) {
+// return true if user selection is ok, otherwise print error and return false
+function validateSelection(numLines, isRep) {
     if (numLines > 0) {
-        checked = getChecked();
+        var checked = getChecked();
         if (checked.length != numLines) {
-            words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
+            var words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
             errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
         }
+        if (isRep) return validateRep(checked);
         for (var i = 0; i < checked.length; i++) {
             if (!isOnCurrentLevel(checked[i])) {
                 errmsg("שורה " + checked[i] + " מחוץ לרמה הנוכחית");
@@ -448,6 +458,20 @@ function validateSelection(numLines) {
         }
     } else {
         removeSelection();
+    }
+    return true;
+}
+
+// check that the selected line can be repeated
+function validateRep(checked) {
+    var n = checked[0];
+    if (isOnCurrentLevel(n)) {
+        errmsg("שורה " + n + " כבר נמצאת ברמה הנוכחית");
+        return false;
+    }
+    if (getNesting(n) > 0 && !isOpenNested(n)) {
+        errmsg("שורה " + n + " נמצאת בתת הוכחה אחרת");
+        return false;
     }
     return true;
 }
@@ -514,6 +538,9 @@ function symbolNegI() {
 }
 function symbolHyp() {
     return "hyp";
+}
+function symbolRep(lineNums) {
+    return "rep " + lineNums[0];
 }
 
 // utils

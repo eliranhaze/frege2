@@ -36,6 +36,7 @@
     </div>
     <div class="noselect">
       <button class="btn btn-default dd-btn" id="hyp">hyp</button>
+      <button class="btn btn-default dd-btn" id="rep">rep</button>
       <button class="btn btn-default dd-btn" id="rem"><span class="glyphicon glyphicon-trash" style="margin-top: 6px;"></span></button>
     </div>
     <div class="noselect" id="extra" style="opacity: 0;">
@@ -85,6 +86,9 @@
         });
         $("#hyp").click(function() {
             doApply($(this), hyp, 0, symbolHyp, true);
+        });
+        $("#rep").click(function() {
+            doApply($(this), rep, 1, symbolRep, false, true);
         });
         $("#rem").click(function() {
             removeLine();
