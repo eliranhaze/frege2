@@ -251,6 +251,7 @@ function isContradiction(f) { // @@export
         var asf2 = analyze(a.sf2);
         return isNegationOf(asf1, asf2) || isNegationOf(asf2, asf1);
     }
+    return false;
 }
 
 // return true iff one formula is the negation of the other
