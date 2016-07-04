@@ -4,6 +4,7 @@
 
 deduction = require('./deduction2.js');
 var analyze = deduction.analyze;
+var equal = deduction.equal;
 var isNegOf = deduction.isNegationOf;
 var isCnt = deduction.isContradiction;
 var connectives = {
@@ -42,6 +43,8 @@ try {
 
     // invalid cases
     assertInvalidForm('p~');
+    assertInvalidForm('~');
+    assertInvalidForm('1');
     assertInvalidForm('p~p');
     assertInvalidForm('p-');
     assertInvalidForm('p-q-r');
@@ -74,6 +77,53 @@ try {
     assertTrue(isNegOf(analyzed('(~p)'), analyzed('p')));
     assertTrue(isNegOf(analyzed('~(~p)'), analyzed('~p')));
     assertTrue(isNegOf(analyzed('~(~(~p))'), analyzed('~~p')));
+    assertTrue(isNegOf(analyzed('(~(~(~p)))'), analyzed('~~p')));
+    assertTrue(isNegOf(analyzed('~(r-q)'), analyzed('q-r')));
+    assertTrue(isNegOf(analyzed('(~(r-q))'), analyzed('q-r')));
+    assertTrue(isNegOf(analyzed('~(r-q)'), analyzed('(r-q)')));
+    assertTrue(isNegOf(analyzed('~(r-q)'), analyzed('r-q')));
+    assertTrue(isNegOf(analyzed('~((r-q),(p=q))'), analyzed('(q=p),(q-r)')));
+
+    assertFalse(isNegOf(analyzed('~((r-q),(p=q))'), analyzed('(q=p)-(q-r)')));
+    assertFalse(isNegOf(analyzed('~(r>q)'), analyzed('q>r')));
+    assertFalse(isNegOf(analyzed('~~p'), analyzed('p')));
+    assertFalse(isNegOf(analyzed('~q'), analyzed('p')));
+    assertFalse(isNegOf(analyzed('~q,p'), analyzed('q,p')));
+
+    // ----------------
+    // isCnt tests 
+    // ----------------
+
+    assertTrue(isCnt(form('p-~p')));
+    assertTrue(isCnt(form('~p-p')));
+    assertTrue(isCnt(form('~~p-~p')));
+    assertTrue(isCnt(form('~~p-~~~p')));
+    assertTrue(isCnt(form('~(~(p))-~(~~p)')));
+    assertTrue(isCnt(form('~(p>q)-(p>q)')));
+    assertTrue(isCnt(form('(p>q)-~(p>q)')));
+    assertTrue(isCnt(form('(p=q)-~(q=p)')));
+
+    assertFalse(isCnt(form('p-p')));
+    assertFalse(isCnt(form('~p-~p')));
+    assertFalse(isCnt(form('~p,p')));
+    assertFalse(isCnt(form('~p>p')));
+    assertFalse(isCnt(form('(p>q)-(~p>q)')));
+
+    // ----------------
+    // equal tests 
+    // ----------------
+
+    assertTrue(equal(form('p'), form('p')));
+    assertTrue(equal(form('p,r'), form('p,r')));
+    assertTrue(equal(form('p,r'), form('r,p')));
+    assertTrue(equal(form('(p,r)'), form('r,p')));
+    assertTrue(equal(form('(p,r)'), form('(r,p)')));
+    assertTrue(equal(form('(p,r),(q,s)'), form('((s,q),(r,p))')));
+
+    assertFalse(equal(form('p'), form('q')));
+    assertFalse(equal(form('p>r'), form('r>p')));
+    assertFalse(equal(form('(p,q)-r'), form('p,(q-r)')));
+    assertFalse(equal(form('(p-r)=(q,s)'), form('((s-q)=(r,p))')));
 
 // ===== tests end =====
 
