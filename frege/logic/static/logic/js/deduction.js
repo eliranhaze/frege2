@@ -143,7 +143,7 @@ function eqvE(f) {
 function negE(f) {
     var a = analyze(f);
     if (a.con === NEG) {
-        a2 = analyze(a.sf1);
+        var a2 = analyze(a.sf1);
         if (a2.con === NEG) {
             return stripBrackets(a2.sf1);
         }
@@ -154,7 +154,7 @@ function negE(f) {
 // A ... B => A⊃B
 function impI() {
     if (currentNesting() > 0) {
-        formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
         endNesting();
         return wrap(formulas[0])+IMP+wrap(formulas[1]);
     }
@@ -186,7 +186,7 @@ function eqvI(f1, f2) {
 // A ... B·~B => ~A
 function negI() {
     if (currentNesting() > 0) {
-        formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
         if (isContradiction(formulas[1])) {
             endNesting();
             return NEG + wrap(formulas[0]);
@@ -221,7 +221,7 @@ function validate(f) {
         result.valid = true;
         result.literal = _f;
     } else {
-        a = analyze(_f);
+        var a = analyze(_f);
         if (a.con == '') {
             result.valid = false;
             result.err = a.err;
@@ -394,21 +394,21 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText, isRep) {
     if (!validateSelection(numLines, isRep)) {
         return;
     }
-    checked = getChecked();
-    formulas = getFormulas(checked); 
+    var checked = getChecked();
+    var formulas = getFormulas(checked); 
     if (withText) {
-        text = getText();
+        var text = getText();
         if (!text) {
             return errmsg("יש להזין נוסחה");
         }
-        result = validate(text);
+        var result = validate(text);
         if (!result.valid) {
             return errmsg(result.err);
         }
         formulas.push(result.literal);
     }
     // apply the rule
-    consq = ruleFunc.apply(this, formulas);
+    var consq = ruleFunc.apply(this, formulas);
     if (consq) {
         // get new line number
         var n = nextLineNumber();
@@ -478,7 +478,7 @@ function validateRep(checked) {
 
 // add a deduction line with number and symbol
 function addLine(n, content, symbol) {
-    for (i = 0; i < currentNesting(); i++) content = addNesting(content, n, currentNesting() - i);
+    for (var i = 0; i < currentNesting(); i++) content = addNesting(content, n, currentNesting() - i);
     $('#deduction tr:last').after(
         '<tr id="row'+n+'">'+
           '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
