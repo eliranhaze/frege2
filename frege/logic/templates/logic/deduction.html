@@ -36,6 +36,7 @@
     </div>
     <div class="noselect">
       <button class="btn btn-default dd-btn" id="hyp">hyp</button>
+      <button class="btn btn-default dd-btn" id="rem"><span class="glyphicon glyphicon-trash" style="margin-top: 6px;"></span></button>
     </div>
     <div class="noselect" id="extra" style="opacity: 0;">
       <input type="text" id="extxt" style="margin-top: 10px;" class="formal-txt" size="28" maxlength="30">
@@ -84,6 +85,10 @@
         });
         $("#hyp").click(function() {
             doApply($(this), hyp, 0, symbolHyp, true);
+        });
+        $("#rem").click(function() {
+            removeLine();
+            $(this).blur();
         });
     });
     function is_empty() {

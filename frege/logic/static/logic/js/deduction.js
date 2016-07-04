@@ -359,12 +359,13 @@ function wrap(f) {
 // ==========================
 
 var lastBtn = null;
+var okTxt = 'אישור';
 
 // perform handling before applying rule
 function doApply(btn, func, num, symFunc, withText) {
     lastBtn = null;
     if (withText) {
-        if (btn.text() === "OK") {
+        if (btn.text() === okTxt) {
             if (applyRule(func, num, symFunc, withText)) {
                 hideText(btn);
             }
@@ -455,12 +456,19 @@ function validateSelection(numLines) {
 function addLine(n, content, symbol) {
     for (i = 0; i < currentNesting(); i++) content = addNesting(content, n, currentNesting() - i);
     $('#deduction tr:last').after(
-        '<tr>'+
+        '<tr id="row'+n+'">'+
           '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
           '<td id="f'+n+'">'+content+'</td>'+
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
     );
+}
+
+// remove the last deduction line 
+function removeLine() {
+    removeSelection();
+    // delete by row id (premises don't have row id and so cannot be deleted)
+    $("#row"+currentLineNumber()).remove();
 }
 
 // add a nesting indication to given html
@@ -547,7 +555,7 @@ function showText(btn) {
         }
         btn.removeClass("btn-default");
         btn.addClass("btn-primary");
-        btn.text("OK");
+        btn.text(okTxt);
     });
     $(document).keypress(function(e) {
         if (e.which == 13) { // Enter 
