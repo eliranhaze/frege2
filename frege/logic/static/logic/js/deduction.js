@@ -213,13 +213,13 @@ function rep(f) {
 function validate(f) {
     var result = {
         valid: false,
-        literal: '',
+        lit: '',
         err: ''
     };
     var _f = stripBrackets(f).replace(/ /g,'');
     if (isAtomic(_f)) {
         result.valid = true;
-        result.literal = _f;
+        result.lit = _f;
     } else {
         var a = analyze(_f);
         if (a.con == '') {
@@ -227,7 +227,7 @@ function validate(f) {
             result.err = a.err;
         } else {
             result.valid = true;
-            result.literal = a.lit;
+            result.lit = a.lit;
         }
     }
     return result;
@@ -264,7 +264,7 @@ function equal(f1, f2) { // @@export
     var a1 = analyze(f1);
     var a2 = analyze(f2);
     if (a1.lit === a2.lit) return true;
-    else if (isAtomic(f1)) return false;
+    if (isAtomic(f1)) return false;
     if (a1.con === a2.con) {
         if (equal(a1.sf1, a2.sf1) && equal(a1.sf2, a2.sf2)) return true;
         if (isCommutative(a1.con)) {
@@ -427,7 +427,7 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText, isRep) {
         if (!result.valid) {
             return errmsg(result.err);
         }
-        formulas.push(result.literal);
+        formulas.push(result.lit);
     }
     // apply the rule
     var consq = ruleFunc.apply(this, formulas);
