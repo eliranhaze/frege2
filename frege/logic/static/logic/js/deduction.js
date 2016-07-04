@@ -259,10 +259,11 @@ function isNegationOf(af1, af2) { // @@export
 }
 
 // return true iff both formulas are equal, up to commutativity and brackets ommission
-function equal(f1, f2) {
+function equal(f1, f2) { // @@export
     var a1 = analyze(f1);
     var a2 = analyze(f2);
     if (a1.lit === a2.lit) return true;
+    else if (isAtomic(f1)) return false;
     if (a1.con === a2.con) {
         if (equal(a1.sf1, a2.sf1) && equal(a1.sf2, a2.sf2)) return true;
         if (isCommutative(a1.con)) {
