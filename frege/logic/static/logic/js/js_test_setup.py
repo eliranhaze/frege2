@@ -3,17 +3,23 @@ if __name__ == '__main__':
 
     skipstart = '// @@skipstart'
     skipend = '// @@skipend'
-    expstart = 'function '
+    expstarts = {
+        'function ': '(',
+        'var ': ' = ',
+    }
     expend = '// @@export'
     exports = []
 
     def check_export(line):
-        if line.startswith(expstart) and expend in line:
-            exports.append(line)
+        for expstart in expstarts:
+            if line.startswith(expstart) and expend in line:
+                exports.append(line)
  
     def export(w, line):
-        name = line[line.index(expstart)+len(expstart):line.index('(')]
-        w.write('exports.%s = %s;\n' % (name, name))
+        for expstart in expstarts:
+            if line.startswith(expstart):
+                name = line[line.index(expstart)+len(expstart):line.index(expstarts[expstart])]
+                w.write('exports.%s = %s;\n' % (name, name))
 
     with open('deduction2.js', 'w') as w:
         with open('deduction.js') as r:
