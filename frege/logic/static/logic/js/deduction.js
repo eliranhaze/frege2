@@ -6,11 +6,11 @@
 // constants
 // ==========================
 
-var NEG = '~';
-var CON = '·';
-var DIS = '∨';
-var IMP = '⊃';
-var EQV = '≡';
+var NEG = '~'; // @@export
+var CON = '·'; // @@export
+var DIS = '∨'; // @@export
+var IMP = '⊃'; // @@export
+var EQV = '≡'; // @@export
 
 // ==========================
 // deduction state
@@ -247,8 +247,8 @@ function isAtomic(f) {
 function isContradiction(f) {
     var a = analyze(f);
     if (a.con === CON) {
-        asf1 = analyze(a.sf1);
-        asf2 = analyze(a.sf2);
+        var asf1 = analyze(a.sf1);
+        var asf2 = analyze(a.sf2);
         return isNegationOf(asf1, asf2) || isNegationOf(asf2, asf1);
     }
 }
@@ -277,7 +277,7 @@ function analyze(f) { // @@export
             nesting++;
             // validate next char
             if (i+1 < _f.length) {
-                next = _f.charAt(i+1);
+                var next = _f.charAt(i+1);
                 if (!(isAtomic(next) || next === NEG || next === '(')) {
                     result.err = generr;
                     return result;
@@ -286,15 +286,15 @@ function analyze(f) { // @@export
         } else if (nesting === 0) {
             // highest nesting level, check for main connective
             if (isBinary(c)) {
-                sf1 = _f.slice(0, i);
-                sf2 = _f.slice(i+1);
+                var sf1 = _f.slice(0, i);
+                var sf2 = _f.slice(i+1);
                 if (!validateSub(sf1) || !validateSub(sf2) || !validate(sf1).valid || !validate(sf2).valid) {
                     result.err = generr;
                     return result;
                 }
                 result.con = c;
-                result.sf1 = _f.slice(0, i); // dont use sf1, it's overwritten TODO: can probably use it with `var`
-                result.sf2 = _f.slice(i+1); // same
+                result.sf1 = sf1; 
+                result.sf2 = sf2; 
                 return result;
             } else if (c === NEG) {
                 // don't return here since binary connectives take precedence
@@ -311,13 +311,13 @@ function analyze(f) { // @@export
     }
     if (maybe_neg) {
         // validate negation
-        sf = _f.slice(1);
+        var sf = _f.slice(1);
         if (_f.charAt(0) !== NEG || !validate(sf).valid) {
             result.err = generr;
             return result;
         } 
         result.con = NEG;
-        result.sf1 = _f.slice(1); // dont use sf, it's overwritten
+        result.sf1 = sf;
         return result;
     }
     result.err = generr;
