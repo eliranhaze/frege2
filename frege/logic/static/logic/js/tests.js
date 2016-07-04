@@ -4,6 +4,8 @@
 
 deduction = require('./deduction2.js');
 var analyze = deduction.analyze;
+var isNegOf = deduction.isNegationOf;
+var isCnt = deduction.isContradiction;
 var connectives = {
     '~': deduction.NEG,
     '-': deduction.CON,
@@ -31,6 +33,7 @@ try {
     // valid cases
     assertForm('~p', '~', 'p', '');
     assertForm('~~~p', '~', '~~p', '');
+    assertForm('~(~~p)', '~', '(~~p)', '');
     assertForm('p-q', '-', 'p', 'q');
     assertForm('p-~~q', '-', 'p', '~~q');
     assertForm('(p-q)>~r', '>', '(p-q)', '~r');
@@ -62,6 +65,16 @@ try {
     assertInvalidForm('(~p>~q),(p=r)~');
     assertInvalidForm('(~p>~q)~,(p=r)');
 
+    // ----------------
+    // isNegOf tests 
+    // ----------------
+
+    assertTrue(isNegOf(analyzed('~p'), analyzed('p')));
+    assertTrue(isNegOf(analyzed('~~p'), analyzed('~p')));
+    assertTrue(isNegOf(analyzed('(~p)'), analyzed('p')));
+    assertTrue(isNegOf(analyzed('~(~p)'), analyzed('~p')));
+    assertTrue(isNegOf(analyzed('~(~(~p))'), analyzed('~~p')));
+
 // ===== tests end =====
 
 } catch (e) {
@@ -88,6 +101,23 @@ function form(formula) {
     return result;
 }
 
+function analyzed(formula) {
+    return analyze(form(formula));
+}
+
+function getErrorLineNumber(e) {
+    var lines = e.stack.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf('Object.<anonymous>') > -1) {
+            return lines[i].split(':')[1];
+        }
+    }
+}
+
+// =============
+// asserts
+// =============
+
 function assertForm(f, con, sf1, sf2) {
     a = analyze(form(f));
     assertEquals(connectives[con], a.con);
@@ -100,6 +130,14 @@ function assertInvalidForm(f) {
     assertEquals('', a.con);
 }
 
+function assertTrue(a) {
+    assertEquals(true, a);
+}
+
+function assertFalse(a) {
+    assertEquals(false, a);
+}
+
 function assertEquals(a, b) {
     count++;
     if (a !== b) {
@@ -107,11 +145,3 @@ function assertEquals(a, b) {
     }
 }
 
-function getErrorLineNumber(e) {
-    var lines = e.stack.split('\n');
-    for (var i = 0; i < lines.length; i++) {
-        if (lines[i].indexOf('Object.<anonymous>') > -1) {
-            return lines[i].split(':')[1];
-        }
-    }
-}
