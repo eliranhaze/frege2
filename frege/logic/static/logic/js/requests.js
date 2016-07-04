@@ -3,11 +3,11 @@
  */
 
 function postAns(url, data, csrf) {
-    empty_msg = is_empty()
-    if (empty_msg) {
+    var emptyMsg = is_empty()
+    if (emptyMsg) {
         $.notify({
             icon: "glyphicon glyphicon-pencil",
-            message: "<strong>"+empty_msg+"</strong>"
+            message: "<strong>"+emptyMsg+"</strong>"
         },{
             type: "warning",
             delay: 1000,
