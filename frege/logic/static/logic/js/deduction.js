@@ -34,6 +34,7 @@ function currentNestingStart() {
 }
 
 function endNesting() {
+    endNestingLine();
     lastNestingStart = nestingStack.pop();
     updateNesting();
 }
@@ -452,7 +453,7 @@ function validateSelection(numLines) {
 
 // add a deduction line with number and symbol
 function addLine(n, content, symbol) {
-    for (i = 0; i < currentNesting(); i++) content = addNesting(content);
+    for (i = 0; i < currentNesting(); i++) content = addNesting(content, n, currentNesting() - i);
     $('#deduction tr:last').after(
         '<tr>'+
           '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
@@ -463,8 +464,13 @@ function addLine(n, content, symbol) {
 }
 
 // add a nesting indication to given html
-function addNesting(content) {
-    return '<div class="dd-hyp">'+content+'</div>';
+function addNesting(content, line, level) {
+    return '<div class="dd-hyp" id="nst'+line+''+level+'">'+content+'</div>';
+}
+
+// add a end of nesting indication
+function endNestingLine() {
+    $("#nst"+currentLineNumber()+""+currentNesting()).addClass("dd-hyp-end");
 }
 
 // symbol functions
