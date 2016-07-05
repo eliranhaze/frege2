@@ -1,3 +1,4 @@
+
 // =============
 // imports
 // =============
@@ -327,6 +328,61 @@ try {
         negE(form('p,~~s'))
     );
 
+    // ----------------
+    // conI tests 
+    // ----------------
+
+    assertEquals(
+        form('~~r-p'),
+        conI(form('~~r'), form('p'))
+    );
+    assertEquals(
+        form('(p>q)-(~q,r)'),
+        conI(form('p>q'), form('~q,r'))
+    );
+    assertEquals(
+        form('(r-q)-~p'),
+        conI(form('r-q'), form('~p'))
+    );
+
+    // ----------------
+    // disI tests 
+    // ----------------
+
+    assertEquals(
+        form('~~r,p'),
+        disI(form('~~r'), form('p'))
+    );
+    assertEquals(
+        form('(p>q),(~q,r)'),
+        disI(form('p>q'), form('~q,r'))
+    );
+    assertEquals(
+        form('(r,q),~p'),
+        disI(form('r,q'), form('~p'))
+    );
+
+    // ----------------
+    // eqvI tests 
+    // ----------------
+
+    assertEquals(
+        form('~r=p'),
+        eqvI(form('~r>p'), form('p>~r'))
+    );
+    assertEquals(
+        form('(q-p)=(s=r)'),
+        eqvI(form('(q-p)>(s=r)'), form('(r=s)>(p-q)'))
+    );
+    assertEquals(
+        form('((~~r,p),s)=~(s-p)'),
+        eqvI(form('((~~r,p),s)>~(s-p)'), form('~(p-s)>(s,(~~r,p))'))
+    );
+
+    // ----------------
+    // nesting tests 
+    // ----------------
+  
 // ===== tests end =====
 
 } catch (e) {
