@@ -9,13 +9,7 @@
   <div dir="ltr">
     <table id="deduction" class="" style="font-size: 110%;">
       <tbody>
-        {% for premise in premises %}
-        <tr>
-          <td class="dd-num"><input type="checkbox" id="cb{{forloop.counter}}" name="{{forloop.counter}}" onclick="oncheck()">{{forloop.counter}}. </input></td>
-          <td id="f{{forloop.counter}}">{{premise}}</td>
-          <td class="dd-just">prem</td>
-        </tr>
-        {% endfor %}
+        <tr></tr>
       </tbody>
     </table>
     <div class="page-header" style="margin-top: 5px; margin-bottom: 10px;">
@@ -52,7 +46,9 @@
     </div>
   </div>
 
+  <script src="{% static 'logic/js/deduction.js'%}"></script>
   <script>
+    {% for premise in premises %}addRow('{{premise}}', '', true);{% endfor %}
     function is_empty() {
         if (!$('input[name=choice]:checked', '#choices').val())
             return 'לא נבחרה תשובה';
@@ -66,5 +62,4 @@
     function notify_incorrect(data){return true;}
     function on_response(data){}
   </script>
-  <script src="{% static 'logic/js/deduction.min.js'%}"></script>
 {% endblock question_content %} 

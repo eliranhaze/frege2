@@ -18,9 +18,10 @@ var EQV = '≡'; // @@export
 
 // holds starting positions of open nestings
 var nestingStack = [];
-// holds nesting levels by line numbers, only when level changes
+// holds nesting levels by row numbers, only when level changes
 var nestingLevels = [];
 var lastNestingStart = null;
+var rownum = 0;
 
 initState();
 
@@ -40,44 +41,45 @@ function currentNestingStart() {
 }
 
 function endNesting() {
-    endNestingLine();
+    endNestingRow();
     lastNestingStart = parseInt(nestingStack.pop());
     updateNesting();
 }
 
 function startNesting() {
-    nestingStack.push(parseInt(nextLineNumber()));
+    nestingStack.push(parseInt(rownum+1));
     updateNesting();
 }
 
 function updateNesting() {
-    nestingLevels[nextLineNumber()] = currentNesting();
+    nestingLevels[rownum+1] = currentNesting();
 }
 
-function isOpenNested(lineNum) {
-    return nestingStack.length > 0 && parseInt(lineNum) >= nestingStack[0];
+function isOpenNested(row) {
+    return nestingStack.length > 0 && parseInt(row) >= nestingStack[0];
 }
 
-// return true iff the given line is on the current open nesting level
-function isOnCurrentLevel(lineNum) {
+// return true iff the given row is on the current open nesting level
+function isOnCurrentLevel(row) {
     var currLevel = currentNesting();
-    if (currLevel === getNesting(lineNum)) {
+    if (currLevel === getNesting(row)) {
         // levels are equal, but are the same only in the following case
-        return currLevel === 0 || isOpenNested(lineNum);
+        return currLevel === 0 || isOpenNested(row);
     } 
     return false;
 }
 
-function getNesting(lineNum) {
-    lineNum = parseInt(lineNum);
-    var startingLine = 0;
-    for (line in nestingLevels) {
-        line = parseInt(line);
-        if (line > startingLine && line <= lineNum) {
-            startingLine = line; 
+// get the nesting level of row n
+function getNesting(n) {
+    n = parseInt(n);
+    var startRow = 0;
+    for (row in nestingLevels) {
+        row = parseInt(row);
+        if (row > startRow && row <= n) {
+            startRow = row; 
         }
     }
-    return nestingLevels[startingLine];
+    return nestingLevels[startRow];
 }
 
 // ==========================
@@ -161,7 +163,7 @@ function negE(f) { // @@export
 // A ... B => A⊃B
 function impI() { // @@export
     if (currentNesting() > 0) {
-        var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        var formulas = getFormulas([currentNestingStart(), rownum]);
         endNesting();
         return wrap(formulas[0])+IMP+wrap(formulas[1]);
     }
@@ -193,7 +195,7 @@ function eqvI(f1, f2) { // @@export
 // A ... B·~B => ~A
 function negI() { // @@export
     if (currentNesting() > 0) {
-        var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
+        var formulas = getFormulas([currentNestingStart(), rownum]);
         if (isContradiction(formulas[1])) {
             endNesting();
             return NEG + wrap(formulas[0]);
@@ -424,8 +426,8 @@ function doApply(btn, func, num, symFunc, withText, isRep) {
 }
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
-function applyRule(ruleFunc, numLines, symbolFunc, withText, isRep) {
-    if (!validateSelection(numLines, isRep)) {
+function applyRule(ruleFunc, numRows, symbolFunc, withText, isRep) {
+    if (!validateSelection(numRows, isRep)) {
         return;
     }
     var checked = getChecked();
@@ -444,30 +446,21 @@ function applyRule(ruleFunc, numLines, symbolFunc, withText, isRep) {
     // apply the rule
     var consq = ruleFunc.apply(this, formulas);
     if (consq) {
-        // get new line number
-        var n = nextLineNumber();
         var symbol = symbolFunc(checked);
-        // add the new line(s) to the deduction
+        // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addLine(n+i, consq[i], symbol);
+            addRow(consq[i], symbol);
         }
         removeSelection();
         $.notifyClose();
         return true;
     } else {
-        if (numLines > 0 ) {
+        if (numRows > 0 ) {
             return errmsg("לא ניתן להשתמש בכלל זה עבור השורות שנבחרו");
         }
         return errmsg("לא ניתן להשתמש בכלל זה במצב הנוכחי");
     }
-}
-
-function currentLineNumber() {
-    return $("#deduction >tbody >tr").length;
-}
-function nextLineNumber() {
-    return currentLineNumber() + 1;
 }
 
 function removeSelection() {
@@ -475,12 +468,12 @@ function removeSelection() {
 }
 
 // return true if user selection is ok, otherwise print error and return false
-function validateSelection(numLines, isRep) {
-    if (numLines > 0) {
+function validateSelection(numRows, isRep) {
+    if (numRows > 0) {
         var checked = getChecked();
-        if (checked.length != numLines) {
+        if (checked.length != numRows) {
             var words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
-            errmsg("יש לבחור "+words[numLines]+" בדיוק על מנת להשתמש בכלל זה");
+            errmsg("יש לבחור "+words[numRows]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
         }
         if (isRep) return validateRep(checked);
@@ -496,7 +489,7 @@ function validateSelection(numLines, isRep) {
     return true;
 }
 
-// check that the selected line can be repeated
+// check that the selected row can be repeated
 function validateRep(checked) {
     var n = checked[0];
     if (isOnCurrentLevel(n)) {
@@ -510,71 +503,81 @@ function validateRep(checked) {
     return true;
 }
 
-// add a deduction line with number and symbol
-function addLine(n, content, symbol) {
-    for (var i = 0; i < currentNesting(); i++) content = addNesting(content, n, currentNesting() - i);
+// add a new row to the deduction table
+function addRow(content, symbol, premise) {
+    rownum++;
+    if (premise) {
+        var rowId = '';
+        symbol = 'prem';
+    } else {
+       var rowId = 'r'+rownum;
+    }
+    // handle nesting
+    for (var i = 0; i < currentNesting(); i++) content = addNesting(content, rownum, currentNesting() - i);
+    // add the row
     $('#deduction tr:last').after(
-        '<tr id="row'+n+'">'+
-          '<td class="dd-num""><input type="checkbox" id="cb'+n+'" name="'+n+'" onclick="oncheck()">'+n+'. </input></td>'+
-          '<td id="f'+n+'">'+content+'</td>'+
+        '<tr id="'+rowId+'">'+
+          '<td class="dd-num""><input type="checkbox" id="cb'+rownum+'" name="'+rownum+'" onclick="oncheck()">'+rownum+'. </input></td>'+
+          '<td id="f'+rownum+'">'+content+'</td>'+
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
     );
 }
 
-// remove the last deduction line 
-function removeLine() {
+// remove the last deduction row 
+function removeRow() {
     removeSelection();
     // delete by row id (premises don't have row id and so cannot be deleted)
-    $("#row"+currentLineNumber()).remove();
+    $("#r"+rownum).remove();
+    rownum--;
 }
 
 // add a nesting indication to given html
-function addNesting(content, line, level) {
-    return '<div class="dd-hyp" id="nst'+line+''+level+'">'+content+'</div>';
+function addNesting(content, row, level) {
+    return '<div class="dd-hyp" id="nst'+row+''+level+'">'+content+'</div>';
 }
 
 // add a end of nesting indication
-function endNestingLine() {
-    $("#nst"+currentLineNumber()+""+currentNesting()).addClass("dd-hyp-end");
+function endNestingRow() {
+    $("#nst"+rownum+""+currentNesting()).addClass("dd-hyp-end");
 }
 
 // symbol functions
-function symbolImpE(lineNums) {
-    return "E ⊃ " + lineNums[0] + "," + lineNums[1];
+function symbolImpE(rows) {
+    return "E ⊃ " + rows[0] + "," + rows[1];
 }
-function symbolConE(lineNums) {
-    return "E · " + lineNums[0];
+function symbolConE(rows) {
+    return "E · " + rows[0];
 }
-function symbolDisE(lineNums) {
-    return "E ∨ " + lineNums[0] + "," + lineNums[1] + "," + lineNums[2];
+function symbolDisE(rows) {
+    return "E ∨ " + rows[0] + "," + rows[1] + "," + rows[2];
 }
-function symbolEqvE(lineNums) {
-    return "E ≡ " + lineNums[0];
+function symbolEqvE(rows) {
+    return "E ≡ " + rows[0];
 }
-function symbolNegE(lineNums) {
-    return "E ~ " + lineNums[0];
+function symbolNegE(rows) {
+    return "E ~ " + rows[0];
 }
 function symbolImpI() {
-    return "I ⊃ " + lastNestingStart + "-" + currentLineNumber();
+    return "I ⊃ " + lastNestingStart + "-" + rownum;
 }
-function symbolConI(lineNums) {
-    return "I · " + lineNums[0] + "," + lineNums[1];
+function symbolConI(rows) {
+    return "I · " + rows[0] + "," + rows[1];
 }
-function symbolDisI(lineNums) {
-    return "I ∨ " + lineNums[0];
+function symbolDisI(rows) {
+    return "I ∨ " + rows[0];
 }
-function symbolEqvI(lineNums) {
-    return "I ≡ " + lineNums[0] + "," + lineNums[1];
+function symbolEqvI(rows) {
+    return "I ≡ " + rows[0] + "," + rows[1];
 }
 function symbolNegI() {
-    return "I ~ " + lastNestingStart + "-" + currentLineNumber();
+    return "I ~ " + lastNestingStart + "-" + rownum;
 }
 function symbolHyp() {
     return "hyp";
 }
-function symbolRep(lineNums) {
-    return "rep " + lineNums[0];
+function symbolRep(rows) {
+    return "rep " + rows[0];
 }
 
 // utils
@@ -717,7 +720,7 @@ $(document).ready(function() {
         doApply($(this), rep, 1, symbolRep, false, true);
     });
     $("#rem").click(function() {
-        removeLine();
+        removeRow();
         $(this).blur();
     });
     $("#neg").click(function() {
