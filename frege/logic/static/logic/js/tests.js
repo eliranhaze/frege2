@@ -4,11 +4,22 @@
 // =============
 
 deduction = require('./deduction2.js');
+
 var analyze = deduction.analyze;
 var equal = deduction.equal;
 var isNegOf = deduction.isNegationOf;
 var isCnt = deduction.isContradiction;
+
 var initState = deduction.initState;
+var rownum = deduction.rownum;
+var initState = deduction.initState;
+var currentNesting = deduction.currentNesting;
+var endNesting = deduction.endNesting;
+var startNesting = deduction.startNesting;
+var isOpenNested = deduction.isOpenNested;
+var isOnCurrentLevel = deduction.isOnCurrentLevel;
+var getNesting = deduction.getNesting;
+
 var impE = deduction.impE;
 var conE = deduction.conE;
 var disE = deduction.disE;
@@ -19,8 +30,6 @@ var conI = deduction.conI;
 var disI = deduction.disI;
 var eqvI = deduction.eqvI;
 var negI = deduction.negI;
-var hyp = deduction.hyp;
-var rep = deduction.rep;
 
 var connectives = {
     '~': deduction.NEG,
@@ -367,6 +376,14 @@ try {
     // ----------------
 
     assertEquals(
+        form('p=q'),
+        eqvI(form('p>q'), form('((q)>p)'))
+    );
+    assertEquals(
+        form('p=(q)'),
+        eqvI(form('p>(q)'), form('((q)>p)'))
+    );
+    assertEquals(
         form('~r=p'),
         eqvI(form('~r>p'), form('p>~r'))
     );
@@ -379,10 +396,19 @@ try {
         eqvI(form('((~~r,p),s)>~(s-p)'), form('~(p-s)>(s,(~~r,p))'))
     );
 
-    // ----------------
-    // nesting tests 
-    // ----------------
-  
+    assertUndefined(
+        eqvI(form('p>q'), form('p>q'))
+    );
+    assertUndefined(
+        eqvI(form('p>q'), form('q>~p'))
+    );
+    assertUndefined(
+        eqvI(form('(p>q)>r'), form('(r>p)>q'))
+    );
+    assertUndefined(
+        eqvI(form('(q-p)>(s=r)'), form('(r,s)>(p-q)'))
+    );
+
 // ===== tests end =====
 
 } catch (e) {
