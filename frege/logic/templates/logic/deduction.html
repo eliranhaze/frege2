@@ -1,7 +1,7 @@
 {% extends "logic/question_base.html" %}
 {% load staticfiles %}
 
-{% block question_text %}נתון הטיעון:<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(24,24,24); font-style: normal;" dir="ltr">{{question.display}}</p>{% endblock %}
+{% block question_text %}נתון הטיעון:<p class="text-center formal formal-dsp">{{question.display}}</p>{% endblock %}
 {% block question_instruction %}הוכחה בדדוקציה טבעית{% endblock %}
 
 {% block question_content %}
@@ -40,7 +40,7 @@
       <button class="btn btn-default dd-btn" id="rem"><span class="glyphicon glyphicon-trash" style="margin-top: 6px;"></span></button>
     </div>
     <div class="noselect" id="extra" style="opacity: 0;">
-      <input type="text" id="extxt" style="margin-top: 10px;" class="formal-txt" size="28" maxlength="30">
+      <input type="text" id="extxt" style="margin-top: 10px;" size="28" maxlength="30">
       <label for="extxt" style="margin-left: 10px;">נוסחה</label>
       <div>
         <input type="button" class="btn sym-btn" id="neg" value="~"/>

@@ -1,12 +1,12 @@
 {% extends "logic/question_base.html" %}
 
-{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal" style="font-size: 160%; margin-top: -30px;color: rgb(24,24,24); font-style: normal;" dir="ltr">{{question.display}}</p>{% endblock %}
+{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal formal-dsp">{{question.display}}</p>{% endblock %}
 {% block question_instruction %}טבלת אמת{% endblock %}
 
 {% block question_content %}
 
   <div>
-    <table class="table table-bordered table-condensed table-hover noselect formal" dir="ltr">
+    <table class="table table-bordered table-condensed table-hover noselect formal">
       <thead>
         <tr style="font-size: 110%;">
         {% for var in truth_table.variables %}

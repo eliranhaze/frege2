@@ -24,7 +24,14 @@ input:-webkit-autofill {
 }
 
 .formal {
-     font-family: 'Trirong', serif;
+    font-family: 'Trirong', serif;
+    direction: ltr;
+}
+
+.formal-dsp {
+    font-size: 160%;
+    margin-top: -30px;
+    color: #222;
 }
 
 .mono {
