@@ -7,6 +7,20 @@ var analyze = deduction.analyze;
 var equal = deduction.equal;
 var isNegOf = deduction.isNegationOf;
 var isCnt = deduction.isContradiction;
+var initState = deduction.initState;
+var impE = deduction.impE;
+var conE = deduction.conE;
+var disE = deduction.disE;
+var eqvE = deduction.eqvE;
+var negE = deduction.negE;
+var impI = deduction.impI;
+var conI = deduction.conI;
+var disI = deduction.disI;
+var eqvI = deduction.eqvI;
+var negI = deduction.negI;
+var hyp = deduction.hyp;
+var rep = deduction.rep;
+
 var connectives = {
     '~': deduction.NEG,
     '-': deduction.CON,
@@ -118,12 +132,200 @@ try {
     assertTrue(equal(form('p,r'), form('r,p')));
     assertTrue(equal(form('(p,r)'), form('r,p')));
     assertTrue(equal(form('(p,r)'), form('(r,p)')));
+    assertTrue(equal(form('~(p,r)'), form('~(r,p)')));
+    assertTrue(equal(form('~(p,~r)'), form('~(~r,p)')));
     assertTrue(equal(form('(p,r),(q,s)'), form('((s,q),(r,p))')));
 
     assertFalse(equal(form('p'), form('q')));
     assertFalse(equal(form('p>r'), form('r>p')));
     assertFalse(equal(form('(p,q)-r'), form('p,(q-r)')));
     assertFalse(equal(form('(p-r)=(q,s)'), form('((s-q)=(r,p))')));
+    assertFalse(equal(form('~(p,r)'), form('~r,p')));
+    assertFalse(equal(form('~p,r'), form('~r,p')));
+    assertFalse(equal(form('~p,r'), form('~(p,r)')));
+
+    // ----------------
+    // impE tests 
+    // ----------------
+
+    assertEquals(
+        form('q'),
+        impE(form('p>q'), form('p'))
+    );
+    assertEquals(
+        form('q'),
+        impE(form('p>q'), form('(p)'))
+    );
+    assertEquals(
+        form('r>q'),
+        impE(form('(p>q)>(r>q)'), form('p>q'))
+    );
+    assertEquals(
+        form('r>q'),
+        impE(form('(p>q)>(r>q)'), form('(p>q)'))
+    );
+    assertEquals(
+        form('q'),
+        impE(form('(p-q)>q'), form('q-p'))
+    );
+    assertEquals(
+        form('(q>r)=~~p'),
+        impE(form('~((p,q)=(p-~r))>((q>r)=~~p)'), form('~((p,q)=(p-~r))'))
+    );
+
+    assertUndefined(
+        impE(form('p>q'), form('q'))
+    );
+    assertUndefined(
+        impE(form('p>q'), form('~p'))
+    );
+    assertUndefined(
+        impE(form('p>q'), form('p>q'))
+    );
+    assertUndefined(
+        impE(form('(p-q)>q'), form('q,p'))
+    );
+    assertUndefined(
+        impE(form('~(p-q)>q'), form('~p-q'))
+    );
+    assertUndefined(
+        impE(form('(p-q)=q'), form('q-p'))
+    );
+
+    // ----------------
+    // conE tests 
+    // ----------------
+
+    assertListsEqual(
+        [form('q'), form('p')],
+        conE(form('q-p'))
+    );
+    assertListsEqual(
+        [form('~p'), form('~q')],
+        conE(form('~p-~q'))
+    );
+    assertListsEqual(
+        [form('~p-~q'), form('p-r')],
+        conE(form('((~p-~q)-(p-r))'))
+    );
+
+    assertUndefined(
+        conE(form('((~p-~q)>(p-r))'))
+    );
+    assertUndefined(
+        conE(form('~(p-q)'))
+    );
+
+    assertUndefined(
+        conE(form('p'))
+    );
+
+    // ----------------
+    // disE tests 
+    // ----------------
+
+    assertEquals(
+        form('r'),
+        disE(form('p>r'), form('q>r'), form('p,q'))
+    );
+    assertEquals(
+        form('~~(r)'),
+        disE(form('(p-q)>(~~r)'), form('(q,s)>~~(r)'), form('(s,q),(q-p)'))
+    );
+    assertEquals(
+        form('q=p'),
+        disE(form('~r>(p=q)'), form('~~~(~s,p)>(q=p)'), form('((~r),~~~(p,~s))'))
+    );
+    assertEquals(
+        form('r,s'),
+        disE(form('p>(s,r)'), form('~p>(r,s)'), form('p,~p'))
+    );
+    assertEquals(
+        form('r,s'),
+        disE(form('p>(s,r)'), form('p>(r,s)'), form('p,p'))
+    );
+
+    assertUndefined(
+        disE(form('p>(s,r)'), form('~p=(r,s)'), form('p,~p'))
+    );
+    assertUndefined(
+        disE(form('p>(s,r)'), form('p=(r,s)'), form('p,~p'))
+    );
+    assertUndefined(
+        disE(form('p>(s,r)'), form('q=(r,s)'), form('p,r'))
+    );
+    assertUndefined(
+        disE(form('p>(s,r)'), form('~p=(r=s)'), form('p,~p'))
+    );
+
+    // ----------------
+    // eqvE tests 
+    // ----------------
+
+    assertListsEqual(
+        [form('q>p'), form('p>q')],
+        eqvE(form('q=p'))
+    );
+    assertListsEqual(
+        [form('(p=q)>~(r,~s)'), form('~(r,~s)>(p=q)')],
+        eqvE(form('(p=q)=~(r,~s)'))
+    );
+
+    assertUndefined(
+        eqvE(form('p'))
+    );
+    assertUndefined(
+        eqvE(form('p,q'))
+    );
+    assertUndefined(
+        eqvE(form('p>(s,r)'))
+    );
+
+    // ----------------
+    // negE tests 
+    // ----------------
+
+    assertEquals(
+        form('r'),
+        negE(form('~~r'))
+    );
+    assertEquals(
+        form('r'),
+        negE(form('(~~r)'))
+    );
+    assertEquals(
+        form('r'),
+        negE(form('~~(r)'))
+    );
+    assertEquals(
+        form('r'),
+        negE(form('~(~r)'))
+    );
+    assertEquals(
+        form('~r'),
+        negE(form('~~~r'))
+    );
+    assertEquals(
+        form('~r'),
+        negE(form('~~(~r)'))
+    );
+    assertEquals(
+        form('~s,~r'),
+        negE(form('~~(~s,~r)'))
+    );
+
+    assertUndefined(
+        negE(form('p>(s,r)'))
+    );
+    assertUndefined(
+        negE(form('~p'))
+    );
+    assertUndefined(
+        negE(form('~~s>p'))
+    );
+    assertUndefined(
+        negE(form('p,~~s'))
+    );
 
 // ===== tests end =====
 
@@ -186,6 +388,14 @@ function assertTrue(a) {
 
 function assertFalse(a) {
     assertEquals(false, a);
+}
+
+function assertUndefined(a) {
+    assertEquals(undefined, a);
+}
+
+function assertListsEqual(l, k) {
+    assertEquals(l.toString(), k.toString());
 }
 
 function assertEquals(a, b) {
