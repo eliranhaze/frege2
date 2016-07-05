@@ -18,12 +18,18 @@ var EQV = '≡'; // @@export
 
 // holds starting positions of open nestings
 var nestingStack = [];
-
 // holds nesting levels by line numbers, only when level changes
 var nestingLevels = [];
-nestingLevels[0] = 0;
-
 var lastNestingStart = null;
+
+initState();
+
+function initState() { // @@export
+    nestingStack = [];
+    nestingLevels = [];
+    nestingLevels[0] = 0;
+    lastNestingStart = null;
+}
 
 function currentNesting() {
     return nestingStack.length;
@@ -80,22 +86,22 @@ function getNesting(lineNum) {
 
 // implication elimination
 // A⊃B,A => B
-function impE(f1, f2) {
-    if (f1.length > f2.length) {
-        return _impE(f1, f2);
-    }
-    return _impE(f2, f1);   
+function impE(f1, f2) { // @@export
+    var a1 = analyze(f1);
+    var a2 = analyze(f2);
+    var result = _impE(a1, a2);
+    if (result) return result;
+    return _impE(a2, a1);
 }
-function _impE(implication, antecedent) {
-    var a = analyze(implication);
-    if (a.con === IMP && stripBrackets(a.sf1) === stripBrackets(antecedent)) {
-        return stripBrackets(a.sf2);
+function _impE(a1, a2) {
+    if (a1.con === IMP && equal(a1.sf1, a2.lit)) {
+        return stripBrackets(a1.sf2);
     }
 }
 
 // conjunction elimination
 // A·B => A,B
-function conE(f) {
+function conE(f) { // @@export
     var a = analyze(f);
     if (a.con === CON) {
         return [stripBrackets(a.sf1), stripBrackets(a.sf2)];
@@ -104,7 +110,7 @@ function conE(f) {
 
 // disjunction elimination
 // A∨B,A⊃C,B⊃C => C
-function disE(f1, f2, f3) {
+function disE(f1, f2, f3) { // @@export
     var a1 = analyze(f1);
     var a2 = analyze(f2);
     var a3 = analyze(f3);
@@ -119,8 +125,9 @@ function disE(f1, f2, f3) {
     }
 }
 function _disE(aDis, aImp1, aImp2) {
-    if (aImp1.sf2 === aImp2.sf2) {
-        if ((aDis.sf1 === aImp1.sf1 && aDis.sf2 === aImp2.sf1) || (aDis.sf1 === aImp2.sf1 && aDis.sf2 === aImp1.sf1)) {
+    if (equal(aImp1.sf2, aImp2.sf2)) {
+        if ((equal(aDis.sf1, aImp1.sf1) && equal(aDis.sf2, aImp2.sf1)) ||
+            (equal(aDis.sf1, aImp2.sf1) && equal(aDis.sf2, aImp1.sf1))) {
             return stripBrackets(aImp1.sf2);
         }
     }
@@ -128,7 +135,7 @@ function _disE(aDis, aImp1, aImp2) {
 
 // equivalence elimination
 // A≡B => A⊃B,B⊃A
-function eqvE(f) {
+function eqvE(f) { // @@export
     var a = analyze(f);
     if (a.con === EQV) {
         return [
@@ -140,7 +147,7 @@ function eqvE(f) {
 
 // negation elimination
 // ~~A => A
-function negE(f) {
+function negE(f) { // @@export
     var a = analyze(f);
     if (a.con === NEG) {
         var a2 = analyze(a.sf1);
@@ -152,7 +159,7 @@ function negE(f) {
 
 // implication introduction
 // A ... B => A⊃B
-function impI() {
+function impI() { // @@export
     if (currentNesting() > 0) {
         var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
         endNesting();
@@ -162,19 +169,19 @@ function impI() {
 
 // conjunction introduction
 // A,B => A·B
-function conI(f1, f2) {
+function conI(f1, f2) { // @@export
     return wrap(f1)+CON+wrap(f2);
 }
 
 // disjunction introduction
 // A => A∨B
-function disI(f1, f2) {
+function disI(f1, f2) { // @@export
     return wrap(f1)+DIS+wrap(f2);
 }
 
 // equivalence introduction
 // A⊃B,B⊃A => A≡B 
-function eqvI(f1, f2) {
+function eqvI(f1, f2) { // @@export
     var a1 = analyze(f1);
     var a2 = analyze(f2);
     if (a1.con === IMP && a2.con === IMP && a1.sf1 === a2.sf2 && a1.sf2 === a2.sf1) {
@@ -184,7 +191,7 @@ function eqvI(f1, f2) {
 
 // implication introduction
 // A ... B·~B => ~A
-function negI() {
+function negI() { // @@export
     if (currentNesting() > 0) {
         var formulas = getFormulas([currentNestingStart(), currentLineNumber()]);
         if (isContradiction(formulas[1])) {
@@ -195,13 +202,13 @@ function negI() {
 }
 
 // hypothesis
-function hyp(f) {
+function hyp(f) { // @@export
     startNesting();
     return f;
 }
 
 // repetition
-function rep(f) {
+function rep(f) { // @@export
     return f;
 }
 
@@ -216,7 +223,7 @@ function validate(f) {
         lit: '',
         err: ''
     };
-    var _f = stripBrackets(f).replace(/ /g,'');
+    var _f = form(f);
     if (isAtomic(_f)) {
         result.valid = true;
         result.lit = _f;
@@ -276,7 +283,7 @@ function equal(f1, f2) { // @@export
 
 // return the main connective and sub formula(s) of a formula
 function analyze(f) { // @@export
-    var _f = stripBrackets(f).replace(/ /g,'');
+    var _f = form(f);
     var result = {
         lit: _f,
         con: '',
@@ -340,6 +347,11 @@ function analyze(f) { // @@export
     }
     result.err = generr;
     return result;
+}
+
+// strip brackets and remove spaces from a formula string
+function form(f) {
+    return stripBrackets(f).replace(/ /g,'');
 }
 
 // strip outmost brackets from a formula
