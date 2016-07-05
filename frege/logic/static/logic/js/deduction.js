@@ -21,7 +21,7 @@ var nestingStack = [];
 // holds nesting levels by row numbers, only when level changes
 var nestingLevels = [];
 var lastNestingStart = null;
-var rownum = 0;
+var rownum = 0; // @@export
 
 initState();
 
@@ -32,7 +32,7 @@ function initState() { // @@export
     lastNestingStart = null;
 }
 
-function currentNesting() {
+function currentNesting() { // @@export
     return nestingStack.length;
 }
 
@@ -40,14 +40,14 @@ function currentNestingStart() {
     return parseInt(nestingStack[nestingStack.length-1]);
 }
 
-function endNesting() {
+function endNesting() { // @@export
     endNestingRow();
     lastNestingStart = parseInt(nestingStack.pop());
     updateNesting();
 }
 
-function startNesting() {
-    nestingStack.push(parseInt(rownum+1));
+function startNesting() { // @@export
+    nestingStack.push(rownum+1);
     updateNesting();
 }
 
@@ -55,12 +55,12 @@ function updateNesting() {
     nestingLevels[rownum+1] = currentNesting();
 }
 
-function isOpenNested(row) {
+function isOpenNested(row) { // @@export
     return nestingStack.length > 0 && parseInt(row) >= nestingStack[0];
 }
 
 // return true iff the given row is on the current open nesting level
-function isOnCurrentLevel(row) {
+function isOnCurrentLevel(row) { // @@export
     var currLevel = currentNesting();
     if (currLevel === getNesting(row)) {
         // levels are equal, but are the same only in the following case
@@ -70,7 +70,7 @@ function isOnCurrentLevel(row) {
 }
 
 // get the nesting level of row n
-function getNesting(n) {
+function getNesting(n) { // @@export
     n = parseInt(n);
     var startRow = 0;
     for (row in nestingLevels) {
