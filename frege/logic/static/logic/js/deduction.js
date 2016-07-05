@@ -186,8 +186,8 @@ function disI(f1, f2) { // @@export
 function eqvI(f1, f2) { // @@export
     var a1 = analyze(f1);
     var a2 = analyze(f2);
-    if (a1.con === IMP && a2.con === IMP && a1.sf1 === a2.sf2 && a1.sf2 === a2.sf1) {
-        return a1.sf1 + EQV + a2.sf2;
+    if (a1.con === IMP && a2.con === IMP && equal(a1.sf1, a2.sf2) && equal(a1.sf2, a2.sf1)) {
+        return a1.sf1 + EQV + a1.sf2;
     }
 }
 
