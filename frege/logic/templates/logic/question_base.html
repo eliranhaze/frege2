@@ -1,5 +1,4 @@
 {% extends "logic/chapter_base.html" %}
-
 {% block title %}שאלה {{question.number }} פרק {{ chapter.number }}{% endblock %}
 {% block topic_header %}שאלה {{ question.number }}{% endblock %}
 
@@ -9,7 +8,6 @@
         <p style="white-space: pre-wrap; font-size: 110%;">{% block question_text %}{% endblock %}</p>
         <div class="page-header" style="margin-top: -18px;"></div>
         <p class="noselect"><b>{% block question_instruction %}{% endblock %}</b></p>
-
         {% block question_content %}
         {% endblock %}
         <div style="padding: 5px;margin-top: 20px;">
@@ -17,7 +15,6 @@
         </div>
      </div>
   </div>
-
   <script>
     function reg() {
         $('#answer').one('click', function() {
@@ -26,5 +23,4 @@
     }
     $(document).ready(reg);
   </script>
-
 {% endblock chapter_content %}

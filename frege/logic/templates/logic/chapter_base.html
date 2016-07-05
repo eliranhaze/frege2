@@ -1,8 +1,5 @@
 {% extends "logic/base.html" %}
-
 {% block title %}פרק {{ chapter.number }}: {{ chapter.title }}{% endblock %}
-
-
 {% block content %}
   <div class="container">
     <div class="page-header noselect">
@@ -11,24 +8,14 @@
   {% block chapter_content %}
   {% endblock %}
     
-    <!-- Chapter questions navigation -->
-    <div class="page-header">
-    </div>
+    <div class="page-header"></div>
     <div class="panel panel-default">
       <div class="panel-body noselect">
 {% for qnum, correct in chap_questions.iteritems %}
   {% if question and qnum == question.number %}
         <button class="btn btn-primary">{{ qnum }}</button>
   {% else %}
-        <a href='{% url 'logic:question' chapter.number qnum %}' class=
-    {% if correct %}
-        "btn btn-success"
-    {% elif correct == False %}
-        "btn btn-danger"
-    {% else %} {# None: question was not answered #}
-        "btn btn-default"
-    {% endif %}
-        >{{ qnum }}</a>
+        <a href='{% url 'logic:question' chapter.number qnum %}' class={% if correct %}"btn btn-success"{% elif correct == False %}"btn btn-danger"{% else %}"btn btn-default"{% endif %}>{{ qnum }}</a>
   {% endif %}
 {% endfor %}
       </div>
