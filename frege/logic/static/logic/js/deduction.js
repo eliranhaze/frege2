@@ -611,6 +611,7 @@ function errmsg(msg) {
         message: msg
     },{
         allow_dismiss: true,
+        offset: {x: 0, y: 200},
         delay: 1400,
 	template:
           '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note" role="alert">' +
