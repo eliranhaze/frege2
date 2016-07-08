@@ -10,7 +10,6 @@ var equal = deduction.equal;
 var isNegOf = deduction.isNegationOf;
 var isCnt = deduction.isContradiction;
 
-var initState = deduction.initState;
 var rownum = deduction.rownum;
 var initState = deduction.initState;
 var currentNesting = deduction.currentNesting;

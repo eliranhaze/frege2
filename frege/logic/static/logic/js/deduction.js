@@ -18,41 +18,29 @@ var EQV = '≡'; // @@export
 
 // holds starting positions of open nestings
 var nestingStack = [];
-// holds nesting levels by row numbers, only when level changes
+
+// holds nesting levels for every row
 var nestingLevels = [];
-var lastNestingStart = null;
+nestingLevels[0] = 0;
+
+// the current row number
 var rownum = 0; // @@export
-
-initState();
-
-function initState() { // @@export
-    nestingStack = [];
-    nestingLevels = [];
-    nestingLevels[0] = 0;
-    lastNestingStart = null;
-}
 
 function currentNesting() { // @@export
     return nestingStack.length;
 }
 
 function currentNestingStart() {
-    return parseInt(nestingStack[nestingStack.length-1]);
+    return nestingStack[nestingStack.length-1];
 }
 
 function endNesting() { // @@export
-    endNestingRow();
-    lastNestingStart = parseInt(nestingStack.pop());
-    updateNesting();
+    endNestingLine();
+    nestingStack.pop();
 }
 
 function startNesting() { // @@export
     nestingStack.push(rownum+1);
-    updateNesting();
-}
-
-function updateNesting() {
-    nestingLevels[rownum+1] = currentNesting();
 }
 
 function isOpenNested(row) { // @@export
@@ -71,15 +59,7 @@ function isOnCurrentLevel(row) { // @@export
 
 // get the nesting level of row n
 function getNesting(n) { // @@export
-    n = parseInt(n);
-    var startRow = 0;
-    for (row in nestingLevels) {
-        row = parseInt(row);
-        if (row > startRow && row <= n) {
-            startRow = row; 
-        }
-    }
-    return nestingLevels[startRow];
+    return nestingLevels[n];
 }
 
 // ==========================
@@ -443,10 +423,10 @@ function applyRule(ruleFunc, numRows, symbolFunc, withText, isRep) {
         }
         formulas.push(result.lit);
     }
+    var symbol = symbolFunc(checked);
     // apply the rule
     var consq = ruleFunc.apply(this, formulas);
     if (consq) {
-        var symbol = symbolFunc(checked);
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
@@ -505,7 +485,10 @@ function validateRep(checked) {
 
 // add a new row to the deduction table
 function addRow(content, symbol, premise) {
+    // update row num and nesting
     rownum++;
+    nesting = currentNesting();
+    nestingLevels[rownum] = nesting;
     if (premise) {
         var rowId = '';
         symbol = 'prem';
@@ -513,7 +496,7 @@ function addRow(content, symbol, premise) {
        var rowId = 'r'+rownum;
     }
     // handle nesting
-    for (var i = 0; i < currentNesting(); i++) content = addNesting(content, rownum, currentNesting() - i);
+    for (var i = 0; i < nesting; i++) content = addNesting(content, rownum, nesting - i);
     // add the row
     $('#deduction tr:last').after(
         '<tr id="'+rowId+'">'+
@@ -526,10 +509,40 @@ function addRow(content, symbol, premise) {
 
 // remove the last deduction row 
 function removeRow() {
-    removeSelection();
     // delete by row id (premises don't have row id and so cannot be deleted)
+    if ($("#r"+rownum).length == 0) return;
     $("#r"+rownum).remove();
+    removeSelection();
+    removedRow = rownum;
+    removedRowNesting = getNesting(removedRow);
     rownum--;
+    nestingLevels.pop();
+    if (getNesting(rownum) != removedRowNesting) {
+        // nesting change, determine direction
+        if (currentNestingStart() === removedRow) {
+            // going down 
+            nestingStack.pop();
+        } else {
+            // going up, find the last nesting start
+            tmpStack = [];
+            lastNesting = 0; 
+            for (i = rownum; i > 0; i--) {
+                if (nestingLevels[i] > lastNesting) {
+                    tmpStack.push(i);
+                    lastNesting = getNesting(i);
+                } else if (nestingLevels[i] < lastNesting) {
+                    tmpStack.pop();
+                    lastNesting = getNesting(i);
+                }
+                if (tmpStack.length == 0) {
+                    lastNestingStart = i+1;
+                    break;
+                }
+            }
+            nestingStack.push(lastNestingStart);
+            endNestingLine();
+        }
+    }
 }
 
 // add a nesting indication to given html
@@ -538,8 +551,8 @@ function addNesting(content, row, level) {
 }
 
 // add a end of nesting indication
-function endNestingRow() {
-    $("#nst"+rownum+""+currentNesting()).addClass("dd-hyp-end");
+function endNestingLine() {
+    $("#nst"+rownum+""+currentNesting()).toggleClass("dd-hyp-end");
 }
 
 // symbol functions
@@ -559,7 +572,7 @@ function symbolNegE(rows) {
     return "E ~ " + rows[0];
 }
 function symbolImpI() {
-    return "I ⊃ " + lastNestingStart + "-" + rownum;
+    return "I ⊃ " + currentNestingStart() + "-" + rownum;
 }
 function symbolConI(rows) {
     return "I · " + rows[0] + "," + rows[1];
@@ -571,7 +584,7 @@ function symbolEqvI(rows) {
     return "I ≡ " + rows[0] + "," + rows[1];
 }
 function symbolNegI() {
-    return "I ~ " + lastNestingStart + "-" + rownum;
+    return "I ~ " + currentNestingStart() + "-" + rownum;
 }
 function symbolHyp() {
     return "hyp";
