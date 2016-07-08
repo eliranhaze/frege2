@@ -210,6 +210,14 @@ class FormulaTests(TestCase):
         self.assertEquals(f.sf2.literal, 'q')
         self.assertEquals(f.literal, literal)
 
+    def test_analyze_simple_upper(self):
+        literal = 'P%sQ' % CON
+        f = Formula(literal)
+        self.assertEquals(f.con, CON)
+        self.assertEquals(f.sf1.literal, 'P')
+        self.assertEquals(f.sf2.literal, 'Q')
+        self.assertEquals(f.literal, literal)
+
     def test_analyze_simple2(self):
         literal = 'p%sq' % IMP
         f = Formula('(%s)' % literal)
