@@ -287,6 +287,9 @@ class ChapterSubmission(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
 
+    def is_complete(self):
+        return self.chapter.num_questions() == len(UserAnswer.objects.filter(chapter=self.chapter))
+
     @property
     def percent_correct_f(self):
         return self.percent_correct()
