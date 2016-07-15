@@ -46,7 +46,7 @@
     </div>
   </div>
 
-  <script src="{% static 'logic/js/deduction.js'%}"></script>
+  <script src="{% static 'logic/js/deduction.min.js'%}"></script>
   <script>
     {% for premise in premises %}addRow('{{premise}}', '', true);{% endfor %}
     function is_empty() {

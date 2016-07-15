@@ -147,7 +147,7 @@ Formula.prototype.validateSub = function(original) {
 }
 
 Formula.prototype.toString = function() {
-    return '<Formula: ' + this.lit + '>';
+    return this.lit;
 }
 
 // ==========================
