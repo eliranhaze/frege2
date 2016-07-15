@@ -13,322 +13,157 @@ var IMP = '⊃'; // @@export
 var EQV = '≡'; // @@export
 
 // ==========================
-// deduction state
+// formula 
 // ==========================
 
-// holds starting positions of open nestings
-var nestingStack = [];
-
-// holds nesting levels for every row
-var nestingLevels = [];
-nestingLevels[0] = 0;
-
-// the current row number
-var rownum = 0; // @@export
-
-function currentNesting() { // @@export
-    return nestingStack.length;
+// formula constructor
+function Formula(f, opts) { // @@export
+    this.con = null;
+    this.sf1 = null;
+    this.sf2 = null;
+    this.lit = form(f);
+    this.analyze(this.lit);
 }
 
-function currentNestingStart() {
-    return nestingStack[nestingStack.length-1];
+// find the main connective and sub formula(s) of a formula
+Formula.prototype.analyze = function(f) {
+    if (this.isAtomic()) return;
+    var generr = 'נוסחה לא תקינה';
+    var maybe_neg = false;
+    var nesting = 0;
+    for (var i = 0; i < f.length; i++) {
+        var c = f.charAt(i);
+        if (c == ')') {
+            nesting--;
+        } else if (c == '(') {
+            nesting++;
+            // validate next char
+            if (i+1 < f.length) {
+                var next = f.charAt(i+1);
+                if (!(isAlpha(next) || next == NEG || next == '(')) {
+                    throw new Error(generr);
+                }
+            }
+        } else if (nesting === 0) {
+            // highest nesting level, check for main connective
+            if (isBinary(c)) {
+                var _sf1 = f.slice(0, i);
+                var _sf2 = f.slice(i+1);
+                this.con = c;
+                this.sf1 = new Formula(_sf1); 
+                this.sf2 = new Formula(_sf2); 
+                if (!this.sf1.validateSub(_sf1) || !this.sf2.validateSub(_sf2)) {
+                    throw new Error(generr);
+                }
+                return;
+            } else if (c === NEG) {
+                // don't return here since binary connectives take precedence
+                maybe_neg = true;
+            }
+        } else if (nesting < 0) {
+            throw new Error('סוגריים לא מאוזנים');
+        }
+    }
+    if (nesting !== 0) {
+        throw new Error('סוגריים לא מאוזנים');
+    }
+    if (maybe_neg) {
+        // validate negation
+        var sf = f.slice(1);
+        if (f.charAt(0) !== NEG) {
+            throw new Error(generr);
+        } 
+        this.con = NEG;
+        this.sf1 = new Formula(sf);
+        return;
+    }
+    throw new Error(generr);
 }
 
-function endNesting() { // @@export
-    endNestingLine();
-    nestingStack.pop();
+Formula.prototype.isAtomic = function() {
+    return this.lit.length == 1 && isAlpha(this.lit);
 }
 
-function startNesting() { // @@export
-    nestingStack.push(rownum+1);
-}
-
-function isOpenNested(row) { // @@export
-    return nestingStack.length > 0 && parseInt(row) >= nestingStack[0];
-}
-
-// return true iff the given row is on the current open nesting level
-function isOnCurrentLevel(row) { // @@export
-    var currLevel = currentNesting();
-    if (currLevel === getNesting(row)) {
-        // levels are equal, but are the same only in the following case
-        return currLevel === 0 || isOpenNested(row);
-    } 
+// check if a formula is a contradiction of the form A·~A
+Formula.prototype.isContradiction = function() {
+    if (this.con === CON) {
+        return this.sf1.isNegationOf(this.sf2) || this.sf2.isNegationOf(this.sf1);
+    }
     return false;
 }
 
-// get the nesting level of row n
-function getNesting(n) { // @@export
-    return nestingLevels[n];
+Formula.prototype.isNegationOf = function(other) {
+    return this.con === NEG && this.sf1.equals(other);
 }
 
-// ==========================
-// deduction rules
-// ==========================
-
-// implication elimination
-// A⊃B,A => B
-function impE(f1, f2) { // @@export
-    var a1 = analyze(f1);
-    var a2 = analyze(f2);
-    var result = _impE(a1, a2);
-    if (result) return result;
-    return _impE(a2, a1);
-}
-function _impE(a1, a2) {
-    if (a1.con === IMP && equal(a1.sf1, a2.lit)) {
-        return stripBrackets(a1.sf2);
-    }
-}
-
-// conjunction elimination
-// A·B => A,B
-function conE(f) { // @@export
-    var a = analyze(f);
-    if (a.con === CON) {
-        return [stripBrackets(a.sf1), stripBrackets(a.sf2)];
-    }
-}
-
-// disjunction elimination
-// A∨B,A⊃C,B⊃C => C
-function disE(f1, f2, f3) { // @@export
-    var a1 = analyze(f1);
-    var a2 = analyze(f2);
-    var a3 = analyze(f3);
-    if (a1.con === DIS && a2.con === IMP && a3.con === IMP) {
-        return _disE(a1, a2, a3);
-    }
-    if (a2.con === DIS && a1.con === IMP && a3.con === IMP) {
-        return _disE(a2, a1, a3);
-    }
-    if (a3.con === DIS && a2.con === IMP && a1.con === IMP) {
-        return _disE(a3, a2, a1);
-    }
-}
-function _disE(aDis, aImp1, aImp2) {
-    if (equal(aImp1.sf2, aImp2.sf2)) {
-        if ((equal(aDis.sf1, aImp1.sf1) && equal(aDis.sf2, aImp2.sf1)) ||
-            (equal(aDis.sf1, aImp2.sf1) && equal(aDis.sf2, aImp1.sf1))) {
-            return stripBrackets(aImp1.sf2);
+// return true iff both formulas are equal, up to commutativity and brackets ommission
+Formula.prototype.equals = function(other) {
+    if (!other) return false;
+    if (this.lit == other.lit) return true;
+    if (this.isAtomic()) return false;
+    if (this.con == other.con) {
+        if (!isBinary(this.con)) return this.sf1.equals(other.sf1);
+        if (this.sf1.equals(other.sf1) && this.sf2.equals(other.sf2)) return true;
+        if (isCommutative(this.con)) {
+            return this.sf1.equals(other.sf2) && this.sf2.equals(other.sf1);
         }
     }
+    return false;
 }
 
-// equivalence elimination
-// A≡B => A⊃B,B⊃A
-function eqvE(f) { // @@export
-    var a = analyze(f);
-    if (a.con === EQV) {
-        return [
-            a.sf1 + IMP + a.sf2,
-            a.sf2 + IMP + a.sf1
-        ];
+// combine this and another formula using a binary connective
+// returns a new formula
+Formula.prototype.combine = function(other, c) {
+    if (isBinary(c)) {
+        f = new Formula('p'); // this is a bit of a hack    
+        f.con = c;
+        f.sf1 = this;
+        f.sf2 = other;
+        f.lit = this.wrap() + c + other.wrap();
+        return f;
     }
 }
 
-// negation elimination
-// ~~A => A
-function negE(f) { // @@export
-    var a = analyze(f);
-    if (a.con === NEG) {
-        var a2 = analyze(a.sf1);
-        if (a2.con === NEG) {
-            return stripBrackets(a2.sf1);
-        }
-    }
-}
-
-// implication introduction
-// A ... B => A⊃B
-function impI() { // @@export
-    if (currentNesting() > 0) {
-        var formulas = getFormulas([currentNestingStart(), rownum]);
-        endNesting();
-        return wrap(formulas[0])+IMP+wrap(formulas[1]);
-    }
-}
-
-// conjunction introduction
-// A,B => A·B
-function conI(f1, f2) { // @@export
-    return wrap(f1)+CON+wrap(f2);
-}
-
-// disjunction introduction
-// A => A∨B
-function disI(f1, f2) { // @@export
-    return wrap(f1)+DIS+wrap(f2);
-}
-
-// equivalence introduction
-// A⊃B,B⊃A => A≡B 
-function eqvI(f1, f2) { // @@export
-    var a1 = analyze(f1);
-    var a2 = analyze(f2);
-    if (a1.con === IMP && a2.con === IMP && equal(a1.sf1, a2.sf2) && equal(a1.sf2, a2.sf1)) {
-        return a1.sf1 + EQV + a1.sf2;
-    }
-}
-
-// implication introduction
-// A ... B·~B => ~A
-function negI() { // @@export
-    if (currentNesting() > 0) {
-        var formulas = getFormulas([currentNestingStart(), rownum]);
-        if (isContradiction(formulas[1])) {
-            endNesting();
-            return NEG + wrap(formulas[0]);
-        }
-    }
-}
-
-// hypothesis
-function hyp(f) { // @@export
-    startNesting();
+// return a negation of this formula
+Formula.prototype.negate = function() {
+    f = new Formula('p');    
+    f.con = NEG;
+    f.sf1 = this;
+    f.lit = NEG + this.wrap();
     return f;
 }
+// wrap a formula with brackets if needed, returns a string
+Formula.prototype.wrap = function() {
+    if (isBinary(this.con)) {
+        return '('+this.lit+')';
+    }
+    return this.lit;
+}
 
-// repetition
-function rep(f) { // @@export
-    return f;
+// check that a sub formula is syntactically valid
+Formula.prototype.validateSub = function(original) {
+    // the brackets part checks that the sub formula is surrounded with brackets
+    return this.isAtomic() || !isBinary(this.con) || original !== stripBrackets(original); 
+}
+
+Formula.prototype.toString = function() {
+    return '<Formula: ' + this.lit + '>';
 }
 
 // ==========================
 // formula utils
 // ==========================
 
-// check if a formula is syntactically valid
-function validate(f) {
-    var result = {
-        valid: false,
-        lit: '',
-        err: ''
-    };
-    var _f = form(f);
-    if (isAtomic(_f)) {
-        result.valid = true;
-        result.lit = _f;
-    } else {
-        var a = analyze(_f);
-        if (a.con == '') {
-            result.valid = false;
-            result.err = a.err;
-        } else {
-            result.valid = true;
-            result.lit = a.lit;
-        }
-    }
-    return result;
+function isAlpha(a) {
+    return a.toLowerCase() != a.toUpperCase();
 }
 
-// check that a sub formula is syntactically valid
-function validateSub(f) {
-    // the brackets part checks that the sub formula is surrounded with brackets
-    return isAtomic(f) || !isBinary(analyze(f).con) || f !== stripBrackets(f); 
-}
-// check if a formula is atomic
-function isAtomic(f) {
-    return f.length === 1 && f === f.toLowerCase() && f.toLowerCase() !== f.toUpperCase();
+function isBinary(c) {
+    return c === CON || c === DIS || c === IMP || c === EQV;
 }
 
-// check if a formula is a contradiction of the form A·~A
-function isContradiction(f) { // @@export
-    var a = analyze(f);
-    if (a.con === CON) {
-        var asf1 = analyze(a.sf1);
-        var asf2 = analyze(a.sf2);
-        return isNegationOf(asf1, asf2) || isNegationOf(asf2, asf1);
-    }
-    return false;
-}
-
-// return true iff one formula is the negation of the other
-function isNegationOf(af1, af2) { // @@export
-    return af1.con === NEG && equal(af1.sf1, af2.lit);
-}
-
-// return true iff both formulas are equal, up to commutativity and brackets ommission
-function equal(f1, f2) { // @@export
-    var a1 = analyze(f1);
-    var a2 = analyze(f2);
-    if (a1.lit === a2.lit) return true;
-    if (isAtomic(f1)) return false;
-    if (a1.con === a2.con) {
-        if (equal(a1.sf1, a2.sf1) && equal(a1.sf2, a2.sf2)) return true;
-        if (isCommutative(a1.con)) {
-            return equal(a1.sf1, a2.sf2) && equal(a1.sf2, a2.sf1);
-        }
-    }
-    return false;
-}
-
-// return the main connective and sub formula(s) of a formula
-function analyze(f) { // @@export
-    var _f = form(f);
-    var result = {
-        lit: _f,
-        con: '',
-        sf1: '',
-        sf2: ''
-    };
-    if (isAtomic(_f)) return result;
-    var generr = 'נוסחה לא תקינה';
-    var maybe_neg = false;
-    var nesting = 0;
-    for (var i = 0; i < _f.length; i++) {
-        var c = _f.charAt(i);
-        if (c === ')') {
-            nesting--;
-        } else if (c === '(') {
-            nesting++;
-            // validate next char
-            if (i+1 < _f.length) {
-                var next = _f.charAt(i+1);
-                if (!(isAtomic(next) || next === NEG || next === '(')) {
-                    result.err = generr;
-                    return result;
-                }
-            }
-        } else if (nesting === 0) {
-            // highest nesting level, check for main connective
-            if (isBinary(c)) {
-                var sf1 = _f.slice(0, i);
-                var sf2 = _f.slice(i+1);
-                if (!validateSub(sf1) || !validateSub(sf2) || !validate(sf1).valid || !validate(sf2).valid) {
-                    result.err = generr;
-                    return result;
-                }
-                result.con = c;
-                result.sf1 = sf1; 
-                result.sf2 = sf2; 
-                return result;
-            } else if (c === NEG) {
-                // don't return here since binary connectives take precedence
-                maybe_neg = true;
-            }
-        } else if (nesting < 0) {
-            result.err = 'סוגריים לא מאוזנים';
-            return result;
-        }
-    }
-    if (nesting !== 0) {
-        result.err = 'סוגריים לא מאוזנים';
-        return result;
-    }
-    if (maybe_neg) {
-        // validate negation
-        var sf = _f.slice(1);
-        if (_f.charAt(0) !== NEG || !validate(sf).valid) {
-            result.err = generr;
-            return result;
-        } 
-        result.con = NEG;
-        result.sf1 = sf;
-        return result;
-    }
-    result.err = generr;
-    return result;
+function isCommutative(c) {
+    return c === CON || c === DIS || c === EQV;
 }
 
 // strip brackets and remove spaces from a formula string
@@ -361,19 +196,279 @@ function stripBrackets(f) {
     return f;
 }
 
-function isBinary(c) {
-    return c === CON || c === DIS || c === IMP || c === EQV;
+// ==========================
+// deduction
+// ==========================
+
+// deduction constructor
+function Deduction() { // @@export
+    this.formulas = [null]; // 1-indexed
+    this.nestingLevels = [0];
+    this.nestingStack = [];
+    this.reverseStack = [];
+    this.lastSymbol = '';
 }
 
-function isCommutative(c) {
-    return c === CON || c === DIS || c === EQV;
+// return the current index (1-indexed)
+Deduction.prototype.index = function() {
+    return this.formulas.length - 1;
 }
 
-// wrap a formula with brackets if needed
-function wrap(f) {
-    if (f.length > 1 && analyze(f).con != NEG) {
-        return '('+f+')';
+// return the current nesting level
+Deduction.prototype.nesting = function() {
+    return this.nestingStack.length;
+}
+
+// return the index at which the current nesting was opened
+Deduction.prototype.openIndex = function() {
+    return this.nestingStack[this.nestingStack.length - 1];
+}
+
+// add a formula to the deduction
+Deduction.prototype.push = function(f, nest, endnest) {
+    this.formulas.push(f);
+    if (nest) this.nestingStack.push(this.index());
+    else if (endnest) {
+        // save the popped item in case of going back
+        this.reverseStack.push(this.nestingStack.pop());
     }
+    this.nestingLevels.push(this.nesting());
+}
+
+// remove the last formula from the deduction
+Deduction.prototype.pop = function() {
+    if (this.index() == 0) return;
+    var prevNesting = this.nesting();
+    var prevIndex = this.index();
+    this.formulas.pop();
+    this.nestingLevels.pop();
+    // handle nesting change
+    if (this.nestingLevels[this.index()] != prevNesting) {
+        if (this.openIndex() == prevIndex) {
+            // going down
+            this.nestingStack.pop();
+        } else {
+            // going up
+            this.nestingStack.push(this.reverseStack.pop());
+        }
+    }
+}
+
+// return true iff the given row is on some open nesting
+Deduction.prototype.isOpenNested = function(i) {
+    var iLvl = this.nestingLevels[i];
+    if (iLvl > 0 && iLvl <= this.nesting()) {
+        var iOpenIndex = this.nestingStack[iLvl-1]; 
+        return i >= iOpenIndex;
+    }
+    return false;
+}
+
+// return true iff the given row is on the current open nesting level
+Deduction.prototype.isOnCurrentLevel = function(i) {
+    var currLevel = this.nesting();
+    if (currLevel == this.nestingLevels[i]) {
+        // levels are equal, but are the same only in the following case
+        return currLevel == 0 || this.isOpenNested(i);
+    } 
+    return false;
+}
+
+Deduction.prototype.getFormula = function(i) {
+    if (i > 0 && i <= this.index()) return this.formulas[i];
+}
+
+Deduction.prototype.toString = function() {
+    var s = '';
+    for (var i = 1; i < this.formulas.length; i++) {
+        s += '[' + this.nestingLevels[i] + '] ' + i + '. ' + this.formulas[i] + '\n';
+    }
+    return s;
+}
+
+// ==========================
+// deduction rules
+// ==========================
+
+// implication elimination
+// A⊃B,A => B
+Deduction.prototype.impE = function(i1, i2) {
+    if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2)) return;
+    _impE = function(imp, ant) {
+        if (imp && imp.con == IMP && imp.sf1.equals(ant)) return imp.sf2;
+    }
+    var f1 = this.getFormula(i1);
+    var f2 = this.getFormula(i2);
+    var result = _impE(f1, f2);
+    if (!result) result = _impE(f2, f1);
+    if (result) {
+        this.lastSymbol = 'E ' + IMP + ' ' + i1 + ',' + i2;
+        this.push(result);
+        return result;
+    }
+}
+
+// conjunction elimination
+// A·B => A,B
+Deduction.prototype.conE = function(i) {
+    if (!this.isOnCurrentLevel(i)) return;
+    var f = this.getFormula(i);
+    if (f && f.con == CON) {
+        var result = [f.sf1, f.sf2];
+        this.lastSymbol = 'E ' + CON + ' ' + i;
+        this.push(result[0]);
+        this.push(result[1]);
+        return result;
+    }
+}
+
+// disjunction elimination
+// A∨B,A⊃C,B⊃C => C
+Deduction.prototype.disE = function(i1, i2, i3) {
+    if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2) || !this.isOnCurrentLevel(i3)) return;
+    _disE = function(dis, imp1, imp2) {
+        if (imp1.sf2.equals(imp2.sf2)) {
+            if (dis.equals(imp1.sf1.combine(imp2.sf1, DIS))) return imp1.sf2;
+        }
+    }
+    var f1 = this.getFormula(i1);
+    var f2 = this.getFormula(i2);
+    var f3 = this.getFormula(i3);
+    var result = null;
+    if (!f1 || !f2 || !f3) return;
+    if (f1.con == DIS && f2.con == IMP && f3.con == IMP) {
+        result = _disE(f1, f2, f3);
+    } else if (f2.con == DIS && f1.con == IMP && f3.con == IMP) {
+        result = _disE(f2, f1, f3);
+    } else if (f3.con == DIS && f2.con == IMP && f1.con == IMP) {
+        result = _disE(f3, f2, f1);
+    } else return;
+    this.lastSymbol = 'E ' + DIS + ' ' + i1 + ',' + i2 + ',' + i3;
+    this.push(result);
+    return result;
+}
+
+// equivalence elimination
+// A≡B => A⊃B,B⊃A
+Deduction.prototype.eqvE = function(i) {
+    if (!this.isOnCurrentLevel(i)) return;
+    var f = this.getFormula(i);
+    if (f && f.con == EQV) {
+        var result = [
+            f.sf1.combine(f.sf2, IMP),
+            f.sf2.combine(f.sf1, IMP),
+        ];
+        this.lastSymbol = 'E ' + EQV + ' ' + i;
+        this.push(result[0]);
+        this.push(result[1]);
+        return result;
+    }
+}
+
+// negation elimination
+// ~~A => A
+Deduction.prototype.negE = function(i) {
+    if (!this.isOnCurrentLevel(i)) return;
+    var f = this.getFormula(i);
+    if (f && f.con == NEG && f.sf1.con == NEG) {
+        var result = f.sf1.sf1;
+        this.lastSymbol = 'E ' + NEG + ' ' + i;
+        this.push(result);
+        return result;
+    }
+}
+
+// conjunction introduction
+// A,B => A·B
+Deduction.prototype.conI = function(i1, i2) {
+    if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2)) return;
+    var f1 = this.getFormula(i1);
+    var f2 = this.getFormula(i2);
+    if (f1 && f2) {
+        var result = f1.combine(f2, CON);
+        this.lastSymbol = 'I ' + CON + ' ' + i1 + ',' + i2;
+        this.push(result);
+        return result;
+    }
+}
+
+// disjunction introduction
+// A => A∨B
+Deduction.prototype.disI = function(i1, f2) {
+    if (!this.isOnCurrentLevel(i1)) return;
+    var f1 = this.getFormula(i1);
+    if (f1 && f2) {
+        var result = f1.combine(f2, DIS);
+        this.lastSymbol = 'I ' + DIS + ' ' + i1;
+        this.push(result);
+        return result;
+    }
+}
+
+// equivalence introduction
+// A⊃B,B⊃A => A≡B 
+Deduction.prototype.eqvI = function(i1, i2) {
+    if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2)) return;
+    var f1 = this.getFormula(i1);
+    var f2 = this.getFormula(i2);
+    if (f1 && f2 && f1.con == IMP && f2.con == IMP &&
+        f1.sf1.equals(f2.sf2) && f2.sf1.equals(f1.sf2)) {
+        var result = f1.sf1.combine(f1.sf2, EQV);
+        this.lastSymbol = 'I ' + EQV + ' ' + i1 + ',' + i2;
+        this.push(result);
+        return result;
+    }
+}
+
+// implication introduction
+// A ... B => A⊃B
+Deduction.prototype.impI = function() {
+    if (this.nesting() > 0) {
+        var f1 = this.getFormula(this.openIndex());
+        var f2 = this.getFormula(this.index());
+        if (f1 && f2) {
+            var result = f1.combine(f2, IMP);
+            this.lastSymbol = 'I ' + IMP + ' ' + this.openIndex() + '-' + this.index();
+            this.push(result, false, true);
+            return result;
+        }
+    }
+}
+
+// negation introduction
+// A ... B·~B => ~A
+Deduction.prototype.negI = function() { // @@export
+    if (this.nesting() > 0) {
+        var f1 = this.getFormula(this.openIndex());
+        var f2 = this.getFormula(this.index());
+        if (f1 && f2 && f2.isContradiction()) {
+            var result = f1.negate();
+            this.lastSymbol = 'I ' + NEG + ' ' + this.openIndex() + '-' + this.index();
+            this.push(result, false, true);
+            return result;
+        }
+    }
+}
+
+// hypothesis
+Deduction.prototype.hyp = function(f) {
+    this.lastSymbol = 'hyp';
+    this.push(f, true);
+    return f;
+}
+ 
+// repetition
+Deduction.prototype.rep = function(i) {
+    var f = this.getFormula(i);
+    if (!f) return;
+    if (this.isOnCurrentLevel(i)) {
+        throw Error("שורה " + i + " כבר נמצאת ברמה הנוכחית");
+    }
+    if (this.nestingLevels[i] > 0 && !this.isOpenNested(i)) {
+        throw Error("שורה " + i + " נמצאת בתת הוכחה אחרת");
+    }
+    this.lastSymbol = 'rep ' + i;
+    this.push(f);
     return f;
 }
 
@@ -381,15 +476,16 @@ function wrap(f) {
 // user interaction
 // ==========================
 
+var deduction = new Deduction();
 var lastBtn = null;
 var okTxt = 'OK';
 
 // perform handling before applying rule
-function doApply(btn, func, num, symFunc, withText, isRep) {
+function doApply(btn, func, num, withText, isRep) {
     lastBtn = null;
     if (withText) {
         if (btn.text() === okTxt) {
-            if (applyRule(func, num, symFunc, withText, isRep)) {
+            if (applyRule(func, num, withText)) {
                 hideText(btn);
             }
         } else {
@@ -400,38 +496,35 @@ function doApply(btn, func, num, symFunc, withText, isRep) {
             }
         }
     } else {
-        applyRule(func, num, symFunc, withText, isRep);
+        applyRule(func, num, withText, isRep);
     }
     btn.blur();
 }
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
-function applyRule(ruleFunc, numRows, symbolFunc, withText, isRep) {
+function applyRule(ruleFunc, numRows, withText, isRep) {
     if (!validateSelection(numRows, isRep)) {
         return;
     }
-    var checked = getChecked();
-    var formulas = getFormulas(checked); 
+    var args = getChecked();
     if (withText) {
         var text = getText();
-        if (!text) {
-            return errmsg("יש להזין נוסחה");
-        }
-        var result = validate(text);
-        if (!result.valid) {
-            return errmsg(result.err);
-        }
-        formulas.push(result.lit);
+        if (!text) return errmsg("יש להזין נוסחה");
+        try { var formula = new Formula(text); }
+        catch (e) { return errmsg(e.message); }
+        args.push(formula);
     }
-    var symbol = symbolFunc(checked);
+    var prevNesting = deduction.nesting();
     // apply the rule
-    var consq = ruleFunc.apply(this, formulas);
+    try {var consq = ruleFunc.apply(deduction, args);}
+    catch (e) {return errmsg(e.message);}
     if (consq) {
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addRow(consq[i], symbol);
+            addRow(consq[i].lit, deduction.lastSymbol, false, (deduction.index() - consq.length + i + 1));
         }
+        if (prevNesting > deduction.nesting()) endNestingLine(deduction.index() - 1, prevNesting);
         removeSelection();
         $.notifyClose();
         return true;
@@ -456,9 +549,9 @@ function validateSelection(numRows, isRep) {
             errmsg("יש לבחור "+words[numRows]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
         }
-        if (isRep) return validateRep(checked);
+        if (isRep) return true;
         for (var i = 0; i < checked.length; i++) {
-            if (!isOnCurrentLevel(checked[i])) {
+            if (!deduction.isOnCurrentLevel(checked[i])) {
                 errmsg("שורה " + checked[i] + " מחוץ לרמה הנוכחית");
                 return false;
             }
@@ -469,32 +562,17 @@ function validateSelection(numRows, isRep) {
     return true;
 }
 
-// check that the selected row can be repeated
-function validateRep(checked) {
-    var n = checked[0];
-    if (isOnCurrentLevel(n)) {
-        errmsg("שורה " + n + " כבר נמצאת ברמה הנוכחית");
-        return false;
-    }
-    if (getNesting(n) > 0 && !isOpenNested(n)) {
-        errmsg("שורה " + n + " נמצאת בתת הוכחה אחרת");
-        return false;
-    }
-    return true;
-}
-
 // add a new row to the deduction table
-function addRow(content, symbol, premise) {
-    // update row num and nesting
-    rownum++;
-    nesting = currentNesting();
-    nestingLevels[rownum] = nesting;
+function addRow(content, symbol, premise, rownum) {
     if (premise) {
         var rowId = '';
         symbol = 'prem';
+        deduction.push(new Formula(content));
+        rownum = deduction.index();
     } else {
        var rowId = 'r'+rownum;
     }
+    var nesting = deduction.nesting();
     // handle nesting
     for (var i = 0; i < nesting; i++) content = addNesting(content, rownum, nesting - i);
     // add the row
@@ -510,39 +588,13 @@ function addRow(content, symbol, premise) {
 // remove the last deduction row 
 function removeRow() {
     // delete by row id (premises don't have row id and so cannot be deleted)
+    var rownum = deduction.index();
     if ($("#r"+rownum).length == 0) return;
     $("#r"+rownum).remove();
     removeSelection();
-    removedRow = rownum;
-    removedRowNesting = getNesting(removedRow);
-    rownum--;
-    nestingLevels.pop();
-    if (getNesting(rownum) != removedRowNesting) {
-        // nesting change, determine direction
-        if (currentNestingStart() === removedRow) {
-            // going down 
-            nestingStack.pop();
-        } else {
-            // going up, find the last nesting start
-            tmpStack = [];
-            lastNesting = 0; 
-            for (i = rownum; i > 0; i--) {
-                if (nestingLevels[i] > lastNesting) {
-                    tmpStack.push(i);
-                    lastNesting = getNesting(i);
-                } else if (nestingLevels[i] < lastNesting) {
-                    tmpStack.pop();
-                    lastNesting = getNesting(i);
-                }
-                if (tmpStack.length == 0) {
-                    lastNestingStart = i+1;
-                    break;
-                }
-            }
-            nestingStack.push(lastNestingStart);
-            endNestingLine();
-        }
-    }
+    var nesting = deduction.nesting();
+    deduction.pop();
+    if (deduction.nesting() > nesting) endNestingLine(deduction.index(), deduction.nesting());
 }
 
 // add a nesting indication to given html
@@ -551,56 +603,11 @@ function addNesting(content, row, level) {
 }
 
 // add a end of nesting indication
-function endNestingLine() {
-    $("#nst"+rownum+""+currentNesting()).toggleClass("dd-hyp-end");
-}
-
-// symbol functions
-function symbolImpE(rows) {
-    return "E ⊃ " + rows[0] + "," + rows[1];
-}
-function symbolConE(rows) {
-    return "E · " + rows[0];
-}
-function symbolDisE(rows) {
-    return "E ∨ " + rows[0] + "," + rows[1] + "," + rows[2];
-}
-function symbolEqvE(rows) {
-    return "E ≡ " + rows[0];
-}
-function symbolNegE(rows) {
-    return "E ~ " + rows[0];
-}
-function symbolImpI() {
-    return "I ⊃ " + currentNestingStart() + "-" + rownum;
-}
-function symbolConI(rows) {
-    return "I · " + rows[0] + "," + rows[1];
-}
-function symbolDisI(rows) {
-    return "I ∨ " + rows[0];
-}
-function symbolEqvI(rows) {
-    return "I ≡ " + rows[0] + "," + rows[1];
-}
-function symbolNegI() {
-    return "I ~ " + currentNestingStart() + "-" + rownum;
-}
-function symbolHyp() {
-    return "hyp";
-}
-function symbolRep(rows) {
-    return "rep " + rows[0];
+function endNestingLine(index, nesting) {
+    $("#nst"+index+""+nesting).toggleClass("dd-hyp-end");
 }
 
 // utils
-function getFormulas(nums) {
-    var formulas = [];
-    for (var i = 0; i < nums.length; i++) {
-        formulas.push($("#f"+nums[i]).text()); 
-    }
-    return formulas; 
-}
 function getChecked() {
     return $('input:checkbox:checked').map(function() {
         return this.name;
@@ -698,40 +705,40 @@ function insert(text) {
 // bind rule buttons to functions and symbol buttons to insertions
 $(document).ready(function() {
     $("#imp-e").click(function() {
-        doApply($(this), impE, 2, symbolImpE);
+        doApply($(this), deduction.impE, 2);
     });
     $("#con-e").click(function() {
-        doApply($(this), conE, 1, symbolConE);
+        doApply($(this), deduction.conE, 1);
     });
     $("#dis-e").click(function() {
-        doApply($(this), disE, 3, symbolDisE);
+        doApply($(this), deduction.disE, 3);
     });
     $("#eqv-e").click(function() {
-        doApply($(this), eqvE, 1, symbolEqvE);
+        doApply($(this), deduction.eqvE, 1);
     });
     $("#neg-e").click(function() {
-        doApply($(this), negE, 1, symbolNegE);
+        doApply($(this), deduction.negE, 1);
     });
     $("#imp-i").click(function() {
-        doApply($(this), impI, 0, symbolImpI);
+        doApply($(this), deduction.impI, 0);
     });
     $("#con-i").click(function() {
-        doApply($(this), conI, 2, symbolConI);
+        doApply($(this), deduction.conI, 2);
     });
     $("#dis-i").click(function() {
-        doApply($(this), disI, 1, symbolDisI, true);
+        doApply($(this), deduction.disI, 1, true);
     });
     $("#eqv-i").click(function() {
-        doApply($(this), eqvI, 2, symbolEqvI);
+        doApply($(this), deduction.eqvI, 2);
     });
     $("#neg-i").click(function() {
-        doApply($(this), negI, 0, symbolNegI);
+        doApply($(this), deduction.negI, 0);
     });
     $("#hyp").click(function() {
-        doApply($(this), hyp, 0, symbolHyp, true);
+        doApply($(this), deduction.hyp, 0, true);
     });
     $("#rep").click(function() {
-        doApply($(this), rep, 1, symbolRep, false, true);
+        doApply($(this), deduction.rep, 1, false, true);
     });
     $("#rem").click(function() {
         removeRow();
