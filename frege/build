@@ -15,14 +15,17 @@ cd /home/eliranh/frege/frege2/frege/logic/static/logic/css
 minify --output mycss.min.css mycss.css > /dev/null
 cd - > /dev/null
 
-echo 'Running tests (py)...'
-python tests.py
+if [ $# -eq 0 ] || [ $1 != 'notest' ]
+then
+    echo 'Running tests (py)...'
+    python tests.py
 
-echo 'Running tests (js)...'
-cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
-python js_test_setup.py
-node tests.js
-cd - > /dev/null
+    echo 'Running tests (js)...'
+    cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
+    python js_test_setup.py
+    node tests.js
+    cd - > /dev/null
+fi
 
 echo 'Build done'
 echo '['`date +'%Y-%m-%d %H:%M:%S'`']'
