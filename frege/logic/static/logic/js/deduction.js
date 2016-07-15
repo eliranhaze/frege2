@@ -44,7 +44,7 @@ Formula.prototype.analyze = function(f) {
                     throw new Error(generr);
                 }
             }
-        } else if (nesting === 0) {
+        } else if (nesting == 0) {
             // highest nesting level, check for main connective
             if (isBinary(c)) {
                 var _sf1 = f.slice(0, i);
@@ -56,7 +56,7 @@ Formula.prototype.analyze = function(f) {
                     throw new Error(generr);
                 }
                 return;
-            } else if (c === NEG) {
+            } else if (c == NEG) {
                 // don't return here since binary connectives take precedence
                 maybe_neg = true;
             }
@@ -86,14 +86,14 @@ Formula.prototype.isAtomic = function() {
 
 // check if a formula is a contradiction of the form A·~A
 Formula.prototype.isContradiction = function() {
-    if (this.con === CON) {
+    if (this.con == CON) {
         return this.sf1.isNegationOf(this.sf2) || this.sf2.isNegationOf(this.sf1);
     }
     return false;
 }
 
 Formula.prototype.isNegationOf = function(other) {
-    return this.con === NEG && this.sf1.equals(other);
+    return this.con == NEG && this.sf1.equals(other);
 }
 
 // return true iff both formulas are equal, up to commutativity and brackets ommission
@@ -159,11 +159,11 @@ function isAlpha(a) {
 }
 
 function isBinary(c) {
-    return c === CON || c === DIS || c === IMP || c === EQV;
+    return c == CON || c == DIS || c == IMP || c == EQV;
 }
 
 function isCommutative(c) {
-    return c === CON || c === DIS || c === EQV;
+    return c == CON || c == DIS || c == EQV;
 }
 
 // strip brackets and remove spaces from a formula string
@@ -173,22 +173,22 @@ function form(f) {
 
 // strip outmost brackets from a formula
 function stripBrackets(f) {
-    if (f.charAt(0) === '(' && f.charAt(f.length-1) === ')') {
+    if (f.charAt(0) == '(' && f.charAt(f.length-1) == ')') {
         // brackets detected, make sure they can be stripped 
         var nesting = 0;
         for (var i = 0; i < f.length; i++) {
             var c = f.charAt(i);
-            if (c === ')') {
+            if (c == ')') {
                 nesting--;
-                if (nesting === 0) {
+                if (nesting == 0) {
                     // closure found for the opening bracket, only strip if it's last
-                    if (i === f.length - 1) { 
+                    if (i == f.length - 1) { 
                         // strip recursively
                         return stripBrackets(f.slice(1, f.length - 1));
                     }
                     return f;
                 }
-            } else if (c === '(') {
+            } else if (c == '(') {
                 nesting++;
             }
         }   
@@ -484,7 +484,7 @@ var okTxt = 'OK';
 function doApply(btn, func, num, withText, isRep) {
     lastBtn = null;
     if (withText) {
-        if (btn.text() === okTxt) {
+        if (btn.text() == okTxt) {
             if (applyRule(func, num, withText)) {
                 hideText(btn);
             }
