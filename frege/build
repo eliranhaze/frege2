@@ -5,7 +5,7 @@ echo 'Building...'
 
 echo 'Minifying js...'
 cd /home/eliranh/frege/frege2/frege/logic/static/logic/js
-uglifyjs requests.js -m toplevel -c -r 'postAns' > requests.min.js
+uglifyjs requests.js -m toplevel -c -r 'postAns,errmsg' > requests.min.js
 uglifyjs deduction.js -m toplevel -c -r 'oncheck,addRow' > deduction.min.js
 ./minify
 cd - > /dev/null
