@@ -15,6 +15,7 @@ EQV = u'≡'
 #EQV = '='
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
+COMMUTATIVE = set([CON, DIS, EQV])
 
 class Option(object):
 
@@ -239,9 +240,11 @@ class Formula(object):
     @property
     def is_atomic(self):
         return not self.con
+
     @property
     def is_unary(self):
         return self.con == NEG
+
     @property
     def is_binary(self):
         return self.con in BINARY_CONNECTIVES
@@ -249,10 +252,16 @@ class Formula(object):
     def __eq__(self, other):
         if not isinstance(other, Formula):
             return False
-        return self.literal == other.literal \
-            and self.con == other.con \
-            and self.sf1 == other.sf1 \
-            and self.sf2 == other.sf2
+        if self.literal == other.literal:
+            return True
+        if not self.con:
+            return False
+        if self.con == other.con:
+            if self.sf1 == other.sf1 and self.sf2 == other.sf2:
+                return True
+            if self.con in COMMUTATIVE and self.sf1 == other.sf2 and self.sf2 == other.sf1:
+                return True
+        return False
 
     def __ne__(self, other):
         return not self == other

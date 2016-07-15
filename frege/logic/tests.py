@@ -501,6 +501,50 @@ class FormulaTests(TestCase):
        }))
        self.assertEquals(f.correct_option, Contingency)
 
+    def test_equal(self):
+       self.assertEqual(
+           Formula('%sp' % NEG),
+           Formula('%sp' % NEG),
+       )
+       self.assertEqual(
+           Formula('%s(p%sq)' % (NEG, EQV)),
+           Formula('%s(p%sq)' % (NEG, EQV)),
+       )
+       self.assertEqual(
+           Formula('%s(p%sq)' % (NEG, EQV)),
+           Formula('%s(q%sp)' % (NEG, EQV)),
+       )
+       self.assertEqual(
+           Formula('%s(p%sq)%s(r%sq)' % (NEG, EQV, CON, DIS)),
+           Formula('(q%sr)%s%s(q%sp)' % (DIS, CON, NEG, EQV)),
+       )
+
+    def test_not_equal(self):
+       self.assertNotEqual(
+           Formula('%sp' % NEG),
+           Formula('p'),
+       )
+       self.assertNotEqual(
+           Formula('%sp' % NEG),
+           Formula('%sq' % NEG),
+       )
+       self.assertNotEqual(
+           Formula('%s(p%sq)' % (NEG, EQV)),
+           Formula('(p%sq)' % EQV),
+       )
+       self.assertNotEqual(
+           Formula('%s(p%sq)' % (NEG, CON)),
+           Formula('%s(q%sp)' % (NEG, DIS)),
+       )
+       self.assertNotEqual(
+           Formula('%s(p%sq)' % (NEG, IMP)),
+           Formula('%s(q%sp)' % (NEG, IMP)),
+       )
+       self.assertNotEqual(
+           Formula('%s(p%sq)%s(r%sq)' % (NEG, EQV, CON, IMP)),
+           Formula('(q%sr)%s%s(q%sp)' % (IMP, CON, NEG, EQV)),
+       )
+
 class TruthTableTests(TestCase):
 
     def test_values1(self):
