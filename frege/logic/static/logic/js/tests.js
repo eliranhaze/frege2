@@ -171,6 +171,7 @@ try {
     assertTrue(formula('(p,r),(q,s)').equals(formula('((s,q),(r,p))')));
 
     assertFalse(formula('p').equals(formula('q')));
+    assertFalse(formula('~p').equals(formula('~q')));
     assertFalse(formula('p>r').equals(formula('r>p')));
     assertFalse(formula('(p,q)-r').equals(formula('p,(q-r)')));
     assertFalse(formula('(p-r)=(q,s)').equals(formula('((s-q)=(r,p))')));
