@@ -24,6 +24,17 @@ body {
 .btn.answered:hover {
   background-color: #9cf;
 }
+.btn.answered:active {
+  background-color: #bdf;
+  background-image: -webkit-radial-gradient(circle, #9cf 10%, #bdf 11%);
+  background-image: -o-radial-gradient(circle, #9cf 10%, #bdf 11%);
+  background-image: radial-gradient(circle, #9cf 10%, #bdf 11%);
+  background-repeat: no-repeat;
+  -webkit-background-size: 1000% 1000%;
+  background-size: 1000%;
+  -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
 
 input:-webkit-autofill {
     /* disable autofill color in chrome */
