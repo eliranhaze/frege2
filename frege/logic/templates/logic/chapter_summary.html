@@ -7,6 +7,11 @@
     <div class="panel panel-default">
       <div class="panel-body table-responsive">
         <p style="white-space: pre-wrap;">ענית נכון על {{ num_correct }} מתוך {{ chap_questions|length }} שאלות ({{pct}}%).</p>
+    {% if num_correct == chap_questions|length %}
+        <p><span class="glyphicon glyphicon-star-empty"></span> כל הכבוד! <span class="glyphicon glyphicon-star-empty"></span></p>
+    {% elif remaining > 0 %}
+        <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
+    {% endif %}
         <table class="table table-condensed">
           {% for qnum, correct in chap_questions.iteritems %}
           <tr>
@@ -15,14 +20,11 @@
           <tr>
           {% endfor %}
         </table>
-    {% if num_correct == chap_questions|length %}
-        <p><span class="glyphicon glyphicon-star-empty"></span> כל הכבוד! <span class="glyphicon glyphicon-star-empty"></span></p>
-    {% endif %}
       </div>
     </div>
   {% else %}
     <p class="pull-right" style="font-size: 110%; margin-top: 20px; margin-bottom: 10px;">איך הגעת לכאן? לא סיימת לענות על כל השאלות!</p>
-    <img src='/static/logic/images/russell.jpg' style="height: auto; max-width: 100%;">
+    <img src='/static/logic/images/russell.jpg' style="height: auto; max-width: 100%;" title="את ראסל זה לא מרשים">
     <script>
       $(document).ready(function(){
           $('#topic').hide();

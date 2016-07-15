@@ -92,12 +92,26 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         chapter = self.object
         chap_questions = chapter_questions_user_data(chapter, self.request.user)
         submission = ChapterSubmission.objects.filter(chapter=chapter).first()
-        if submission and submission.is_complete():
-            num_correct = sum(1 for _, correct in chap_questions.iteritems() if correct)
-            context['num_correct'] = num_correct
+        if submission and not submission.ongoing and submission.is_complete():
+            context['num_correct'] = sum(1 for _, correct in chap_questions.iteritems() if correct)
             context['chap_questions'] = chap_questions
-            context['pct'] = int(round(100. * num_correct / len(chap_questions)))
+            context['pct'] = submission.percent_correct()
+            context['remaining'] = submission.max_attempts - submission.attempt
         return context
+
+    def post(self, request, chnum):
+        chapter = Chapter.objects.get(number=chnum)
+        submission = ChapterSubmission.objects.get(
+            user=request.user,
+            chapter=chapter,
+        )
+        response = {}
+        if submission.can_try_again():
+            submission.attempt += 1
+            submission.ongoing = False
+            submission.save()
+            response['next'] = reverse('logic:chapter-summary', args=(chapter.number,))
+        return JsonResponse(response)
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter.html'
@@ -136,14 +150,27 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = Question._get(chapter__number=chnum, number=qnum)
         ext_data = None
 
+        # handl user submission
+        submission, _ = ChapterSubmission.objects.get_or_create(
+            user=request.user,
+            chapter=chapter,
+            defaults={
+                'attempt':0,
+                'ongoing':True,
+            },
+        )
+
+        if not submission.can_try_again():
+            return JsonResponse({})
+
+        if not submission.ongoing:
+            submission.ongoing = True
+            submission.save()
+
         # handle answer according to question type
         correct, ext_data = self.post_handlers[type(question)](request, question)
 
         # register user answer
-        submission, _ = ChapterSubmission.objects.get_or_create(
-            user=request.user,
-            chapter=chapter,
-        )
         user_ans, created = UserAnswer.objects.get_or_create(
             user=request.user,
             chapter=chapter,

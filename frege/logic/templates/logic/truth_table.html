@@ -38,17 +38,17 @@
 
     <script>
     function select(type, i) {
-        clicked = '#'+type+i;
-        ans = '#ans'+i;
+        var clicked = '#'+type+i;
+        var a = '#ans'+i;
         if (type == 't') {
-            other = '#f'+i;
+            var other = '#f'+i;
         } else {
-            other = '#t'+i;
+            var other = '#t'+i;
         }
         $(clicked).css('visibility', 'hidden');
         $(other).css('visibility', 'hidden');
-        $(ans).css('visibility', 'visible');
-        $(ans).text($(clicked).text());
+        $(a).css('visibility', 'visible');
+        $(a).text($(clicked).text());
     }
     function unselect(i, j) {
         $('#t'+i).css('visibility', 'visible');
@@ -101,39 +101,6 @@
               {% endfor %}
             ]
         };
-    }
-    function on_success() {
-        $('input[name=option]:not(:checked)').attr('disabled','disabled');
-      {% for formula in formulas %} 
-        {% for row in truth_table.values %}
-        $('label[id=ans{{forloop.counter}}{{forloop.parentloop.counter}}]').attr('onclick','');
-        {% endfor %}
-      {% endfor %}
-    }
-    function notify_incorrect(data){
-        corrects = data['tt_corrects'];
-        for (i = 0; i < corrects.length; i++) {
-            if (!corrects[i]) {
-                // do not notify if the table is incorrect
-                return false;
-            }
-        }
-        return true;
-    }
-    function on_response(data){
-        corrects = data['tt_corrects'];
-        console.log('response ' + corrects)
-        for (i = 0; i < corrects.length; i++) {
-            label = '#formula-head'+(i+1)
-            if (corrects[i]) {
-                $(label).removeClass('glyphicon-warning-sign').addClass('glyphicon-ok');
-                $(label).removeClass('tt-notice').addClass('tt-notice-correct');
-            } else {
-                $(label).removeClass('glyphicon-ok').addClass('glyphicon-warning-sign');
-                $(label).removeClass('tt-notice-correct').addClass('tt-notice');
-            }
-            $(label).css('visibility', 'visible');
-        }
     }
   </script>
 

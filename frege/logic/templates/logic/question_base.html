@@ -13,17 +13,25 @@
         <div style="padding: 5px;margin-top: 20px;">
           <button class="btn btn-default btn-lg" id="answer">אישור</button>
           <button class="btn btn-default answered btn-lg" style="visibility: hidden;" id="next">המשך</button>
-          <button class="btn btn-primary btn-lg" style="visibility: hidden;" id="sum" onclick="location.href='{% url 'logic:chapter-summary' chapter.number %}'">סיום פרק</button>
+          <button class="btn btn-primary btn-lg" style="visibility: hidden;" id="sum">סיום פרק</button>
         </div>
      </div>
   </div>
   <script>
-    function reg() {
+    function regA() {
         $('#answer').one('click', function() {
-            postAns('{% url 'logic:question' chapter.number question.number %}', get_post_data(), '{{ csrf_token }}');
+            ans('{% url 'logic:question' chapter.number question.number %}', get_post_data(), '{{ csrf_token }}');
         });
     }
-    $(document).ready(reg);
+    function regS() {
+        $('#sum').one('click', function() {
+            sbt('{% url 'logic:chapter-summary' chapter.number %}', '{{ csrf_token }}');
+        });
+    }
+    $(document).ready(function() {
+        regA();
+        regS();
+    });
   </script>
 
   <div class="page-header"></div>

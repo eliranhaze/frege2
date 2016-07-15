@@ -157,12 +157,15 @@ class QuestionTests(TestCase):
 
 class ChapterSubmissionTests(TestCase):
 
+    def create_submission(self, chapter, user):
+        return ChapterSubmission.objects.create(chapter=chapter,user=user,attempt=0,ongoing=False)
+
     def test_percent_correct(self):
         user = User.objects.create(username='u', password='pw')
         chapter = Chapter.objects.create(title='chap', number=1)
         # with 1 question
         q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
-        cs = ChapterSubmission.objects.create(chapter=chapter,user=user)
+        cs = self.create_submission(chapter, user)
         ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
         self.assertEquals(cs.percent_correct(), 0)
         ua.correct = True
@@ -181,7 +184,7 @@ class ChapterSubmissionTests(TestCase):
         chapter = Chapter.objects.create(title='chap', number=1)
 
         # no questions
-        cs = ChapterSubmission.objects.create(chapter=chapter,user=user)
+        cs = self.create_submission(chapter, user)
         self.assertTrue(cs.is_complete())
 
         # with 1 question

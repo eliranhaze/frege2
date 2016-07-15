@@ -49,6 +49,9 @@ class Chapter(models.Model):
     def questions(self):
         return Question._filter(chapter__number=self.number)
 
+    def first_question(self):
+        return min(self.questions(), key=lambda q: q.number)
+
     def __unicode__(self):
         return '%s. %s' % (self.number, self.title)
 
@@ -286,9 +289,18 @@ class Choice(Answer):
 class ChapterSubmission(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
+    attempt = models.PositiveIntegerField(verbose_name='נסיונות')
+    ongoing = models.BooleanField()
 
     def is_complete(self):
         return self.chapter.num_questions() == len(UserAnswer.objects.filter(chapter=self.chapter))
+
+    @property
+    def max_attempts(self):
+        return 3
+
+    def can_try_again(self):
+        return self.attempt < self.max_attempts
 
     @property
     def percent_correct_f(self):
@@ -297,7 +309,7 @@ class ChapterSubmission(models.Model):
     def percent_correct(self):
         user_answers = UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
         num_correct = sum(1 for u in user_answers if u.correct)
-        return num_correct * 100. / self.chapter.num_questions()
+        return int(round(num_correct * 100. / self.chapter.num_questions()))
     percent_correct.short_description = 'ציון'
 
     @property
