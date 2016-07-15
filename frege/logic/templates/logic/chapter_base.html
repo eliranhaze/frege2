@@ -2,23 +2,10 @@
 {% block title %}פרק {{ chapter.number }}: {{ chapter.title }}{% endblock %}
 {% block content %}
   <div class="container">
-    <div class="page-header noselect">
+    <div id="topic" class="page-header noselect">
     <h3>{% block topic_header %}{% endblock %} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
     </div>
   {% block chapter_content %}
   {% endblock %}
-    
-    <div class="page-header"></div>
-    <div class="panel panel-default">
-      <div class="panel-body noselect">
-{% for qnum, correct in chap_questions.iteritems %}
-  {% if question and qnum == question.number %}
-        <button class="btn btn-primary">{{ qnum }}</button>
-  {% else %}
-        <a href='{% url 'logic:question' chapter.number qnum %}' class={% if correct %}"btn btn-success"{% elif correct == False %}"btn btn-danger"{% else %}"btn btn-default"{% endif %}>{{ qnum }}</a>
-  {% endif %}
-{% endfor %}
-      </div>
-    </div>
   </div>
 {% endblock content %}

@@ -89,9 +89,14 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ChapterSummaryView, self).get_context_data(**kwargs)
-        chap_questions = chapter_questions_user_data(self.object, self.request.user)
-        context['chap_questions'] = chap_questions
-        context['num_correct'] = sum(1 for _, correct in chap_questions.iteritems() if correct)
+        chapter = self.object
+        chap_questions = chapter_questions_user_data(chapter, self.request.user)
+        submission = ChapterSubmission.objects.filter(chapter=chapter).first()
+        if submission and submission.is_complete():
+            num_correct = sum(1 for _, correct in chap_questions.iteritems() if correct)
+            context['num_correct'] = num_correct
+            context['chap_questions'] = chap_questions
+            context['pct'] = int(round(100. * num_correct / len(chap_questions)))
         return context
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
@@ -154,8 +159,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         # make a response
         response = {
-            'correct' : user_ans.correct,
-            'next_url' : ('location.href="%s";' % next_question_url(question.chapter, self.request.user)),
+            'complete': submission.is_complete(),
+            'next': ('location.href="%s";' % next_question_url(question.chapter, self.request.user)),
         }
         if ext_data:
             response.update(ext_data)

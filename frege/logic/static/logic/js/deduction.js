@@ -613,21 +613,6 @@ function getChecked() {
         return this.name;
     }).get();
 }
-function errmsg(msg) {
-    $.notify({
-        message: msg
-    },{
-        allow_dismiss: true,
-        offset: {x: 0, y: 200},
-        delay: 1400,
-	template:
-          '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note" role="alert">' +
-            '<span data-notify="dismiss">' + 
-              '<span data-notify="message">{2}</span>' +
-            '</span>' +
-          '</div>'
-    });
-}
 function showText(btn) {
     $("#extra").css("opacity","1");
     setTimeout(function(){ // trick to not miss the focus

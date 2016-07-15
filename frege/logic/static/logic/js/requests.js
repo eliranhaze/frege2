@@ -5,46 +5,29 @@
 function postAns(url, data, csrf) {
     var emptyMsg = is_empty()
     if (emptyMsg) {
-        $.notify({
-            icon: "glyphicon glyphicon-pencil",
-            message: "<strong>"+emptyMsg+"</strong>"
-        },{
-            type: "warning",
-            delay: 1000,
-        });
+        errmsg(emptyMsg);
         reg();
         return false;
     }
-    $("#answer").html("בודק...");
+    $("#answer").html("שולח...");
     data['csrfmiddlewaretoken'] = csrf;
     $.post(url, data, function(data, status) {
         on_response(data);
-        if (data['correct']) {
-            $.notify({
-                icon: "glyphicon glyphicon-ok",
-                message: "<strong>תשובה נכונה</strong>"
-            },{
-                type: "success",
-            });
-            $("#answer").html("המשך");
-            $("#answer").attr("onclick", data['next_url']);
-            $("#answer").attr("class", "btn btn-primary btn-lg");
-            on_success();
-        } else {
-            if (notify_incorrect(data)) {
-                $.notify({
-                    icon: "glyphicon glyphicon-remove",
-                    message: "<strong>תשובה שגויה</strong>"
-                },{
-                    type: "danger",
-                });
-            }
-            $("#answer").html("אישור");
-            reg();
+        okmsg('תשובה נשמרה');
+        reg();
+        $("#answer").html("אישור");
+        if (data['complete']) {
+            $("#next").remove();
+            $("#sum").css('visibility', 'visible');
+        }
+        else {
+            $("#next").attr("onclick", data['next']);
+            $("#next").css('visibility', 'visible');
         }
     })
     .fail(function(response){
         reg();
+        $("#answer").html("אישור");
         if (response.responseText) {
             $.notifyClose();
             $.notify({
@@ -58,7 +41,6 @@ function postAns(url, data, csrf) {
                 newest_on_top: true,
                 delay: 15000,
             });
-            $("#answer").html("אישור");
         } else {
             $.notify({
                 icon: "glyphicon glyphicon-flash",
@@ -66,17 +48,42 @@ function postAns(url, data, csrf) {
             },{
                 type: "warning",
             });
-            $("#answer").html("אישור");
         }
+    });
+}
+
+function okmsg(msg) {
+    $.notify({
+        message: msg
+    },{
+        template:
+          '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note ok" role="alert">' +
+            '<span data-notify="dismiss">' +
+              '<span data-notify="message">{2} ☑</span>' +
+            '</span>' +
+          '</div>'
+    });
+}
+
+function errmsg(msg) {
+    $.notify({
+        message: msg
+    },{
+        template:
+          '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note" role="alert">' +
+            '<span data-notify="dismiss">' +
+              '<span data-notify="message">{2}</span>' +
+            '</span>' +
+          '</div>'
     });
 }
 
 $(document).ready(function() {
     $.notifyDefaults({
-        allow_dismiss: false,
-        offset: 100,
+        allow_dismiss: true,
+        offset: {x: 0, y: 200},
         placement: {from: "bottom", align: "center"},
         animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
-        delay: 2000,
+        delay: 1500,
     });
 });

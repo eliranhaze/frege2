@@ -3,12 +3,30 @@
 {% block topic_header %}סיכום{% endblock %}
 
 {% block chapter_content %}
+  {% if chap_questions %}
     <div class="panel panel-default">
-      <div class="panel-body">
-        <p style="white-space: pre-wrap;">ענית נכון על {{ num_correct }} שאלות מתוך {{ chap_questions|length }}.</p>
-        {% if num_correct == chap_questions|length %}
+      <div class="panel-body table-responsive">
+        <p style="white-space: pre-wrap;">ענית נכון על {{ num_correct }} מתוך {{ chap_questions|length }} שאלות ({{pct}}%).</p>
+        <table class="table table-condensed">
+          {% for qnum, correct in chap_questions.iteritems %}
+          <tr>
+            <td>שאלה {{qnum}}</td>
+            <td>{% if correct %}נכון{% elif correct == False %}לא נכון{% endif %}</td>
+          <tr>
+          {% endfor %}
+        </table>
+    {% if num_correct == chap_questions|length %}
         <p><span class="glyphicon glyphicon-star-empty"></span> כל הכבוד! <span class="glyphicon glyphicon-star-empty"></span></p>
-        {% endif %}
-     </div>
+    {% endif %}
+      </div>
     </div>
+  {% else %}
+    <p class="pull-right" style="font-size: 110%; margin-top: 20px; margin-bottom: 10px;">איך הגעת לכאן? לא סיימת לענות על כל השאלות!</p>
+    <img src='/static/logic/images/russell.jpg' style="height: auto; max-width: 100%;">
+    <script>
+      $(document).ready(function(){
+          $('#topic').hide();
+      });
+    </script>
+  {% endif %}
 {% endblock chapter_content %}

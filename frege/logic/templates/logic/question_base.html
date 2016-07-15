@@ -12,6 +12,8 @@
         {% endblock %}
         <div style="padding: 5px;margin-top: 20px;">
           <button class="btn btn-default btn-lg" id="answer">אישור</button>
+          <button class="btn btn-default answered btn-lg" style="visibility: hidden;" id="next">המשך</button>
+          <button class="btn btn-primary btn-lg" style="visibility: hidden;" id="sum" onclick="location.href='{% url 'logic:chapter-summary' chapter.number %}'">סיום פרק</button>
         </div>
      </div>
   </div>
@@ -23,4 +25,17 @@
     }
     $(document).ready(reg);
   </script>
+
+  <div class="page-header"></div>
+  <div class="panel panel-default">
+    <div class="panel-body noselect">
+{% for qnum, correct in chap_questions.iteritems %}
+  {% if question and qnum == question.number %}
+      <button class="btn btn-primary">{{ qnum }}</button>
+  {% else %}
+      <a href='{% url 'logic:question' chapter.number qnum %}' class={% if correct == None %}"btn btn-default"{% else %}"btn btn-default answered"{% endif %}>{{ qnum }}</a>
+  {% endif %}
+{% endfor %}
+    </div>
+  </div>
 {% endblock chapter_content %}
