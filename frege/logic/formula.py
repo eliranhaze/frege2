@@ -357,6 +357,9 @@ class FormulaSet(object):
     def __iter__(self):
         return iter(self.formulas)
 
+    def __len__(self):
+        return len(self.formulas)
+
     def __getitem__(self, key):
         return self.formulas[key]
 
