@@ -35,6 +35,11 @@ def next_question(chapter, user):
         if not question.user_answer(user):
             return question
 
+    # all questions are answered, check if re-answering
+    submission = ChapterSubmission.objects.filter(chapter=chapter).first()
+    if submission and submission.ongoing:
+        return chapter.first_question()
+
 def next_question_url(chapter, user):
     question = next_question(chapter, user)
     if question:
