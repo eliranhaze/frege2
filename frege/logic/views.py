@@ -106,7 +106,7 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             chapter=chapter,
         )
         response = {}
-        if submission.can_try_again():
+        if submission.is_complete() and submission.can_try_again():
             submission.attempt += 1
             submission.ongoing = False
             submission.save()

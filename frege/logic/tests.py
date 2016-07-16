@@ -81,8 +81,8 @@ class QuestionViewTests(TestCase):
         self.chapter = Chapter.objects.create(title='chap', number=1)
         login(self)
 
-    def _create_choice_question(self, num_choices=1):
-        q = ChoiceQuestion.objects.create(chapter=self.chapter, number=1, text='hithere')
+    def _create_choice_question(self, number=1, num_choices=1):
+        q = ChoiceQuestion.objects.create(chapter=self.chapter, number=number, text='hithere')
         choices = []
         for i in range(num_choices):
             choices.append(Choice.objects.create(question=q, text='choicenum%s'%i, is_correct=(i==1)))
@@ -106,9 +106,22 @@ class QuestionViewTests(TestCase):
         for k, v in data.iteritems():
             self.assertEquals(response.json()[k], v)
 
-    def _post_choice(self, question, choice):
+    def _post_choice(self, question, choice, allowed=True):
         response = self.client.post(self._get_url(question), {'choice':choice.id})
-        #self._assertJSON(response, {'correct':choice.is_correct})
+        self.assertTrue(allowed == ('next' in response.json()))
+
+    def _post_submission(self, allowed):
+        response = self.client.post(reverse('logic:chapter-summary', args=(self.chapter.number,)))
+        self.assertTrue(allowed == ('next' in response.json()))
+
+    def _get_submission(self, allowed):
+        response = self.client.get(reverse('logic:chapter-summary', args=(self.chapter.number,)))
+        if allowed:
+            self.assertContains(response, 'ענית נכון')
+            self.assertNotContains(response, 'russell')
+        else:
+            self.assertContains(response, 'russell')
+            self.assertNotContains(response, 'ענית נכון')
 
     def test_choice_question(self):
         q, choices = self._create_choice_question(num_choices=5)
@@ -128,6 +141,70 @@ class QuestionViewTests(TestCase):
             self.assertEquals(len(q.user_answers()), 1)
             self.assertEquals(q.user_answers().first().correct, is_correct)
         self.assertEquals(len(ChapterSubmission.objects.filter(chapter=self.chapter,user=self.user)), 1)
+
+    def test_chapter_submission(self):
+        # create questions
+        q1, choices1 = self._create_choice_question(number=1, num_choices=3)
+        q2, choices2 = self._create_choice_question(number=2, num_choices=3)
+        q3, choices3 = self._create_choice_question(number=3, num_choices=3)
+
+        # post answers
+        self._post_choice(q1, choices1[1]) # correct
+        self._get_submission(allowed=False)
+        self._post_choice(q2, choices2[0]) # incorrect
+        self._post_submission(allowed=False)
+        self._post_choice(q3, choices3[0]) # incorrect
+        self._post_submission(allowed=True)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 1)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), True)
+        self.assertEquals(cs.percent_correct(), 33)
+
+        # 2nd attempt
+        self._post_choice(q2, choices2[1]) # correct
+        self._get_submission(allowed=False)
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.ongoing, True)
+        self.assertEquals(cs.is_complete(), True)
+        self._post_choice(q3, choices3[2]) # incorrect
+        self._get_submission(allowed=False)
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.ongoing, True)
+        self.assertEquals(cs.is_complete(), True)
+        self._post_submission(allowed=True)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 2)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), True)
+        self.assertEquals(cs.percent_correct(), 67)
+        self._get_submission(allowed=True)
+
+        # 3rd attempt
+        self._post_choice(q3, choices3[1]) # correct
+        self._get_submission(allowed=False)
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.ongoing, True)
+        self.assertEquals(cs.is_complete(), True)
+        self._post_submission(allowed=True)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 3)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), False)
+        self.assertEquals(cs.percent_correct(), 100)
+
+        # illegal attempt
+        self._post_choice(q3, choices3[1], allowed=False)
+        self._get_submission(allowed=True)
 
 class QuestionTests(TestCase):
 
