@@ -46,20 +46,17 @@
     </div>
   </div>
 
-  <script src="{% static 'logic/js/deduction.min.js'%}"></script>
+  <script src="{% static 'logic/js/deduction.js'%}"></script>
   <script>
     {% for premise in premises %}addRow('{{premise}}', '', true);{% endfor %}
-    function is_empty() {
-        if (!$('input[name=choice]:checked', '#choices').val())
-            return 'לא נבחרה תשובה';
+    function isEmpty() {
+        if (dd.nesting() > 0)
+            return 'לא ניתן לסיים דדוקציה עם תת הוכחה פתוחה';
+        if (dd.idx() <= {{ premises|length }})
+            return 'יש לעשות לפחות צעד אחד';
     }
-    function get_post_data() {
-        return {'choice':$('input[name=choice]:checked', '#choices').val()};
+    function getPostData() {
+        return {'conclusion':dd.get(dd.idx()).lit};
     }
-    function on_success() {
-        $('input[name=choice]:not(:checked)').attr('disabled','disabled');
-    }
-    function notify_incorrect(data){return true;}
-    function on_response(data){}
   </script>
 {% endblock question_content %} 

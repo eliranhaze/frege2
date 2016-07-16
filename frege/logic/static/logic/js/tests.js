@@ -587,12 +587,12 @@ try {
     assertError(d, d.rep, [20], 'אחרת');
     d.rep(10);					// 29. |||| p>q
     d.rep(25);					// 30. |||| p>p
-    assertFormulasEqual(formula('p'), d.getFormula(1));
-    assertFormulasEqual(formula('q'), d.getFormula(2));
-    assertFormulasEqual(formula('p>q'), d.getFormula(10));
-    assertFormulasEqual(formula('p>p'), d.getFormula(18));
-    assertFormulasEqual(formula('p'), d.getFormula(26));
-    assertFormulasEqual(formula('p>p'), d.getFormula(30));
+    assertFormulasEqual(formula('p'), d.get(1));
+    assertFormulasEqual(formula('q'), d.get(2));
+    assertFormulasEqual(formula('p>q'), d.get(10));
+    assertFormulasEqual(formula('p>p'), d.get(18));
+    assertFormulasEqual(formula('p'), d.get(26));
+    assertFormulasEqual(formula('p>p'), d.get(30));
 
     // ----------------
     // pop tests 
@@ -600,20 +600,20 @@ try {
 
     var d = deduction('p');
     d.pop();
-    assertEquals(0, d.index());
+    assertEquals(0, d.idx());
     assertEquals(0, d.nesting());
     d.pop();
-    assertEquals(0, d.index());
+    assertEquals(0, d.idx());
     assertEquals(0, d.nesting());
 
     var d = deduction();
     d.hyp(formula('q'));
     d.impI();
     d.pop();
-    assertEquals(1, d.index());
+    assertEquals(1, d.idx());
     assertEquals(1, d.nesting());
     d.pop();
-    assertEquals(0, d.index());
+    assertEquals(0, d.idx());
     assertEquals(0, d.nesting());
 
     var d = deduction('p','p>q');
@@ -621,36 +621,36 @@ try {
     d.hyp(formula('r'));  // 4. | r
     d.rep(3);    // 5. | q
     d.pop();
-    assertEquals(4, d.index());
+    assertEquals(4, d.idx());
     assertEquals(1, d.nesting());
     d.rep(3);
     d.impI(); // 6. r>q
-    assertEquals(6, d.index());
+    assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     d.pop();
-    assertEquals(5, d.index());
+    assertEquals(5, d.idx());
     assertEquals(1, d.nesting());
     d.impI(); // 6. r>q
-    assertEquals(6, d.index());
+    assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     d.conI(1,6) // 7. p-(r>q)
     d.pop();
-    assertEquals(6, d.index());
+    assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     d.pop();
-    assertEquals(5, d.index());
+    assertEquals(5, d.idx());
     assertEquals(1, d.nesting());
     d.pop();
-    assertEquals(4, d.index());
+    assertEquals(4, d.idx());
     assertEquals(1, d.nesting());
     d.pop();
-    assertEquals(3, d.index());
+    assertEquals(3, d.idx());
     assertEquals(0, d.nesting());
     d.pop();
-    assertEquals(2, d.index());
+    assertEquals(2, d.idx());
     assertEquals(0, d.nesting());
     d.impE(1,2); // 3. q
-    assertEquals(3, d.index());
+    assertEquals(3, d.idx());
     assertEquals(0, d.nesting());
 
     var d = deduction('p','p>q');		// 1. p
@@ -664,9 +664,9 @@ try {
                                                 // 2. p>q
                                                 // 3. q
                                                 // 4. | r
-    assertEquals(4, d.index());
+    assertEquals(4, d.idx());
     assertEquals(1, d.nesting());
-    assertFormulasEqual(formula('r'), d.getFormula(4));
+    assertFormulasEqual(formula('r'), d.get(4));
     d.hyp(formula('r'));  			// 5. || r
     d.hyp(formula('r'));  			// 6. ||| r
     d.impI();					// 7. || r>r
@@ -678,9 +678,9 @@ try {
                                                 // 4. | r
                                                 // 5. || r
                                                 // 6. ||| r
-    assertEquals(6, d.index());
+    assertEquals(6, d.idx());
     assertEquals(3, d.nesting());
-    assertFormulasEqual(formula('r'), d.getFormula(6));
+    assertFormulasEqual(formula('r'), d.get(6));
     assertUndefined(d.rep(8));
     assertEquals(0, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
@@ -692,9 +692,9 @@ try {
     d.impI();					// 8. || r>p
     d.impI();					// 9. | r>(r>p)
     d.pop();					// 8. || r>p
-    assertEquals(8, d.index());
+    assertEquals(8, d.idx());
     assertEquals(2, d.nesting());
-    assertFormulasEqual(formula('r>p'), d.getFormula(8));
+    assertFormulasEqual(formula('r>p'), d.get(8));
     assertError(d, d.rep, [7], 'אחרת');
     d.impI();					// 9. | r>(r>p)
     d.pop();
@@ -705,22 +705,22 @@ try {
                                                 // 2. p>q
                                                 // 3. q
                                                 // 4. | r
-    assertEquals(4, d.index());
+    assertEquals(4, d.idx());
     assertEquals(1, d.nesting());
-    assertFormulasEqual(formula('r'), d.getFormula(4));
+    assertFormulasEqual(formula('r'), d.get(4));
     d.rep(1); 		 			// 5. | p
     d.impI();					// 6. r>p
     d.pop();					// 5. | p
-    assertEquals(5, d.index());
+    assertEquals(5, d.idx());
     assertEquals(1, d.nesting());
-    assertFormulasEqual(formula('p'), d.getFormula(5));
-    assertUndefined(d.getFormula(6));
-    assertUndefined(d.getFormula(7));
+    assertFormulasEqual(formula('p'), d.get(5));
+    assertUndefined(d.get(6));
+    assertUndefined(d.get(7));
     assertUndefined(d.rep(6));
     assertUndefined(d.rep(7));
     d.impI();					// 6. r>p
-    assertFormulasEqual(formula('r>p'), d.getFormula(6));
-    assertEquals(6, d.index());
+    assertFormulasEqual(formula('r>p'), d.get(6));
+    assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     assertEquals(0, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
@@ -735,27 +735,27 @@ try {
 
     var d = deduction('p>q', 'p');
     d.impE(1,2);
-    assertFormulasEqual(formula('q'), d.getFormula(3));
+    assertFormulasEqual(formula('q'), d.get(3));
     d.conI(2,3);
-    assertFormulasEqual(formula('p-q'), d.getFormula(4));
+    assertFormulasEqual(formula('p-q'), d.get(4));
     d.conE(4);
-    assertFormulasEqual(formula('p'), d.getFormula(5));
-    assertFormulasEqual(formula('q'), d.getFormula(6));
+    assertFormulasEqual(formula('p'), d.get(5));
+    assertFormulasEqual(formula('q'), d.get(6));
     assertUndefined(d.conE(6));
     assertUndefined(d.conE(7));
     d.disI(4, formula('~p'));
-    assertFormulasEqual(formula('(p-q),~p'), d.getFormula(7));
+    assertFormulasEqual(formula('(p-q),~p'), d.get(7));
     assertUndefined(d.conE(0));
 
     var d = deduction('p>r', 'q>r', 's', 's>(p,q)');
     assertUndefined(d.impE(1,2));
     d.impE(3,4);
-    assertFormulasEqual(formula('p,q'), d.getFormula(5));
+    assertFormulasEqual(formula('p,q'), d.get(5));
     assertUndefined(d.disE(1,2,3));
     d.disE(1,2,5);
-    assertFormulasEqual(formula('r'), d.getFormula(6));
+    assertFormulasEqual(formula('r'), d.get(6));
     d.conI(6,3);
-    assertFormulasEqual(formula('r-s'), d.getFormula(7));
+    assertFormulasEqual(formula('r-s'), d.get(7));
 
     // ------------------------
     // complex deduction tests 
@@ -773,10 +773,10 @@ try {
     d.conI(1,7);			// 8.  | (p,~p)-~(p,~p)
     d.negI();				// 9.  ~~(p,~p)
     d.negE(9);				// 10. p,~p
-    assertFormulasEqual(d.getFormula(4), formula('~(p,~p)'));
-    assertFormulasEqual(d.getFormula(6), formula('~p'));
-    assertFormulasEqual(d.getFormula(9), formula('~~(p,~p)'));
-    assertFormulasEqual(d.getFormula(10), formula('p,~p'));
+    assertFormulasEqual(d.get(4), formula('~(p,~p)'));
+    assertFormulasEqual(d.get(6), formula('~p'));
+    assertFormulasEqual(d.get(9), formula('~~(p,~p)'));
+    assertFormulasEqual(d.get(10), formula('p,~p'));
 
     // deducing p>(q>p)
     var d = deduction();
@@ -785,9 +785,9 @@ try {
     d.rep(1);  				// 3. || p
     d.impI();  				// 4. | q>p
     d.impI();  				// 5. p>(q>p)
-    assertFormulasEqual(d.getFormula(3), formula('p'));
-    assertFormulasEqual(d.getFormula(4), formula('q>p'));
-    assertFormulasEqual(d.getFormula(5), formula('p>(q>p)'));
+    assertFormulasEqual(d.get(3), formula('p'));
+    assertFormulasEqual(d.get(4), formula('q>p'));
+    assertFormulasEqual(d.get(5), formula('p>(q>p)'));
 
     // deducing (p-~p)>q
     var d = deduction();
@@ -797,9 +797,9 @@ try {
     d.negI();  				// 4. | ~~q 
     d.negE(4);  			// 5. | q 
     d.impI();  				// 6. (p-~p)>q
-    assertFormulasEqual(d.getFormula(2), formula('~q'));
-    assertFormulasEqual(d.getFormula(4), formula('~~q'));
-    assertFormulasEqual(d.getFormula(6), formula('(p-~p)>q'));
+    assertFormulasEqual(d.get(2), formula('~q'));
+    assertFormulasEqual(d.get(4), formula('~~q'));
+    assertFormulasEqual(d.get(6), formula('(p-~p)>q'));
 
     // deducing p>(q>p), with deletions
     var d = deduction();
@@ -814,11 +814,11 @@ try {
     d.pop();  				// 3. || p
     d.impI();  				// 4. | q>p
     d.impI();  				// 5. p>(q>p)
-    assertFormulasEqual(formula('p'), d.getFormula(1));
-    assertFormulasEqual(formula('q'), d.getFormula(2));
-    assertFormulasEqual(formula('p'), d.getFormula(3));
-    assertFormulasEqual(formula('q>p'), d.getFormula(4));
-    assertFormulasEqual(formula('p>(q>p)'), d.getFormula(5));
+    assertFormulasEqual(formula('p'), d.get(1));
+    assertFormulasEqual(formula('q'), d.get(2));
+    assertFormulasEqual(formula('p'), d.get(3));
+    assertFormulasEqual(formula('q>p'), d.get(4));
+    assertFormulasEqual(formula('p>(q>p)'), d.get(5));
     assertEquals(1, d.nestingLevels[1]);
     assertEquals(2, d.nestingLevels[2]);
     assertEquals(2, d.nestingLevels[3]);
@@ -848,12 +848,12 @@ try {
     assertUndefined(d.impE(1,6));
     assertUndefined(d.conI(1,6));
     assertUndefined(d.conI(3,4));
-    assertFormulasEqual(d.getFormula(1), formula('p-~p'));
-    assertFormulasEqual(d.getFormula(2), formula('~q'));
-    assertFormulasEqual(d.getFormula(3), formula('p-~p'));
-    assertFormulasEqual(d.getFormula(4), formula('~~q'));
-    assertFormulasEqual(d.getFormula(5), formula('q'));
-    assertFormulasEqual(d.getFormula(6), formula('(p-~p)>q'));
+    assertFormulasEqual(d.get(1), formula('p-~p'));
+    assertFormulasEqual(d.get(2), formula('~q'));
+    assertFormulasEqual(d.get(3), formula('p-~p'));
+    assertFormulasEqual(d.get(4), formula('~~q'));
+    assertFormulasEqual(d.get(5), formula('q'));
+    assertFormulasEqual(d.get(6), formula('(p-~p)>q'));
 
 // ===== tests end =====
 

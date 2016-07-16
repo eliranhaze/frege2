@@ -18,7 +18,7 @@ function sbt(url, csrf) {
 }
 
 function ans(url, data, csrf) {
-    var emptyMsg = is_empty()
+    var emptyMsg = isEmpty();
     if (emptyMsg) {
         errmsg(emptyMsg);
         regA();

@@ -14,11 +14,11 @@
   </div>
 
   <script>
-    function is_empty() {
+    function isEmpty() {
         if (!$('input[name=choice]:checked', '#choices').val())
             return 'לא נבחרה תשובה';
     }
-    function get_post_data() {
+    function getPostData() {
         return {'choice':$('input[name=choice]:checked', '#choices').val()};
     }
   </script>

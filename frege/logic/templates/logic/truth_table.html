@@ -74,7 +74,7 @@
   </div>
 
   <script>
-    function is_empty() {
+    function isEmpty() {
         if (!$('input[name=option]:checked', '#options').val())
             return 'לא נבחרה תשובה';
       {% for formula in formulas %} 
@@ -84,7 +84,7 @@
         {% endfor %}
       {% endfor %}
     }
-    function get_post_data() {
+    function getPostData() {
         // clear warnings before posting
         {% for formula in formulas %}
         $('#formula-head{{forloop.counter}}').css('visibility', 'hidden');

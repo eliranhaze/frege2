@@ -20,7 +20,7 @@
   <script>
     function regA() {
         $('#answer').one('click', function() {
-            ans('{% url 'logic:question' chapter.number question.number %}', get_post_data(), '{{ csrf_token }}');
+            ans('{% url 'logic:question' chapter.number question.number %}', getPostData(), '{{ csrf_token }}');
         });
     }
     function regS() {

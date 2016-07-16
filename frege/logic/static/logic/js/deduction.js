@@ -210,7 +210,7 @@ function Deduction() { // @@export
 }
 
 // return the current index (1-indexed)
-Deduction.prototype.index = function() {
+Deduction.prototype.idx = function() {
     return this.formulas.length - 1;
 }
 
@@ -227,7 +227,7 @@ Deduction.prototype.openIndex = function() {
 // add a formula to the deduction
 Deduction.prototype.push = function(f, nest, endnest) {
     this.formulas.push(f);
-    if (nest) this.nestingStack.push(this.index());
+    if (nest) this.nestingStack.push(this.idx());
     else if (endnest) {
         // save the popped item in case of going back
         this.reverseStack.push(this.nestingStack.pop());
@@ -237,13 +237,13 @@ Deduction.prototype.push = function(f, nest, endnest) {
 
 // remove the last formula from the deduction
 Deduction.prototype.pop = function() {
-    if (this.index() == 0) return;
+    if (this.idx() == 0) return;
     var prevNesting = this.nesting();
-    var prevIndex = this.index();
+    var prevIndex = this.idx();
     this.formulas.pop();
     this.nestingLevels.pop();
     // handle nesting change
-    if (this.nestingLevels[this.index()] != prevNesting) {
+    if (this.nestingLevels[this.idx()] != prevNesting) {
         if (this.openIndex() == prevIndex) {
             // going down
             this.nestingStack.pop();
@@ -274,8 +274,8 @@ Deduction.prototype.isOnCurrentLevel = function(i) {
     return false;
 }
 
-Deduction.prototype.getFormula = function(i) {
-    if (i > 0 && i <= this.index()) return this.formulas[i];
+Deduction.prototype.get = function(i) {
+    if (i > 0 && i <= this.idx()) return this.formulas[i];
 }
 
 Deduction.prototype.toString = function() {
@@ -297,8 +297,8 @@ Deduction.prototype.impE = function(i1, i2) {
     _impE = function(imp, ant) {
         if (imp && imp.con == IMP && imp.sf1.equals(ant)) return imp.sf2;
     }
-    var f1 = this.getFormula(i1);
-    var f2 = this.getFormula(i2);
+    var f1 = this.get(i1);
+    var f2 = this.get(i2);
     var result = _impE(f1, f2);
     if (!result) result = _impE(f2, f1);
     if (result) {
@@ -312,7 +312,7 @@ Deduction.prototype.impE = function(i1, i2) {
 // A·B => A,B
 Deduction.prototype.conE = function(i) {
     if (!this.isOnCurrentLevel(i)) return;
-    var f = this.getFormula(i);
+    var f = this.get(i);
     if (f && f.con == CON) {
         var result = [f.sf1, f.sf2];
         this.lastSymbol = 'E ' + CON + ' ' + i;
@@ -331,9 +331,9 @@ Deduction.prototype.disE = function(i1, i2, i3) {
             if (dis.equals(imp1.sf1.combine(imp2.sf1, DIS))) return imp1.sf2;
         }
     }
-    var f1 = this.getFormula(i1);
-    var f2 = this.getFormula(i2);
-    var f3 = this.getFormula(i3);
+    var f1 = this.get(i1);
+    var f2 = this.get(i2);
+    var f3 = this.get(i3);
     var result = null;
     if (!f1 || !f2 || !f3) return;
     if (f1.con == DIS && f2.con == IMP && f3.con == IMP) {
@@ -352,7 +352,7 @@ Deduction.prototype.disE = function(i1, i2, i3) {
 // A≡B => A⊃B,B⊃A
 Deduction.prototype.eqvE = function(i) {
     if (!this.isOnCurrentLevel(i)) return;
-    var f = this.getFormula(i);
+    var f = this.get(i);
     if (f && f.con == EQV) {
         var result = [
             f.sf1.combine(f.sf2, IMP),
@@ -369,7 +369,7 @@ Deduction.prototype.eqvE = function(i) {
 // ~~A => A
 Deduction.prototype.negE = function(i) {
     if (!this.isOnCurrentLevel(i)) return;
-    var f = this.getFormula(i);
+    var f = this.get(i);
     if (f && f.con == NEG && f.sf1.con == NEG) {
         var result = f.sf1.sf1;
         this.lastSymbol = 'E ' + NEG + ' ' + i;
@@ -382,8 +382,8 @@ Deduction.prototype.negE = function(i) {
 // A,B => A·B
 Deduction.prototype.conI = function(i1, i2) {
     if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2)) return;
-    var f1 = this.getFormula(i1);
-    var f2 = this.getFormula(i2);
+    var f1 = this.get(i1);
+    var f2 = this.get(i2);
     if (f1 && f2) {
         var result = f1.combine(f2, CON);
         this.lastSymbol = 'I ' + CON + ' ' + i1 + ',' + i2;
@@ -396,7 +396,7 @@ Deduction.prototype.conI = function(i1, i2) {
 // A => A∨B
 Deduction.prototype.disI = function(i1, f2) {
     if (!this.isOnCurrentLevel(i1)) return;
-    var f1 = this.getFormula(i1);
+    var f1 = this.get(i1);
     if (f1 && f2) {
         var result = f1.combine(f2, DIS);
         this.lastSymbol = 'I ' + DIS + ' ' + i1;
@@ -409,8 +409,8 @@ Deduction.prototype.disI = function(i1, f2) {
 // A⊃B,B⊃A => A≡B 
 Deduction.prototype.eqvI = function(i1, i2) {
     if (!this.isOnCurrentLevel(i1) || !this.isOnCurrentLevel(i2)) return;
-    var f1 = this.getFormula(i1);
-    var f2 = this.getFormula(i2);
+    var f1 = this.get(i1);
+    var f2 = this.get(i2);
     if (f1 && f2 && f1.con == IMP && f2.con == IMP &&
         f1.sf1.equals(f2.sf2) && f2.sf1.equals(f1.sf2)) {
         var result = f1.sf1.combine(f1.sf2, EQV);
@@ -424,11 +424,11 @@ Deduction.prototype.eqvI = function(i1, i2) {
 // A ... B => A⊃B
 Deduction.prototype.impI = function() {
     if (this.nesting() > 0) {
-        var f1 = this.getFormula(this.openIndex());
-        var f2 = this.getFormula(this.index());
+        var f1 = this.get(this.openIndex());
+        var f2 = this.get(this.idx());
         if (f1 && f2) {
             var result = f1.combine(f2, IMP);
-            this.lastSymbol = 'I ' + IMP + ' ' + this.openIndex() + '-' + this.index();
+            this.lastSymbol = 'I ' + IMP + ' ' + this.openIndex() + '-' + this.idx();
             this.push(result, false, true);
             return result;
         }
@@ -439,11 +439,11 @@ Deduction.prototype.impI = function() {
 // A ... B·~B => ~A
 Deduction.prototype.negI = function() { // @@export
     if (this.nesting() > 0) {
-        var f1 = this.getFormula(this.openIndex());
-        var f2 = this.getFormula(this.index());
+        var f1 = this.get(this.openIndex());
+        var f2 = this.get(this.idx());
         if (f1 && f2 && f2.isContradiction()) {
             var result = f1.negate();
-            this.lastSymbol = 'I ' + NEG + ' ' + this.openIndex() + '-' + this.index();
+            this.lastSymbol = 'I ' + NEG + ' ' + this.openIndex() + '-' + this.idx();
             this.push(result, false, true);
             return result;
         }
@@ -459,7 +459,7 @@ Deduction.prototype.hyp = function(f) {
  
 // repetition
 Deduction.prototype.rep = function(i) {
-    var f = this.getFormula(i);
+    var f = this.get(i);
     if (!f) return;
     if (this.isOnCurrentLevel(i)) {
         throw Error("שורה " + i + " כבר נמצאת ברמה הנוכחית");
@@ -476,7 +476,7 @@ Deduction.prototype.rep = function(i) {
 // user interaction
 // ==========================
 
-var deduction = new Deduction();
+var dd = new Deduction();
 var lastBtn = null;
 var okTxt = 'OK';
 
@@ -514,17 +514,17 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
         catch (e) { return errmsg(e.message); }
         args.push(formula);
     }
-    var prevNesting = deduction.nesting();
+    var prevNesting = dd.nesting();
     // apply the rule
-    try {var consq = ruleFunc.apply(deduction, args);}
+    try {var consq = ruleFunc.apply(dd, args);}
     catch (e) {return errmsg(e.message);}
     if (consq) {
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addRow(consq[i].lit, deduction.lastSymbol, false, (deduction.index() - consq.length + i + 1));
+            addRow(consq[i].lit, dd.lastSymbol, false, (dd.idx() - consq.length + i + 1));
         }
-        if (prevNesting > deduction.nesting()) endNestingLine(deduction.index() - 1, prevNesting);
+        if (prevNesting > dd.nesting()) endNestingLine(dd.idx() - 1, prevNesting);
         removeSelection();
         $.notifyClose();
         return true;
@@ -551,7 +551,7 @@ function validateSelection(numRows, isRep) {
         }
         if (isRep) return true;
         for (var i = 0; i < checked.length; i++) {
-            if (!deduction.isOnCurrentLevel(checked[i])) {
+            if (!dd.isOnCurrentLevel(checked[i])) {
                 errmsg("שורה " + checked[i] + " מחוץ לרמה הנוכחית");
                 return false;
             }
@@ -567,12 +567,12 @@ function addRow(content, symbol, premise, rownum) {
     if (premise) {
         var rowId = '';
         symbol = 'prem';
-        deduction.push(new Formula(content));
-        rownum = deduction.index();
+        dd.push(new Formula(content));
+        rownum = dd.idx();
     } else {
        var rowId = 'r'+rownum;
     }
-    var nesting = deduction.nesting();
+    var nesting = dd.nesting();
     // handle nesting
     for (var i = 0; i < nesting; i++) content = addNesting(content, rownum, nesting - i);
     // add the row
@@ -588,13 +588,13 @@ function addRow(content, symbol, premise, rownum) {
 // remove the last deduction row 
 function removeRow() {
     // delete by row id (premises don't have row id and so cannot be deleted)
-    var rownum = deduction.index();
+    var rownum = dd.idx();
     if ($("#r"+rownum).length == 0) return;
     $("#r"+rownum).remove();
     removeSelection();
-    var nesting = deduction.nesting();
-    deduction.pop();
-    if (deduction.nesting() > nesting) endNestingLine(deduction.index(), deduction.nesting());
+    var nesting = dd.nesting();
+    dd.pop();
+    if (dd.nesting() > nesting) endNestingLine(dd.idx(), dd.nesting());
 }
 
 // add a nesting indication to given html
@@ -690,40 +690,40 @@ function insert(text) {
 // bind rule buttons to functions and symbol buttons to insertions
 $(document).ready(function() {
     $("#imp-e").click(function() {
-        doApply($(this), deduction.impE, 2);
+        doApply($(this), dd.impE, 2);
     });
     $("#con-e").click(function() {
-        doApply($(this), deduction.conE, 1);
+        doApply($(this), dd.conE, 1);
     });
     $("#dis-e").click(function() {
-        doApply($(this), deduction.disE, 3);
+        doApply($(this), dd.disE, 3);
     });
     $("#eqv-e").click(function() {
-        doApply($(this), deduction.eqvE, 1);
+        doApply($(this), dd.eqvE, 1);
     });
     $("#neg-e").click(function() {
-        doApply($(this), deduction.negE, 1);
+        doApply($(this), dd.negE, 1);
     });
     $("#imp-i").click(function() {
-        doApply($(this), deduction.impI, 0);
+        doApply($(this), dd.impI, 0);
     });
     $("#con-i").click(function() {
-        doApply($(this), deduction.conI, 2);
+        doApply($(this), dd.conI, 2);
     });
     $("#dis-i").click(function() {
-        doApply($(this), deduction.disI, 1, true);
+        doApply($(this), dd.disI, 1, true);
     });
     $("#eqv-i").click(function() {
-        doApply($(this), deduction.eqvI, 2);
+        doApply($(this), dd.eqvI, 2);
     });
     $("#neg-i").click(function() {
-        doApply($(this), deduction.negI, 0);
+        doApply($(this), dd.negI, 0);
     });
     $("#hyp").click(function() {
-        doApply($(this), deduction.hyp, 0, true);
+        doApply($(this), dd.hyp, 0, true);
     });
     $("#rep").click(function() {
-        doApply($(this), deduction.rep, 1, false, true);
+        doApply($(this), dd.rep, 1, false, true);
     });
     $("#rem").click(function() {
         removeRow();
