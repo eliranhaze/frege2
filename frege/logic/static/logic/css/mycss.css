@@ -13,6 +13,8 @@ body {
     padding: 2px;
 }
 
+/* Buttons */
+
 .btn {
     /* cancel uppercase from theme */
     text-transform: none;
@@ -36,10 +38,35 @@ body {
   box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
 
+/* Modal */
+.modal-header {
+    border-bottom: 1px solid #e5e5e5;
+}
+.modal-footer {
+    border-top: 1px solid #e5e5e5;
+}
+.modal.loading .modal-content:before {
+    content: 'שולח...';
+    text-align: center;
+    line-height: 155px;
+    font-size: 160%;
+    background: #222;
+    background: rgba(0, 0, 0, .7);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: #EEE;
+    z-index: 1000;
+}
+
 input:-webkit-autofill {
     /* disable autofill color in chrome */
     -webkit-box-shadow: inset 0px -1px 0px 0px rgba(0, 0, 0, 0.075), inset 0 0 0 100px white !important;
 }
+
+/* Fonts */
 
 .formal {
     font-family: 'Trirong', serif;
@@ -85,6 +112,8 @@ input:-webkit-autofill {
     font-size: 80%;
     padding: 7px;
 }
+
+/* Deduction */
 
 .dd-num {
     padding-right: 5px;

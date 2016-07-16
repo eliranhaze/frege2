@@ -3,17 +3,12 @@
  */
 
 function sbt(url, csrf) {
-    var btn = $("#sum");
-    btn.html("מסיים...");
     $.post(url, {'csrfmiddlewaretoken':csrf}, function(data, status) {
-        btn.html("סיום פרק");
         if (data['next']) window.location.assign(data['next']);
         else errmsg('עברת את מספר הנסיונות המירבי לפרק זה');
     })
     .fail(function(response) {
         errhandler(response);
-        btn.html("סיום פרק");
-        regS();
     });
 }
 
@@ -21,7 +16,7 @@ function ans(url, data, csrf) {
     var emptyMsg = isEmpty();
     if (emptyMsg) {
         errmsg(emptyMsg);
-        regA();
+        reg();
         return false;
     }
     var btn = $("#answer");
@@ -34,7 +29,7 @@ function ans(url, data, csrf) {
             return;
         }
         okmsg('תשובה נשמרה');
-        regA();
+        reg();
         btn.html("אישור");
         if (data['complete']) {
             $("#next").remove();
@@ -48,7 +43,7 @@ function ans(url, data, csrf) {
     .fail(function(response){
         errhandler(response);
         btn.html("אישור");
-        regA();
+        reg();
     });
 }
 

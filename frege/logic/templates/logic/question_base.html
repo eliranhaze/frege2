@@ -13,26 +13,46 @@
         <div class="noselect" style="padding: 5px;margin-top: 20px;">
           <button class="btn btn-default btn-lg" id="answer">אישור</button>
           <button class="btn btn-default answered btn-lg" style="visibility: hidden;" id="next">המשך</button>
-          <button class="btn btn-primary btn-lg" style="visibility: hidden;" id="sum">סיום פרק</button>
+          <button class="btn btn-primary btn-lg" style="visibility: hidden;" id="sum" data-toggle="modal" data-target="#confirm-delete">סיום פרק</button>
         </div>
      </div>
   </div>
   <script>
-    function regA() {
+    function reg() {
         $('#answer').one('click', function() {
             ans('{% url 'logic:question' chapter.number question.number %}', getPostData(), '{{ csrf_token }}');
         });
     }
-    function regS() {
-        $('#sum').one('click', function() {
+    $(document).ready(reg);
+  </script>
+
+  {% if remaining %}
+    <div class="modal fade" style="vertical-align: middle;" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="myModalLabel">סיום פרק</h3>
+                </div>
+                <div class="modal-body" style="font-size: 105%;">
+                    <p>פעולה זו שולחת את הפרק להגשה ומיד לאחריה יהיה ניתן לראות את הציון. נותרו לך <b>{{remaining}} נסיונות</b> הגשה.</p>
+                    <p>האם ברצונך לסיים את הפרק?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">לא עכשיו</button>
+                    <button type="button" class="btn btn-primary btn-lg btn-ok">כן</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    $(document).ready(function() {
+        $('#confirm-delete').on('click', '.btn-ok', function(e) {
+            $(e.delegateTarget).addClass('loading');
             sbt('{% url 'logic:chapter-summary' chapter.number %}', '{{ csrf_token }}');
         });
-    }
-    $(document).ready(function() {
-        regA();
-        regS();
     });
-  </script>
+    </script>
+  {% endif %}
 
   <div class="page-header"></div>
   <div class="panel panel-default">

@@ -140,6 +140,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = self.object
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
+        submission = ChapterSubmission.objects.filter(chapter=question.chapter).first()
+        if submission:
+            context['remaining'] = submission.max_attempts - submission.attempt
         context.update(
             self.context_handlers[type(question)](question)
         )
