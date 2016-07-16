@@ -28,9 +28,9 @@
 
   <form class="form-signin" method="post" id="login-form">{% csrf_token %}
     <label for="id_username" class="sr-only">שם משתמש/ת</label>
-    <input type="text" id="id_username" name="username" class="form-control" placeholder="שם משתמש/ת" autofocus>
+    <input type="text" id="id_username" name="username" class="form-control" placeholder="שם משתמש/ת" autofocus autocorrect="off" autocapitalize="none">
     <label for="id_password" class="sr-only">סיסמה</label>
-    <input type="password" id="id_password" name="password" class="form-control" style="margin-top: 10px;" placeholder="סיסמה">
+    <input type="password" id="id_password" name="password" class="form-control" style="margin-top: 10px;" placeholder="סיסמה" autocorrect="off" autocapitalize="none">
     <div>
       <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
         התחברות
