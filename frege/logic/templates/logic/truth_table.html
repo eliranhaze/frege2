@@ -12,7 +12,7 @@
           <th class="text-center">{{var}}</th>
         {% endfor %}
         {% for formula in formulas %}
-          <th class="text-center" ondblclick="unselectall({{forloop.counter}})"><span class="glyphicon glyphicon-warning-sign pull-left tt-notice"></span>{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}<span id="formula-head{{forloop.counter}}" class="glyphicon glyphicon-warning-sign pull-right tt-notice"></span></th>
+          <th class="text-center" ondblclick="unselectall({{forloop.counter}})">{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}</th>
         {% endfor %}
         </tr>
       </thead>
@@ -25,9 +25,9 @@
         {% for formula in formulas %} 
           <td>
             <div class="btn-group" role="group" style="font-size: 130%;">
-              <label class="label label-default" style="opacity: 0.5;" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
-              <label class="label" style="visibility: hidden; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">?</label>
-              <label class="label label-default" style="opacity: 0.5;" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
+              <label class="label label-default" style="opacity: 0.7; margin: -1px;" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
+              <label class="label" style="display: none; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">?</label>
+              <label class="label label-default" style="opacity: 0.7; margin: -1px;" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
             </div>
           </td>
         {% endfor %}
@@ -45,16 +45,15 @@
         } else {
             var other = '#t'+i;
         }
-        $(clicked).css('visibility', 'hidden');
-        $(other).css('visibility', 'hidden');
-        $(a).css('visibility', 'visible');
+        $(clicked).hide();
+        $(other).hide();
+        $(a).show();
         $(a).text($(clicked).text());
     }
     function unselect(i, j) {
-        $('#t'+i).css('visibility', 'visible');
-        $('#f'+i).css('visibility', 'visible');
-        $('#ans'+i).css('visibility', 'hidden');
-        $('#formula-head'+j).css('visibility', 'hidden');
+        $('#t'+i).show();
+        $('#f'+i).show();
+        $('#ans'+i).hide();
     }
     function unselectall(i) {
         {% for row in truth_table.values %}
@@ -79,16 +78,12 @@
             return 'לא נבחרה תשובה';
       {% for formula in formulas %} 
         {% for row in truth_table.values %}
-        if ($('label[id=ans{{forloop.counter}}{{forloop.parentloop.counter}}]').css('visibility') == 'hidden')
+        if ($('label[id=ans{{forloop.counter}}{{forloop.parentloop.counter}}]').css('display') == 'none')
             return 'הטבלה אינה מלאה';
         {% endfor %}
       {% endfor %}
     }
     function getPostData() {
-        // clear warnings before posting
-        {% for formula in formulas %}
-        $('#formula-head{{forloop.counter}}').css('visibility', 'hidden');
-        {% endfor %}
         return {
             'option':$('input[name=option]:checked', '#options').val(),
             'values':[
