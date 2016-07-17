@@ -130,3 +130,7 @@ admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
+
+# override admin stuff like so
+admin.site.site_title = 'ממשק ניהול'
+admin.site.site_header = 'ממשק ניהול'
