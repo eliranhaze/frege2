@@ -12,7 +12,7 @@ function sbt(url, csrf) {
     });
 }
 
-function ans(url, data, csrf) {
+function ans(url, csrf) {
     var emptyMsg = isEmpty();
     if (emptyMsg) {
         errmsg(emptyMsg);
@@ -21,6 +21,7 @@ function ans(url, data, csrf) {
     }
     var btn = $("#answer");
     btn.html("שולח...");
+    var data = getPostData();
     data['csrfmiddlewaretoken'] = csrf;
     $.post(url, data, function(data, status) {
         btn.html("אישור");
