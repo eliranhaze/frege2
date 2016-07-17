@@ -17,6 +17,7 @@
     font-family: 'Lucida Console', Monaco, monospace;
     font-size: 120%;
     direction: ltr;
+    border: 0px solid #000 !important;
 }
 .formula-btn:hover {
     background-color: rgb(200,200,200) !important;
