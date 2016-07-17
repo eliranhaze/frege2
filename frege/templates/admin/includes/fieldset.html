@@ -18,16 +18,16 @@
                         {% else %}
                             {{ field.field }}
                             {% if field.field.name == 'formula' %}
-                            <input type="button" class="formula-btn" id="neg" value="~"/>
-                            <input type="button" class="formula-btn" id="con" value="·"/>
-                            <input type="button" class="formula-btn" id="dis" value="∨"/>
-                            <input type="button" class="formula-btn" id="imp" value="⊃"/>
-                            <input type="button" class="formula-btn" id="eqv" value="≡"/>
+                            <input type="button" class="formula-btn" id="neg" value="~" onclick="insert('~','{{field.field.auto_id}}');"/>
+                            <input type="button" class="formula-btn" id="con" value="·" onclick="insert('·','{{field.field.auto_id}}');"/>
+                            <input type="button" class="formula-btn" id="dis" value="∨" onclick="insert('∨','{{field.field.auto_id}}');"/>
+                            <input type="button" class="formula-btn" id="imp" value="⊃" onclick="insert('⊃','{{field.field.auto_id}}');"/>
+                            <input type="button" class="formula-btn" id="eqv" value="≡" onclick="insert('≡','{{field.field.auto_id}}');"/>
                             {% if opts.verbose_name != 'שאלת טבלת אמת' %}
-                            <input type="button" class="formula-btn" id="all" value="∀"/>
-                            <input type="button" class="formula-btn" id="exs" value="∃"/>
+                            <input type="button" class="formula-btn" id="all" value="∀" onclick="insert('∀','{{field.field.auto_id}}');"/>
+                            <input type="button" class="formula-btn" id="exs" value="∃" onclick="insert('∃','{{field.field.auto_id}}');"/>
                             {% endif %}
-                            <input type="button" class="formula-btn" id="thf" value="∴"/>
+                            <input type="button" class="formula-btn" id="thf" value="∴" onclick="insert('∴','{{field.field.auto_id}}');"/>
                             {% endif %}
                         {% endif %}
                     {% endif %}
@@ -67,34 +67,8 @@ insertAtCaret: function(myValue){
   });
 }
 });
-function insert(text) {
-    $("#id_formula").insertAtCaret(text);
-    $("#id_formula").focus();
+function insert(text, id) {
+    $('#'+id).insertAtCaret(text);
+    $('#'+id).focus();
 }
-$(document).ready(function() {
-    $("#neg").click(function() {
-        insert('~');
-    });
-    $("#con").click(function() {
-        insert('·');
-    });
-    $("#dis").click(function() {
-        insert('∨');
-    });
-    $("#imp").click(function() {
-        insert('⊃');
-    });
-    $("#eqv").click(function() {
-        insert('≡');
-    });
-    $("#all").click(function() {
-        insert('∀');
-    });
-    $("#exs").click(function() {
-        insert('∃');
-    });
-    $("#thf").click(function() {
-        insert('∴');
-    });
-});
 </script>
