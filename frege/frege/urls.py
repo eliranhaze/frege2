@@ -21,8 +21,8 @@ from .views import login, logout, register
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^fregush/', include('logic.urls')),
-    url(r'^$', RedirectView.as_view(url='/fregush/', permanent=True)),
+    url(r'^frege/', include('logic.urls')),
+    url(r'^$', RedirectView.as_view(url='/frege/', permanent=True)),
 
     # TODO: to be removed
     url(r'^polls/', include('polls.urls')),
