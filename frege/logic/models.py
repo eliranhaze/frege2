@@ -157,11 +157,11 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name = 'שאלת בחירה'
         verbose_name_plural = 'שאלות בחירה'
 
-def validate_formula(formula):
+def validate_formula(formula,name='formula'):
     try:
         return Formula(formula).literal
     except:
-        raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
+        raise ValidationError({name:'הנוסחה שהוזנה אינה תקינה'})
 
 def validate_formula_set(fset):
     try:
@@ -180,9 +180,9 @@ def validate_deduction_argument(arg):
     try:
         a = Argument(arg)
     except:
-        raise ValidationError('הטיעון שהוזן אינו תקין')
+        raise ValidationError({'formula':'הטיעון שהוזן אינו תקין'})
     if not a.is_valid:
-        raise ValidationError('הטיעון שהוזן אינו ניתן להוכחה')
+        raise ValidationError({'formula':'הטיעון שהוזן אינו ניתן להוכחה'})
     return a.literal
 
 def validate_truth_table(x):
@@ -244,11 +244,11 @@ class TruthTableQuestion(FormalQuestion):
         unique_together = ('chapter', 'formula')
 
 class DeductionQuestion(FormalQuestion):
-    formula = models.CharField(verbose_name='טיעון', max_length=60, validators=[validate_deduction_argument])
+    formula = models.CharField(verbose_name='טיעון', max_length=60)
 
     def clean(self):
         super(DeductionQuestion, self).clean()
-        self.formula = validate_argument(self.formula)
+        self.formula = validate_deduction_argument(self.formula)
 
     def display(self):
         return Argument(self.formula).display
@@ -273,6 +273,10 @@ class Answer(models.Model):
 
 class FormulationAnswer(Answer):
     question = models.ForeignKey(FormulationQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
+
+    def clean(self):
+        super(FormulationAnswer, self).clean()
+        self.text = validate_formula(self.text,name='text')
 
     class Meta(Answer.Meta):
         verbose_name = 'תשובה'
