@@ -157,11 +157,11 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name = 'שאלת בחירה'
         verbose_name_plural = 'שאלות בחירה'
 
-def validate_formula(formula,name='formula'):
+def validate_formula(formula):
     try:
         return Formula(formula).literal
     except:
-        raise ValidationError({name:'הנוסחה שהוזנה אינה תקינה'})
+        raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
 
 def validate_formula_set(fset):
     try:
@@ -258,8 +258,25 @@ class DeductionQuestion(FormalQuestion):
         verbose_name_plural = 'שאלות דדוקציה'
         unique_together = ('chapter', 'formula')
 
-class Answer(models.Model):
+class FormulationAnswer(models.Model):
+    formula = models.CharField(verbose_name='נוסחה', max_length=60)
+    question = models.ForeignKey(FormulationQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
+
+    def clean(self):
+        super(FormulationAnswer, self).clean()
+        self.formula = validate_formula(self.formula)
+
+    def __unicode__(self):
+        return self.formula
+
+    class Meta:
+        verbose_name = 'תשובה'
+        verbose_name_plural = 'תשובות'
+
+class Choice(models.Model):
     text = models.CharField(verbose_name='טקסט', max_length=200)
+    question = models.ForeignKey(ChoiceQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
+    is_correct = models.BooleanField(verbose_name='תשובת נכונה?', default=False)
 
     @property
     def short_text(self):
@@ -269,24 +286,6 @@ class Answer(models.Model):
         return self.short_text
 
     class Meta:
-        abstract = True
-
-class FormulationAnswer(Answer):
-    question = models.ForeignKey(FormulationQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
-
-    def clean(self):
-        super(FormulationAnswer, self).clean()
-        self.text = validate_formula(self.text,name='text')
-
-    class Meta(Answer.Meta):
-        verbose_name = 'תשובה'
-        verbose_name_plural = 'תשובות'
-
-class Choice(Answer):
-    question = models.ForeignKey(ChoiceQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
-    is_correct = models.BooleanField(verbose_name='תשובת נכונה?', default=False)
-
-    class Meta(Answer.Meta):
         verbose_name = 'בחירה'
         verbose_name_plural = 'בחירות'
 
@@ -327,7 +326,7 @@ class ChapterSubmission(models.Model):
     def __unicode__(self):
         return '%s/%s' % (self.user, self.chapter.number)
 
-    class Meta(Answer.Meta):
+    class Meta:
         verbose_name = 'הגשת משתמש'
         verbose_name_plural = 'הגשות משתמשים'
         unique_together = ('chapter', 'user')
@@ -342,7 +341,7 @@ class UserAnswer(models.Model):
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
 
-    class Meta(Answer.Meta):
+    class Meta:
         verbose_name = 'תשובת משתמש'
         verbose_name_plural = '*תשובות משתמשים'
         unique_together = ('chapter', 'user', 'question_number')

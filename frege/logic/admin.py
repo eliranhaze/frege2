@@ -26,6 +26,9 @@ formal_text_widget = {'widget': TextInput(attrs={
 class FormulationAnswerInline(admin.StackedInline):
     model = FormulationAnswer
     extra = 0
+    formfield_overrides = {
+        models.CharField: formal_text_widget
+    }
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
