@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views import generic
 
+from itertools import groupby
+
 from .formula import (
     Formula,
     FormulaSet,
@@ -32,7 +34,8 @@ def get_question_or_404(**kwargs):
     return question
 
 def next_question(chapter, user):
-    questions = Question._filter(chapter__number=chapter.number)
+    questions = Question._filter(chapter=chapter)
+    questions.sort(key=lambda q: q.number)
     for question in questions:
         if not question.user_answer(user):
             return question
@@ -81,6 +84,34 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
     def dispatch(self, request, chnum):
         chapter = get_object_or_404(Chapter, number=chnum)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
+
+class UserView(LoginRequiredMixin, generic.ListView):
+    template_name = 'logic/user.html'
+
+    def get_queryset(self):
+        return ChapterSubmission.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super(UserView, self).get_context_data(**kwargs)
+        if not self.object_list:
+            # no submissions for user
+            return context
+
+        # average score for user
+        scores = [s.percent_correct() for s in self.object_list]
+        context['avg'] = sum(scores)/len(scores)
+
+        # stats per question type
+        answers = [a for s in self.object_list for a in s.useranswer_set.all()]
+        by_type = groupby(answers, lambda a: Question._get(number=a.question_number, chapter=a.submission.chapter).__class__.__name__)
+        stats = {}
+        for qtype, answers in by_type:
+            ans_list = [a for a in answers]
+            total, correct = stats.get(qtype, (0,0))
+            stats[qtype] = (total+len(ans_list), correct+len([a for a in ans_list if a.correct]))
+        stats = {t: int(round((100.*correct/total))) for t, (total,correct) in stats.iteritems() if total > 0}
+        context['stats'] = stats
+        return context
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_summary.html'

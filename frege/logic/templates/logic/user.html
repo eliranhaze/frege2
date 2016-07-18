@@ -1,0 +1,58 @@
+{% extends "logic/base.html" %}
+
+{% block title %}{{ user }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div id="topic" class="page-header noselect">
+    <h3>{% firstof user.get_full_name user.get_username %} <small>סיכום</small></h3>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+    <div class="table-responsive">
+    {% if chaptersubmission_list %}
+      <p>
+        הגשת עד כה {{chaptersubmission_list|length}} פרקים.
+      </p>
+      <p>
+        <b>סטטיסטיקה</b><br>
+      </p>
+      <p>
+        אחוז הצלחה: {{avg}}%<br>
+      לפי סוג:
+      <table class="table table-condensed">
+        {% for name, pct in stats.iteritems %}
+        <tr>
+          <td>
+            {% if name == 'ChoiceQuestion' %}בחירה
+            {% elif name == 'FormulationQuestion' %}הצרנה
+            {% elif name == 'TruthTableQuestion' %}טבלת אמת
+            {% elif name == 'DeductionQuestion' %}דדוקציה
+            {% endif %}
+          </td>
+          <td>{{pct}}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+      </p>
+      <p>
+        <b>פרקים</b><br>
+      </p>
+      <table class="table table-condensed">
+        {% for sub in chaptersubmission_list %}
+        <tr>
+          <td>
+            <a href='{% url 'logic:chapter' sub.chapter.number %}'>פרק {{sub.chapter.number}}</a>
+          </td>
+          <td>{{sub.percent_correct}}%</td>
+        <tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>עוד לא הגשת אף פרק. <a href="{% url 'logic:index' %}">קדימה לעבודה!</a></p>
+    {% endif %}
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

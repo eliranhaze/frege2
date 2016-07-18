@@ -330,6 +330,7 @@ class ChapterSubmission(models.Model):
         verbose_name = 'הגשת משתמש'
         verbose_name_plural = 'הגשות משתמשים'
         unique_together = ('chapter', 'user')
+        ordering = ['chapter']
 
 class UserAnswer(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)

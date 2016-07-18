@@ -3,17 +3,10 @@
 // imports
 // =============
 
-var lib = require('./deduction2.js');
+var lib = require('./testslib.js');
 
 var Formula = lib.Formula;
 var Deduction = lib.Deduction;
-
-var currentNesting = lib.currentNesting;
-var endNesting = lib.endNesting;
-var startNesting = lib.startNesting;
-var isOpenNested = lib.isOpenNested;
-var isOnCurrentLevel = lib.isOnCurrentLevel;
-var getNesting = lib.getNesting;
 
 var connectives = {
     '~': lib.NEG,

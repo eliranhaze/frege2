@@ -67,4 +67,4 @@ target/
 *.swo
 
 # js tests temp file
-deduction2.js
+testslib.js
