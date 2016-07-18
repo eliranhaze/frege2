@@ -105,7 +105,7 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'attempt']
     list_filter = ['user', 'chapter']
     ordering = ['chapter', 'user']
-    readonly_fields = ['user', 'chapter']
+    readonly_fields = ['user', 'chapter', 'ongoing', 'attempt']
     actions = [export_as_csv_action(fields={
         'user': 'user',
         'chapter': 'chapter_number_f',
