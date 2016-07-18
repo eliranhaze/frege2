@@ -1,0 +1,26 @@
+{% extends "logic/question_base.html" %}
+
+{% block question_text %}{{ question.text }}{% endblock %}
+{% block question_instruction %}הצרנה{% endblock %}
+
+{% block question_content %}
+<div class="noselect">
+  <input type="text" id="ftxt" dir="ltr" style="margin-bottom: 10px; font-size: 95%; padding-left: 4px;" size="50" maxlength="50" autocorrect="off" autocapitalize="none">
+  <div>
+    <input type="button" class="btn sym-btn" id="neg" value="~"/>
+    <input type="button" class="btn sym-btn" id="con" value="·"/>
+    <input type="button" class="btn sym-btn" id="dis" value="∨"/>
+    <input type="button" class="btn sym-btn" id="imp" value="⊃"/>
+    <input type="button" class="btn sym-btn" id="eqv" value="≡"/>
+  </div>
+</div>
+
+<script>
+  function isEmpty() {
+      if (!$("#ftxt").val()) return 'יש להזין תשובה'
+  }
+  function getPostData() {
+      return {'formulation':$('#ftxt').val()};
+  }
+</script>
+{% endblock question_content %} 

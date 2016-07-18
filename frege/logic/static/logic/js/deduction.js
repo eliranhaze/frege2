@@ -616,9 +616,9 @@ function getChecked() {
 function showText(btn) {
     $("#extra").css("opacity","1");
     setTimeout(function(){ // trick to not miss the focus
-        $("#extxt").focus();
+        $("#ftxt").focus();
     }, 5);
-    $("#extxt").on("input", function() {
+    $("#ftxt").on("input", function() {
         if (!btn.data("symbol")) {
             // save button symbol before replacing
             btn.data("symbol", btn.text());
@@ -635,8 +635,8 @@ function showText(btn) {
 }
 function hideText(btn) {
     $("#extra").css("opacity","0");
-    $("#extxt").val("");
-    $("#extxt").off("input");
+    $("#ftxt").val("");
+    $("#ftxt").off("input");
     $(document).off("keypress");
     if (btn) {
         // restore button defaults
@@ -646,7 +646,7 @@ function hideText(btn) {
     }
 }
 function getText() {
-    return $("#extxt").val();
+    return $("#ftxt").val();
 }
 
 // checkbox click handler
@@ -655,38 +655,6 @@ function oncheck() {
 }
 
 // @@skipstart
-// function for inserting text at cursor position
-jQuery.fn.extend({
-    insertAtCaret: function(myValue){
-        return this.each(function(i) {
-            if (document.selection) {
-                //For browsers like Internet Explorer
-                this.focus();
-                var sel = document.selection.createRange();
-                sel.text = myValue;
-                this.focus();
-            } else if (this.selectionStart || this.selectionStart == '0') {
-                //For browsers like Firefox and Webkit based
-                var startPos = this.selectionStart;
-                var endPos = this.selectionEnd;
-                var scrollTop = this.scrollTop;
-                this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
-                this.focus();
-                this.selectionStart = startPos + myValue.length;
-                this.selectionEnd = startPos + myValue.length;
-                this.scrollTop = scrollTop;
-            } else {
-                this.value += myValue;
-                this.focus();
-            }
-        });
-    }
-});
-function insert(text) {
-    $("#extxt").insertAtCaret(text);
-    $("#extxt").focus();
-}
-
 // bind rule buttons to functions and symbol buttons to insertions
 $(document).ready(function() {
     $("#imp-e").click(function() {
@@ -729,20 +697,5 @@ $(document).ready(function() {
         removeRow();
         $(this).blur();
     });
-    $("#neg").click(function() {
-        insert('~');
-    });
-    $("#con").click(function() {
-        insert('·');
-    });
-    $("#dis").click(function() {
-        insert('∨');
-    });
-    $("#imp").click(function() {
-        insert('⊃');
-    });
-    $("#eqv").click(function() {
-        insert('≡');
-    })
 });
 // @@skipend

@@ -17,6 +17,8 @@ from .models import (
     Question,
     ChoiceQuestion,
     Choice,
+    FormulationQuestion,
+    FormulationAnswer,
     TruthTableQuestion,
     DeductionQuestion,
     UserAnswer,
@@ -127,14 +129,16 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         
         # question type handlers
         self.context_handlers = {
-            ChoiceQuestion : self._handle_choice_context,
-            TruthTableQuestion : self._handle_truth_table_context,
-            DeductionQuestion : self._handle_deduction_context,
+            ChoiceQuestion: self._handle_choice_context,
+            FormulationQuestion: self._handle_formulation_context,
+            TruthTableQuestion: self._handle_truth_table_context,
+            DeductionQuestion: self._handle_deduction_context,
         }
         self.post_handlers = {
-            ChoiceQuestion : self._handle_choice_post,
-            TruthTableQuestion : self._handle_truth_table_post,
-            DeductionQuestion : self._handle_deduction_post,
+            ChoiceQuestion: self._handle_choice_post,
+            FormulationQuestion: self._handle_formulation_post,
+            TruthTableQuestion: self._handle_truth_table_post,
+            DeductionQuestion: self._handle_deduction_post,
         }
 
     def get_object(self):
@@ -212,6 +216,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def _handle_choice_post(self, request, *args):
         return Choice.objects.get(id=request.POST['choice']).is_correct, None
 
+    def _handle_formulation_context(self, *args):
+        self.template_name = 'logic/formulation.html'
+        return {}
+
+    def _handle_formulation_post(self, request, question):
+        ans = Formula(request.POST['formulation'])
+        for correct_ans in FormulationAnswer.objects.filter(question=question):
+            if Formula(correct_ans.formula) == ans:
+                return True, None
+        return False, None
+
     def _handle_truth_table_context(self, question):
         self.template_name = 'logic/truth_table.html'
         context = {}
@@ -266,3 +281,4 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def _handle_deduction_post(self, request, question):
         argument = Argument(question.formula)
         return Formula(request.POST['conclusion']) == argument.conclusion, None
+
