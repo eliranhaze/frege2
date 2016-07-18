@@ -138,6 +138,9 @@ input:-webkit-autofill {
     height: 30px;
     padding: 0px;
 }
+.sym-btn:hover {
+  background-color: #ddd;
+}
 
 /* hypothesis vertical line */
 .dd-hyp {
