@@ -5,21 +5,21 @@
 
 {% block question_content %}
 
-  <div>
-      <form id=choices>
-      {% for choice in question.choice_set.all %}
-          <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
-      {% endfor %}
-      </form>
-  </div>
+<div>
+  <form id=choices>
+  {% for choice in question.choice_set.all %}
+    <input name="choice" value="{{ choice.id }}" type="radio"> {{ choice }}<br>
+  {% endfor %}
+  </form>
+</div>
 
-  <script>
-    function isEmpty() {
-        if (!$('input[name=choice]:checked', '#choices').val())
-            return 'לא נבחרה תשובה';
-    }
-    function getPostData() {
-        return {'choice':$('input[name=choice]:checked', '#choices').val()};
-    }
-  </script>
+<script>
+  function isEmpty() {
+      if (!$('input[name=choice]:checked','#choices').val())
+          return 'לא נבחרה תשובה';
+  }
+  function getPostData() {
+      return {'choice':$('input[name=choice]:checked','#choices').val()};
+  }
+</script>
 {% endblock question_content %} 
