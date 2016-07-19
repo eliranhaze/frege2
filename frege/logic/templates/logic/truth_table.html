@@ -1,15 +1,16 @@
 {% extends "logic/question_base.html" %}
+{% load index %}
 
 {% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal formal-dsp">{{question.display}}</p>{% endblock %}
 {% block question_instruction %}טבלת אמת{% endblock %}
 
 {% block question_content %}
   <div class="table-responsive">
-    <table class="table table-bordered table-condensed table-hover noselect formal" style="table-layout: auto !important;">
+    <table class="table table-bordered table-condensed table-hover noselect formal" style="table-layout: fixed !important;">
       <thead>
         <tr style="font-size: 110%;">
         {% for var in truth_table.variables %}
-          <th class="text-center">{{var}}</th>
+          <th class="text-center" style="width: 6%;">{{var}}</th>
         {% endfor %}
         {% for formula in formulas %}
           <th class="text-center" ondblclick="unselectall({{forloop.counter}})">{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}</th>
@@ -25,9 +26,9 @@
         {% for formula in formulas %} 
           <td>
             <div class="btn-group" role="group" style="font-size: 130%;">
-              <label class="label label-default" style="opacity: 0.7; margin: -1px;" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
-              <label class="label" style="display: none; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">?</label>
-              <label class="label label-default" style="opacity: 0.7; margin: -1px;" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
+              <label class="label label-default" style="opacity: 0.7; margin: -1px; display: {% if answer %}none{% else %}inline{% endif %};" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
+              <label class="label" style="display: {% if answer %}inline{% else %}none{% endif %}; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">{% if answer %}{{answer|index:forloop.counter0|index:forloop.parentloop.counter0}}{% endif %}</label>
+              <label class="label label-default" style="opacity: 0.7; margin: -1px; display: {% if answer %}none{% else %}inline{% endif %};" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
             </div>
           </td>
         {% endfor %}
@@ -67,7 +68,7 @@
     <p style="font-weight: bold;">{% if question.is_formula %}הנוסחה היא...{% elif question.is_set %}הקבוצה...{% else %}הטיעון...{% endif %}</p>
     <form id=options>
     {% for option in options %}
-        <input name="option" value="{{option.num}}" type="radio"> {{option.desc}}<br>
+        <input name="option" value="{{option.num}}" type="radio" {% if answer and option.num == answer_option %}checked{% endif %}> {{option.desc}}<br>
     {% endfor %}
     </form>
   </div>

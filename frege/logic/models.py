@@ -338,6 +338,7 @@ class UserAnswer(models.Model):
     submission = models.ForeignKey(ChapterSubmission, verbose_name='הגשת פרק', on_delete=models.CASCADE)
     question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
     correct = models.BooleanField(verbose_name='תשובה נכונה')
+    answer = models.TextField()
 
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')

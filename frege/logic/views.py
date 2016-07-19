@@ -1,3 +1,5 @@
+import ast
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, JsonResponse
@@ -180,11 +182,22 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = self.object
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
+
+        # update submission data
         submission = ChapterSubmission.objects.filter(chapter=question.chapter).first()
         if submission:
+            context['complete'] = submission.is_complete()
             context['remaining'] = submission.max_attempts - submission.attempt
+
+        # update answer data
+        answer = None
+        user_answer = UserAnswer.objects.filter(user=self.request.user,chapter=question.chapter,question_number=question.number).first()
+        if user_answer:
+            answer = user_answer.answer
+ 
+        # update context according to type
         context.update(
-            self.context_handlers[type(question)](question)
+            self.context_handlers[type(question)](question, answer)
         )
         return context
 
@@ -211,7 +224,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             submission.save()
 
         # handle answer according to question type
-        correct, ext_data = self.post_handlers[type(question)](request, question)
+        correct, ext_data, answer = self.post_handlers[type(question)](request, question)
 
         # register user answer
         user_ans, created = UserAnswer.objects.get_or_create(
@@ -219,12 +232,16 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             chapter=chapter,
             submission=submission,
             question_number=question.number,
-            defaults={'correct':correct},
+            defaults={
+                'correct': correct,
+                'answer': answer,
+            },
         )
 
         # save only if value changed
-        if user_ans.correct != correct:
+        if user_ans.correct != correct or user_ans.answer != answer:
             user_ans.correct = correct
+            user_ans.answer = answer
             user_ans.save()
 
         # make a response
@@ -240,25 +257,27 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     # Question types
     # ========================
 
-    def _handle_choice_context(self, *args):
+    def _handle_choice_context(self, question, answer):
         self.template_name = 'logic/choice.html'
-        return {}
+        return {'answer':int(answer)} if answer else {}
 
     def _handle_choice_post(self, request, *args):
-        return Choice.objects.get(id=request.POST['choice']).is_correct, None
+        choice = request.POST['choice']
+        return Choice.objects.get(id=choice).is_correct, None, str(choice)
 
-    def _handle_formulation_context(self, *args):
+    def _handle_formulation_context(self, question, answer):
         self.template_name = 'logic/formulation.html'
-        return {}
+        return {'answer':answer} if answer else {}
 
     def _handle_formulation_post(self, request, question):
-        ans = Formula(request.POST['formulation'])
+        answer = request.POST['formulation']
+        formula = Formula(answer)
         for correct_ans in FormulationAnswer.objects.filter(question=question):
-            if Formula(correct_ans.formula) == ans:
+            if Formula(correct_ans.formula) == formula:
                 return True, None
-        return False, None
+        return False, None, answer
 
-    def _handle_truth_table_context(self, question):
+    def _handle_truth_table_context(self, question, answer):
         self.template_name = 'logic/truth_table.html'
         context = {}
         if question.is_formula:
@@ -270,9 +289,14 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         elif question.is_argument:
             formulas = Argument(question.formula)
             options = formulas.options
+
         context['formulas'] = formulas
         context['truth_table'] = MultiTruthTable(formulas)
         context['options'] = options
+        if answer:
+            answer_tt, answer_option = answer.split('#')
+            context['answer'] = ast.literal_eval(answer_tt)
+            context['answer_option'] = int(answer_option)
         return context
 
     def _handle_truth_table_post(self, request, question):
@@ -282,7 +306,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             if not l:
                 break
             answers.append(l)
-        answers = [[v == 'T' for v in values] for values in answers]
+        boolean_answers = [[v == 'T' for v in values] for values in answers]
   
         if question.is_formula:
             formulas = [Formula(question.formula)]
@@ -295,10 +319,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             correct_option = formulas.correct_option
 
         truth_table = MultiTruthTable(formulas)
-        tt_corrects = [answer_values == result_values for answer_values, result_values in zip(answers, truth_table.result)]
-        option_correct = int(request.POST['option']) == correct_option.num
+        tt_corrects = [answer_values == result_values for answer_values, result_values in zip(boolean_answers, truth_table.result)]
+        user_option = int(request.POST['option'])
+        option_correct = user_option == correct_option.num
 
-        return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}
+        answer = '%s#%s' % (str(answers), user_option)
+        return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}, answer
 
     def _handle_deduction_context(self, question):
         self.template_name = 'logic/deduction.html'
