@@ -9,10 +9,10 @@
 // deduction constructor
 function Deduction() { // @@export
     this.formulas = [null]; // 1-indexed
+    this.symbols = [''];
     this.nestingLevels = [0];
     this.nestingStack = [];
     this.reverseStack = [];
-    this.lastSymbol = '';
 }
 
 // return the current index (1-indexed)
@@ -31,8 +31,9 @@ Deduction.prototype.openIndex = function() {
 }
 
 // add a formula to the deduction
-Deduction.prototype.push = function(f, nest, endnest) {
+Deduction.prototype.push = function(f, symbol, nest, endnest) {
     this.formulas.push(f);
+    this.symbols.push(symbol);
     if (nest) this.nestingStack.push(this.idx());
     else if (endnest) {
         // save the popped item in case of going back
@@ -47,6 +48,7 @@ Deduction.prototype.pop = function() {
     var prevNesting = this.nesting();
     var prevIndex = this.idx();
     this.formulas.pop();
+    this.symbols.pop();
     this.nestingLevels.pop();
     // handle nesting change
     if (this.nestingLevels[this.idx()] != prevNesting) {
@@ -108,8 +110,7 @@ Deduction.prototype.impE = function(i1, i2) {
     var result = _impE(f1, f2);
     if (!result) result = _impE(f2, f1);
     if (result) {
-        this.lastSymbol = 'E ' + IMP + ' ' + i1 + ',' + i2;
-        this.push(result);
+        this.push(result, 'E ' + IMP + ' ' + i1 + ',' + i2);
         return result;
     }
 }
@@ -121,9 +122,8 @@ Deduction.prototype.conE = function(i) {
     var f = this.get(i);
     if (f && f.con == CON) {
         var result = [f.sf1, f.sf2];
-        this.lastSymbol = 'E ' + CON + ' ' + i;
-        this.push(result[0]);
-        this.push(result[1]);
+        this.push(result[0], 'E ' + CON + ' ' + i);
+        this.push(result[1], 'E ' + CON + ' ' + i);
         return result;
     }
 }
@@ -149,8 +149,7 @@ Deduction.prototype.disE = function(i1, i2, i3) {
     } else if (f3.con == DIS && f2.con == IMP && f1.con == IMP) {
         result = _disE(f3, f2, f1);
     } else return;
-    this.lastSymbol = 'E ' + DIS + ' ' + i1 + ',' + i2 + ',' + i3;
-    this.push(result);
+    this.push(result, 'E ' + DIS + ' ' + i1 + ',' + i2 + ',' + i3);
     return result;
 }
 
@@ -164,9 +163,8 @@ Deduction.prototype.eqvE = function(i) {
             f.sf1.combine(f.sf2, IMP),
             f.sf2.combine(f.sf1, IMP),
         ];
-        this.lastSymbol = 'E ' + EQV + ' ' + i;
-        this.push(result[0]);
-        this.push(result[1]);
+        this.push(result[0], 'E ' + EQV + ' ' + i);
+        this.push(result[1], 'E ' + EQV + ' ' + i);
         return result;
     }
 }
@@ -178,8 +176,7 @@ Deduction.prototype.negE = function(i) {
     var f = this.get(i);
     if (f && f.con == NEG && f.sf1.con == NEG) {
         var result = f.sf1.sf1;
-        this.lastSymbol = 'E ' + NEG + ' ' + i;
-        this.push(result);
+        this.push(result, 'E ' + NEG + ' ' + i);
         return result;
     }
 }
@@ -192,8 +189,7 @@ Deduction.prototype.conI = function(i1, i2) {
     var f2 = this.get(i2);
     if (f1 && f2) {
         var result = f1.combine(f2, CON);
-        this.lastSymbol = 'I ' + CON + ' ' + i1 + ',' + i2;
-        this.push(result);
+        this.push(result, 'I ' + CON + ' ' + i1 + ',' + i2);
         return result;
     }
 }
@@ -205,8 +201,7 @@ Deduction.prototype.disI = function(i1, f2) {
     var f1 = this.get(i1);
     if (f1 && f2) {
         var result = f1.combine(f2, DIS);
-        this.lastSymbol = 'I ' + DIS + ' ' + i1;
-        this.push(result);
+        this.push(result, 'I ' + DIS + ' ' + i1);
         return result;
     }
 }
@@ -220,8 +215,7 @@ Deduction.prototype.eqvI = function(i1, i2) {
     if (f1 && f2 && f1.con == IMP && f2.con == IMP &&
         f1.sf1.equals(f2.sf2) && f2.sf1.equals(f1.sf2)) {
         var result = f1.sf1.combine(f1.sf2, EQV);
-        this.lastSymbol = 'I ' + EQV + ' ' + i1 + ',' + i2;
-        this.push(result);
+        this.push(result, 'I ' + EQV + ' ' + i1 + ',' + i2);
         return result;
     }
 }
@@ -234,8 +228,7 @@ Deduction.prototype.impI = function() {
         var f2 = this.get(this.idx());
         if (f1 && f2) {
             var result = f1.combine(f2, IMP);
-            this.lastSymbol = 'I ' + IMP + ' ' + this.openIndex() + '-' + this.idx();
-            this.push(result, false, true);
+            this.push(result, 'I ' + IMP + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
         }
     }
@@ -249,8 +242,7 @@ Deduction.prototype.negI = function() { // @@export
         var f2 = this.get(this.idx());
         if (f1 && f2 && f2.isContradiction()) {
             var result = f1.negate();
-            this.lastSymbol = 'I ' + NEG + ' ' + this.openIndex() + '-' + this.idx();
-            this.push(result, false, true);
+            this.push(result, 'I ' + NEG + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
         }
     }
@@ -258,8 +250,7 @@ Deduction.prototype.negI = function() { // @@export
 
 // hypothesis
 Deduction.prototype.hyp = function(f) {
-    this.lastSymbol = 'hyp';
-    this.push(f, true);
+    this.push(f, 'hyp', true);
     return f;
 }
  
@@ -273,8 +264,7 @@ Deduction.prototype.rep = function(i) {
     if (this.nestingLevels[i] > 0 && !this.isOpenNested(i)) {
         throw Error("שורה " + i + " נמצאת בתת הוכחה אחרת");
     }
-    this.lastSymbol = 'rep ' + i;
-    this.push(f);
+    this.push(f, 'rep ' + i);
     return f;
 }
 
@@ -328,7 +318,7 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addRow(consq[i].lit, dd.lastSymbol, false, (dd.idx() - consq.length + i + 1));
+            addRow(consq[i].lit, dd.symbols[dd.symbols.length-1], false, (dd.idx() - consq.length + i + 1));
         }
         if (prevNesting > dd.nesting()) endNestingLine(dd.idx() - 1, prevNesting);
         removeSelection();
@@ -373,7 +363,7 @@ function addRow(content, symbol, premise, rownum) {
     if (premise) {
         var rowId = '';
         symbol = 'prem';
-        dd.push(new Formula(content));
+        dd.push(new Formula(content), symbol);
         rownum = dd.idx();
     } else {
        var rowId = 'r'+rownum;

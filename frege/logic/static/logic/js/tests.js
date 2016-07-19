@@ -598,6 +598,7 @@ try {
     d.pop();
     assertEquals(0, d.idx());
     assertEquals(0, d.nesting());
+    assertEquals(d.symbols.length, d.formulas.length);
 
     var d = deduction();
     d.hyp(formula('q'));
@@ -608,6 +609,7 @@ try {
     d.pop();
     assertEquals(0, d.idx());
     assertEquals(0, d.nesting());
+    assertEquals(d.symbols.length, d.formulas.length);
 
     var d = deduction('p','p>q');
     d.impE(1,2); // 3. q
@@ -645,6 +647,7 @@ try {
     d.impE(1,2); // 3. q
     assertEquals(3, d.idx());
     assertEquals(0, d.nesting());
+    assertEquals(d.symbols.length, d.formulas.length);
 
     var d = deduction('p','p>q');		// 1. p
  						// 2. p>q
@@ -721,6 +724,7 @@ try {
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(1, d.nestingLevels[5]);
     assertEquals(0, d.nestingLevels[6]);
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // ------------------------
     // simple deduction tests 
@@ -739,6 +743,7 @@ try {
     d.disI(4, formula('~p'));
     assertFormulasEqual(formula('(p-q),~p'), d.get(7));
     assertUndefined(d.conE(0));
+    assertEquals(d.symbols.length, d.formulas.length);
 
     var d = deduction('p>r', 'q>r', 's', 's>(p,q)');
     assertUndefined(d.impE(1,2));
@@ -749,6 +754,7 @@ try {
     assertFormulasEqual(formula('r'), d.get(6));
     d.conI(6,3);
     assertFormulasEqual(formula('r-s'), d.get(7));
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // ------------------------
     // complex deduction tests 
@@ -770,6 +776,7 @@ try {
     assertFormulasEqual(d.get(6), formula('~p'));
     assertFormulasEqual(d.get(9), formula('~~(p,~p)'));
     assertFormulasEqual(d.get(10), formula('p,~p'));
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // deducing p>(q>p)
     var d = deduction();
@@ -781,6 +788,7 @@ try {
     assertFormulasEqual(d.get(3), formula('p'));
     assertFormulasEqual(d.get(4), formula('q>p'));
     assertFormulasEqual(d.get(5), formula('p>(q>p)'));
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // deducing (p-~p)>q
     var d = deduction();
@@ -793,6 +801,7 @@ try {
     assertFormulasEqual(d.get(2), formula('~q'));
     assertFormulasEqual(d.get(4), formula('~~q'));
     assertFormulasEqual(d.get(6), formula('(p-~p)>q'));
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // deducing p>(q>p), with deletions
     var d = deduction();
@@ -817,6 +826,7 @@ try {
     assertEquals(2, d.nestingLevels[3]);
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(0, d.nestingLevels[5]);
+    assertEquals(d.symbols.length, d.formulas.length);
 
     // deducing (p-~p)>q, with failed rules
     var d = deduction();
@@ -847,6 +857,7 @@ try {
     assertFormulasEqual(d.get(4), formula('~~q'));
     assertFormulasEqual(d.get(5), formula('q'));
     assertFormulasEqual(d.get(6), formula('(p-~p)>q'));
+    assertEquals(d.symbols.length, d.formulas.length);
 
 // ===== tests end =====
 
@@ -873,7 +884,7 @@ function formula(f) {
 function deduction() {
     var d = new Deduction();
     for (var i = 0; i < arguments.length; i++) {
-        d.push(formula(arguments[i])); 
+        d.push(formula(arguments[i]));
     }
     return d;
 }
