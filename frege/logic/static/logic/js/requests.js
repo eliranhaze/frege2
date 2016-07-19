@@ -33,12 +33,12 @@ function ans(url, csrf) {
         reg();
         btn.html("אישור");
         if (data['complete']) {
-            $("#next").remove();
-            $("#sum").css('visibility', 'visible');
+            $("#next").hide();
+            $("#sum").show();
         }
         else {
             $("#next").attr("onclick", data['next']);
-            $("#next").css('visibility', 'visible');
+            $("#next").show();
         }
     })
     .fail(function(response){
