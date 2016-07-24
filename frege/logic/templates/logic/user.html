@@ -14,30 +14,6 @@
       <p>
         הגשת עד כה {{chaptersubmission_list|length}} פרקים.
       </p>
-      <p>
-        <b>סטטיסטיקה</b><br>
-      </p>
-      <p>
-        אחוז הצלחה: {{avg}}%<br>
-      לפי סוג שאלה:
-      <table class="table table-condensed">
-        {% for name, pct in stats.iteritems %}
-        <tr>
-          <td>
-            {% if name == 'ChoiceQuestion' %}בחירה
-            {% elif name == 'FormulationQuestion' %}הצרנה
-            {% elif name == 'TruthTableQuestion' %}טבלת אמת
-            {% elif name == 'DeductionQuestion' %}דדוקציה
-            {% endif %}
-          </td>
-          <td>{{pct}}%</td>
-        </tr>
-        {% endfor %}
-      </table>
-      </p>
-      <p>
-        <b>פרקים</b><br>
-      </p>
       <table class="table table-condensed">
         {% for sub in chaptersubmission_list %}
         <tr>
