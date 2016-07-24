@@ -91,29 +91,29 @@ class UserView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/user.html'
 
     def get_queryset(self):
-        return ChapterSubmission.objects.filter(user=self.request.user)
+        return ChapterSubmission.objects.filter(user=self.request.user,time__isnull=False)
 
-    def get_context_data(self, **kwargs):
-        context = super(UserView, self).get_context_data(**kwargs)
-        if not self.object_list:
-            # no submissions for user
-            return context
-
-        # average score for user
-        scores = [s.percent_correct() for s in self.object_list]
-        context['avg'] = sum(scores)/len(scores)
-
-        # stats per question type
-        answers = [a for s in self.object_list for a in s.useranswer_set.all()]
-        by_type = groupby(answers, lambda a: Question._get(number=a.question_number, chapter=a.submission.chapter).__class__.__name__)
-        stats = {}
-        for qtype, answers in by_type:
-            ans_list = [a for a in answers]
-            total, correct = stats.get(qtype, (0,0))
-            stats[qtype] = (total+len(ans_list), correct+len([a for a in ans_list if a.correct]))
-        stats = {t: int(round((100.*correct/total))) for t, (total,correct) in stats.iteritems() if total > 0}
-        context['stats'] = stats
-        return context
+#    def get_context_data(self, **kwargs):
+#        context = super(UserView, self).get_context_data(**kwargs)
+#        if not self.object_list:
+#            # no submissions for user
+#            return context
+#
+#        # average score for user
+#        scores = [s.percent_correct() for s in self.object_list]
+#        context['avg'] = sum(scores)/len(scores)
+#
+#        # stats per question type
+#        answers = [a for s in self.object_list for a in s.useranswer_set.all()]
+#        by_type = groupby(answers, lambda a: Question._get(number=a.question_number, chapter=a.submission.chapter).__class__.__name__)
+#        stats = {}
+#        for qtype, answers in by_type:
+#            ans_list = [a for a in answers]
+#            total, correct = stats.get(qtype, (0,0))
+#            stats[qtype] = (total+len(ans_list), correct+len([a for a in ans_list if a.correct]))
+#        stats = {t: int(round((100.*correct/total))) for t, (total,correct) in stats.iteritems() if total > 0}
+#        context['stats'] = stats
+#        return context
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_summary.html'
@@ -147,6 +147,7 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         )
         response = {}
         if submission.is_complete() and submission.can_try_again():
+            submission.time = timezone.localtime(timezone.now())
             submission.attempt += 1
             submission.ongoing = False
             submission.save()
@@ -326,7 +327,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         answer = '%s#%s' % (str(answers), user_option)
         return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}, answer
 
-    def _handle_deduction_context(self, question):
+    def _handle_deduction_context(self, question, answer):
         self.template_name = 'logic/deduction.html'
         argument = Argument(question.formula)
         context = {

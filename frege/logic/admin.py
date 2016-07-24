@@ -102,10 +102,10 @@ class UserAnswerAdmin(admin.ModelAdmin):
         return False
 
 class ChapterSubmissionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'chapter', 'percent_correct', 'attempt']
-    list_filter = ['user', 'chapter']
+    list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
+    list_filter = ['user', 'chapter', 'time']
     ordering = ['chapter', 'user']
-    readonly_fields = ['user', 'chapter', 'ongoing', 'attempt']
+    readonly_fields = ['user', 'chapter', 'ongoing', 'time', 'attempt']
     actions = [export_as_csv_action(fields={
         'user': 'user',
         'chapter': 'chapter_number_f',

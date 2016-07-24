@@ -294,6 +294,7 @@ class ChapterSubmission(models.Model):
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
     attempt = models.PositiveIntegerField(verbose_name='נסיונות')
     ongoing = models.BooleanField()
+    time = models.DateTimeField(verbose_name='זמן הגשה', blank=True, null=True)
 
     def is_complete(self):
         return self.chapter.num_questions() == len(UserAnswer.objects.filter(chapter=self.chapter))
