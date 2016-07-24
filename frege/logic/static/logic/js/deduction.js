@@ -7,12 +7,16 @@
 // ==========================
 
 // deduction constructor
-function Deduction() { // @@export
+function Deduction(obj) { // @@export
     this.formulas = [null]; // 1-indexed
     this.symbols = [''];
     this.nestingLevels = [0];
     this.nestingStack = [];
     this.reverseStack = [];
+    if (obj) {
+        // init values from passed object
+        for (var prop in obj) this[prop] = obj[prop];
+    }
 }
 
 // return the current index (1-indexed)
@@ -310,7 +314,6 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
         catch (e) { return errmsg(e.message); }
         args.push(formula);
     }
-    var prevNesting = dd.nesting();
     // apply the rule
     try {var consq = ruleFunc.apply(dd, args);}
     catch (e) {return errmsg(e.message);}
@@ -318,9 +321,8 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addRow(consq[i].lit, dd.symbols[dd.symbols.length-1], false, (dd.idx() - consq.length + i + 1));
+            addRow(consq[i].lit, dd.symbols[dd.symbols.length-1], (dd.idx() - consq.length + i + 1));
         }
-        if (prevNesting > dd.nesting()) endNestingLine(dd.idx() - 1, prevNesting);
         removeSelection();
         $.notifyClose();
         return true;
@@ -359,16 +361,10 @@ function validateSelection(numRows, isRep) {
 }
 
 // add a new row to the deduction table
-function addRow(content, symbol, premise, rownum) {
-    if (premise) {
-        var rowId = '';
-        symbol = 'prem';
-        dd.push(new Formula(content), symbol);
-        rownum = dd.idx();
-    } else {
-       var rowId = 'r'+rownum;
-    }
-    var nesting = dd.nesting();
+// this changes display only, and not the deduction object; all changes to it have to be done prior
+function addRow(content, symbol, rownum) {
+    var rowId = 'r'+rownum;
+    var nesting = dd.nestingLevels[rownum];
     // handle nesting
     for (var i = 0; i < nesting; i++) content = addNesting(content, rownum, nesting - i);
     // add the row
@@ -379,12 +375,18 @@ function addRow(content, symbol, premise, rownum) {
           '<td class="dd-just">'+symbol+'</td>'+
         '</tr>'
     );
+    // handle end of nesting cases
+    if (rownum > 1) {
+        var prevNesting = dd.nestingLevels[rownum-1];
+        if (prevNesting > nesting) endNestingLine(rownum-1, prevNesting);
+    }
 }
 
 // remove the last deduction row 
 function removeRow() {
     // delete by row id (premises don't have row id and so cannot be deleted)
     var rownum = dd.idx();
+    if (dd.symbols[rownum] == 'prem') return; // premises cannot be removed
     if ($("#r"+rownum).length == 0) return;
     $("#r"+rownum).remove();
     removeSelection();

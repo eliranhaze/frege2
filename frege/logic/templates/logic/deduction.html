@@ -48,7 +48,17 @@
 <script src="{% static 'logic/js/formula.js'%}"></script>
 <script src="{% static 'logic/js/deduction.js'%}"></script>
 <script>
-  {% for premise in premises %}addRow('{{premise}}', '', true);{% endfor %}
+{% if answer %}
+  dd = new Deduction({{answer|safe}});
+  for (var i = 1; i < dd.formulas.length; i++) {
+      addRow(dd.formulas[i].lit, dd.symbols[i], i);
+  }
+{% else %}
+  {% for premise in premises %}
+  dd.push(new Formula('{{premise}}'), 'prem');
+  addRow('{{premise}}', 'prem', {{forloop.counter}});
+  {% endfor %}
+{% endif %}
   function isEmpty() {
       if (dd.nesting() > 0)
           return 'לא ניתן לסיים דדוקציה עם תת הוכחה פתוחה';
@@ -56,7 +66,10 @@
           return 'יש לעשות לפחות צעד אחד';
   }
   function getPostData() {
-      return {'conclusion':dd.get(dd.idx()).lit};
+      return {
+          'conclusion': dd.get(dd.idx()).lit,
+          'obj': JSON.stringify(dd)
+      };
   }
 </script>
 {% endblock question_content %} 

@@ -334,9 +334,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             'argument': argument,
             'premises': argument.premises,
         }
+        if answer:
+            context['answer'] = answer
         return context
 
     def _handle_deduction_post(self, request, question):
         argument = Argument(question.formula)
-        return Formula(request.POST['conclusion']) == argument.conclusion, None
+        return Formula(request.POST['conclusion']) == argument.conclusion, None, request.POST['obj']
 

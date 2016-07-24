@@ -17,7 +17,7 @@ var EQV = '≡'; // @@export
 // ==========================
 
 // formula constructor
-function Formula(f, opts) { // @@export
+function Formula(f) { // @@export
     this.con = null;
     this.sf1 = null;
     this.sf2 = null;
