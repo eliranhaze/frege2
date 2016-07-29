@@ -68,3 +68,4 @@ target/
 
 # js tests temp file
 testslib.js
+static/

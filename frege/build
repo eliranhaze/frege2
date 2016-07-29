@@ -28,5 +28,8 @@ then
     cd - > /dev/null
 fi
 
+echo 'Copying static...'
+echo 'yes' | python manage.py collectstatic > /dev/null
+
 echo 'Build done'
 echo '['`date +'%Y-%m-%d %H:%M:%S'`']'
