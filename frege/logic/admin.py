@@ -34,35 +34,41 @@ class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 0
 
-class OpenQuestionInline(admin.StackedInline):
+class QuestionInline(admin.StackedInline):
+    extra = 0
+
+    def get_formset(self, *args, **kwargs):
+        self.exclude = ['number']
+        return super(QuestionInline, self).get_formset(*args, **kwargs)
+
+class OpenQuestionInline(QuestionInline):
     model = OpenQuestion
-    extra = 0
 
-class FormulationQuestionInline(admin.StackedInline):
+class FormulationQuestionInline(QuestionInline):
     model = FormulationQuestion
-    extra = 0
 
-class ChoiceQuestionInline(admin.StackedInline):
+class ChoiceQuestionInline(QuestionInline):
     model = ChoiceQuestion
-    extra = 0
 
-class FormalQuestionInline(admin.StackedInline):
+class FormalQuestionInline(QuestionInline):
     formfield_overrides = {
         models.CharField: formal_text_widget
     }
 
 class TruthTableQuestionInline(FormalQuestionInline):
     model = TruthTableQuestion
-    extra = 0
 
 class DeductionQuestionInline(FormalQuestionInline):
     model = DeductionQuestion
-    extra = 0
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
     list_filter = ['chapter']
     ordering = ['chapter', 'number']
+
+    def get_form(self, *args, **kwargs):
+        self.exclude = ['number']
+        return super(QuestionAdmin, self).get_form(*args, **kwargs)
 
 class TextualQuestionAdmin(QuestionAdmin):
     search_fields = ['text']
@@ -114,6 +120,10 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
  
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_queryset(self, *args, **kwargs):
+        # return only submitted submissions
+        return ChapterSubmission.objects.filter(time__isnull=False)
 
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']

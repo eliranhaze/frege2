@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from django.db.models.signals import pre_delete 
+from django.db.models.signals import post_delete 
 from django.dispatch import receiver
 
 from .formula import (
@@ -13,6 +13,9 @@ from .formula import (
     FormulaSet,
     Argument,
 )
+
+import logging
+logger = logging.getLogger(__name__)
 
 """
 This module contains definitions for the app's entities.
@@ -61,9 +64,12 @@ class Chapter(models.Model):
         ordering = ['number']
 
 class Question(models.Model):
+
+    DEFAULT_NUM = 0
+
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
     followup = models.ForeignKey('self', verbose_name='שאלת המשך', on_delete=models.CASCADE, blank=True, null=True)
-    number = models.PositiveIntegerField(verbose_name='מספר')
+    number = models.PositiveIntegerField(default=DEFAULT_NUM, verbose_name='מספר')
 
     def user_answers(self):
         return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
@@ -72,11 +78,21 @@ class Question(models.Model):
         return UserAnswer.objects.filter(user=user, chapter=self.chapter, question_number=self.number)
 
     def clean(self):
+        # TODO: does this have unit tests? it should
         super(Question, self).clean()
-        if self.chapter_id:
+        if self.chapter and self.number > 0: # TODO: probably add condition for followup question with the same number
             chapter_questions = Question._filter(chapter=self.chapter)
-            if self.number in [q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]:
+            if self.number in set([q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]):
                 raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
+
+    def save(self, *args, **kwargs):
+        logger.debug('saving %s', self)
+        if self.number == self.DEFAULT_NUM:
+            # set a number for this question
+            others = Question._filter(chapter=self.chapter)
+            self.number = max(q.number for q in others) + 1 if others else 1
+            logger.debug('setting number to %d', self.number)
+        super(Question, self).save(*args, **kwargs)
 
     @classmethod
     def _all(cls):
@@ -110,13 +126,21 @@ class Question(models.Model):
         abstract = True
         ordering = ['number']
 
-@receiver(pre_delete)   
+@receiver(post_delete)   
 def delete_stuff(instance, sender, **kwargs):
-    # delete question-related entities upon question deletion
+    # do stuff upon question deletion
     if issubclass(sender, Question):
         self = instance
+        logger.debug('post delete %s', self)
+        # delete question-related entities
         for ua in self.user_answers():
+            logger.debug('deleting %s of question %s', ua, self)
             ua.delete()
+        # re-order other questions
+        for q in Question._filter(chapter=self.chapter, number__gt=self.number):
+            q.number = q.number - 1
+            q.save()
+            logger.debug('reordered %s', q)
 
 class TextualQuestion(Question):
     text = models.TextField(verbose_name='טקסט')
