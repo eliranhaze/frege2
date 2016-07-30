@@ -68,7 +68,6 @@ class Question(models.Model):
     DEFAULT_NUM = 0
 
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
-    followup = models.ForeignKey('self', verbose_name='שאלת המשך', on_delete=models.CASCADE, blank=True, null=True)
     number = models.PositiveIntegerField(default=DEFAULT_NUM, verbose_name='מספר')
 
     def user_answers(self):
@@ -165,6 +164,15 @@ class FormalQuestion(Question):
         abstract = True
 
 class FormulationQuestion(TextualQuestion):
+    NONE = 'N'
+    TRUTH_TABLE = 'T'
+    DEDUCTION = 'D'
+    FOLLOWUP_CHOICES = (
+        (NONE, 'ללא'),
+        (TRUTH_TABLE,'טבלת אמת'),
+        (DEDUCTION, 'דדוקציה'),
+    )
+    followup = models.CharField(verbose_name='שאלת המשך',max_length=1,choices=FOLLOWUP_CHOICES,default=NONE)
 
     class Meta(TextualQuestion.Meta):
         verbose_name = 'שאלת הצרנה'
@@ -290,6 +298,7 @@ class FormulationAnswer(models.Model):
     def clean(self):
         super(FormulationAnswer, self).clean()
         self.formula = validate_formula(self.formula)
+        # TODO: if formula is FOL, followup must not be truth table
 
     def __unicode__(self):
         return self.formula
