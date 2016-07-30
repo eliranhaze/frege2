@@ -92,6 +92,7 @@ class Question(models.Model):
             others = Question._filter(chapter=self.chapter)
             self.number = max(q.number for q in others) + 1 if others else 1
             logger.debug('setting number to %d', self.number)
+        self.clean()
         super(Question, self).save(*args, **kwargs)
 
     @classmethod
