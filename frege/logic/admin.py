@@ -67,7 +67,11 @@ class QuestionAdmin(admin.ModelAdmin):
     ordering = ['chapter', 'number']
 
     def get_form(self, *args, **kwargs):
-        self.exclude = ['number']
+        exclude = ['number']
+        if self.exclude:
+            self.exclude.extend(exclude)
+        else:
+            self.exclude = exclude
         return super(QuestionAdmin, self).get_form(*args, **kwargs)
 
 class TextualQuestionAdmin(QuestionAdmin):
@@ -97,6 +101,14 @@ class FormalQuestionAdmin(QuestionAdmin):
 class TruthTableQuestionAdmin(FormalQuestionAdmin):
     list_display = ['number', 'chapter', 'table_type', 'formula']
     list_filter = QuestionAdmin.list_filter + ['table_type']
+
+    def get_form(self, *args, **kwargs):
+        exclude = ['table_type']
+        if self.exclude:
+            self.exclude.extend(exclude)
+        else:
+            self.exclude = exclude
+        return super(TruthTableQuestionAdmin, self).get_form(*args, **kwargs)
 
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct']

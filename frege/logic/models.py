@@ -12,6 +12,7 @@ from .formula import (
     Formula,
     FormulaSet,
     Argument,
+    formalize,
 )
 
 import logging
@@ -230,16 +231,16 @@ class TruthTableQuestion(FormalQuestion):
         (SET,'קבוצה'),
         (ARGUMENT, 'טיעון'),
     )
-    table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES,default=FORMULA)
+    table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES)
     formula = models.CharField(verbose_name='טקסט', max_length=60)
 
     @property
     def options(self):
-        if self.table_type == TruthTableQuestion.FORMULA:
+        if self.is_formula:
             return FORMULA_OPTIONS
-        elif self.table_type == TruthTableQuestion.SET:
+        elif self.is_set:
             return SET_OPTIONS
-        elif self.table_type == TruthTableQuestion.ARGUMENT:
+        elif self.is_argument:
             return ARGUMENT_OPTIONS
 
     @property
@@ -256,12 +257,17 @@ class TruthTableQuestion(FormalQuestion):
  
     def clean(self):
         super(TruthTableQuestion, self).clean()
-        if self.table_type == self.FORMULA:
+        self._set_table_type()
+        if self.is_formula:
             self.formula = validate_formula(self.formula)
-        elif self.table_type == self.SET:
+        elif self.is_set:
             self.formula = validate_formula_set(self.formula)
-        elif self.table_type == self.ARGUMENT:
+        elif self.is_argument:
             self.formula = validate_argument(self.formula)
+
+    def save(self, *args, **kwargs):
+        self._set_table_type()
+        super(TruthTableQuestion, self).save(*args, **kwargs)
 
     def display(self):
         if self.is_formula:
@@ -270,6 +276,14 @@ class TruthTableQuestion(FormalQuestion):
             return FormulaSet(self.formula).display
         if self.is_argument:
             return Argument(self.formula).display
+
+    def _set_table_type(self):
+        if not self.table_type:
+            self.table_type = {
+                Formula: self.FORMULA,
+                FormulaSet: self.SET,
+                Argument: self.ARGUMENT
+            }[type(formalize(self.formula))]
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
