@@ -29,6 +29,9 @@ from .models import (
     ChapterSubmission,
 )
 
+import logging
+logger = logging.getLogger(__name__)
+
 def get_question_or_404(**kwargs):
     question = Question._get(**kwargs)
     if not question:
@@ -64,14 +67,9 @@ class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
 
     def get_queryset(self):
-        return Chapter.objects.all()
-
-    def dispatch(self, request):
-        ip = request.META['HTTP_X_FORWARDED_FOR'] if 'HTTP_X_FORWARDED_FOR' in request.META else None
-        agent = request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else None
-        if ip and agent:
-            print 'USER', request.user, 'IP', ip, 'AGENT', agent
-        return super(IndexView, self).dispatch(request)
+        chapters = Chapter.objects.all()
+        logger.debug('%d chapters in queryset', len(chapters))
+        return chapters
 
 class AboutView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/about.html'
@@ -137,9 +135,12 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['chap_questions'] = chap_questions
             context['pct'] = submission.percent_correct()
             context['remaining'] = submission.max_attempts - submission.attempt
+        else:
+            logger.debug('not serving chapter %s summary for %s', chapter.number, self.request.user)
         return context
 
     def post(self, request, chnum):
+        logger.info('%s submitting chapter %s', request.user, chnum)
         chapter = Chapter.objects.get(number=chnum)
         submission = ChapterSubmission.objects.get(
             user=request.user,
@@ -151,6 +152,7 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             submission.attempt += 1
             submission.ongoing = False
             submission.save()
+            logger.info('saved submission: user %s chapter %s, attempt=%d, time=%s', request.user, chnum, submission.attempt, submission.time)
             response['next'] = reverse('logic:chapter-summary', args=(chapter.number,))
         return JsonResponse(response)
 
@@ -203,6 +205,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def post(self, request, chnum, qnum):
+        logger.info('%s answering question %s/%s', request.user, chnum, qnum)
+
         chapter = Chapter.objects.get(number=chnum)
         question = Question._get(chapter__number=chnum, number=qnum)
         ext_data = None
@@ -244,6 +248,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user_ans.correct = correct
             user_ans.answer = answer
             user_ans.save()
+
+        logger.info('saved answer: user %s question %s/%s, correct=%s', request.user, chnum, qnum, correct)
 
         # make a response
         response = {
