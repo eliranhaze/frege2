@@ -95,6 +95,9 @@ class Question(models.Model):
         self.clean()
         super(Question, self).save(*args, **kwargs)
 
+    def has_followup(self):
+        return self.__class__ == FormulationQuestion and self.followup != FormulationQuestion.NONE
+
     @classmethod
     def _all(cls):
         return cls._sub_func('all')
@@ -394,6 +397,7 @@ class UserAnswer(models.Model):
     question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
     correct = models.BooleanField(verbose_name='תשובה נכונה')
     answer = models.TextField()
+    is_followup = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
@@ -401,5 +405,5 @@ class UserAnswer(models.Model):
     class Meta:
         verbose_name = 'תשובת משתמש'
         verbose_name_plural = '*תשובות משתמשים'
-        unique_together = ('chapter', 'user', 'question_number')
+        unique_together = ('chapter', 'user', 'question_number', 'is_followup')
 

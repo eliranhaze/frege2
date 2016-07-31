@@ -158,4 +158,7 @@ $(document).ready(function() {
     $("#eqv").click(function() {
         insert('≡');
     });
+    $("#thf").click(function() {
+        insert('∴');
+    });
 });

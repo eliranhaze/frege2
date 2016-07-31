@@ -13,16 +13,16 @@
     <input type="button" class="btn sym-btn" id="dis" value="∨"/>
     <input type="button" class="btn sym-btn" id="imp" value="⊃"/>
     <input type="button" class="btn sym-btn" id="eqv" value="≡"/>
+    <input type="button" class="btn sym-btn" id="thf" value="∴"/>
   </div>
 </div>
-
 <script src="{% static 'logic/js/formula.js'%}"></script>
 <script>
   function isEmpty() {
       var f = $("#ftxt").val();
       if (!f) return 'יש להזין תשובה';
       try {
-          new Formula(f);
+          formalize(f, '{{type}}');
       } catch (e) {
           return e.message;
       }

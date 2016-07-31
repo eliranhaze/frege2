@@ -6,14 +6,16 @@
 var lib = require('./testslib.js');
 
 var Formula = lib.Formula;
+var Argument = lib.Argument;
 var Deduction = lib.Deduction;
 
-var connectives = {
+var symbols = {
     '~': lib.NEG,
     '-': lib.CON,
-    ',': lib.DIS,
+    'v': lib.DIS,
     '>': lib.IMP,
     '=': lib.EQV,
+    ':': lib.THF,
 };
 
 // =============
@@ -45,12 +47,12 @@ try {
     assertForm('p-~~q', '-', 'p', '~~q');
     assertForm('(p-q)>~r', '>', 'p-q', '~r');
     assertForm('((~p)-~r)>p', '>', '(~p)-~r', 'p');
-    assertForm('~~p=~((p-q),(q,s))', '=', '~~p', '~((p-q),(q,s))');
+    assertForm('~~p=~((p-q)v(qvs))', '=', '~~p', '~((p-q)v(qvs))');
 
     // more scrutiny
     var sf1_sf1 = '~p';
     var sf1_sf2 = 'q';
-    var sf1 = '(' + sf1_sf1 + '),(' + sf1_sf2 + ')';
+    var sf1 = '(' + sf1_sf1 + ')v(' + sf1_sf2 + ')';
     var sf2_sf1 = '~~r';
     var sf2_sf2 = '(p)';
     var sf2 = '(' + sf2_sf1 + ')>(' + sf2_sf2 + ')';
@@ -67,7 +69,7 @@ try {
     assertEquals(frm.con, form('='));
  
     assertTrue(frm.sf1.equals(frm_sf1));
-    assertEquals(frm.sf1.con, form(','));
+    assertEquals(frm.sf1.con, form('v'));
     assertTrue(frm.sf1.sf1.equals(frm_sf1_sf1));
     assertEquals(frm.sf1.sf1.con, form('~'));
     assertEquals(frm.sf1.sf1.sf1.con, null);
@@ -102,12 +104,12 @@ try {
     assertInvalidForm('(2-1)');
     assertInvalidForm('pp');
     assertInvalidForm('p--q');
-    assertInvalidForm('(~p>~q),(p=r');
-    assertInvalidForm('(~p>~q),p=r');
-    assertInvalidForm('(~p>~q),p=r)');
-    assertInvalidForm('(~p>~q),(p=r~)');
-    assertInvalidForm('(~p>~q),(p=r)~');
-    assertInvalidForm('(~p>~q)~,(p=r)');
+    assertInvalidForm('(~p>~q)v(p=r');
+    assertInvalidForm('(~p>~q)vp=r');
+    assertInvalidForm('(~p>~q)vp=r)');
+    assertInvalidForm('(~p>~q)v(p=r~)');
+    assertInvalidForm('(~p>~q)v(p=r)~');
+    assertInvalidForm('(~p>~q)~v(p=r)');
 
     // ----------------
     // negation tests 
@@ -123,13 +125,13 @@ try {
     assertTrue(formula('(~(r-q))').isNegationOf(formula('q-r')));
     assertTrue(formula('~(r-q)').isNegationOf(formula('(r-q)')));
     assertTrue(formula('~(r-q)').isNegationOf(formula('r-q')));
-    assertTrue(formula('~((r-q),(p=q))').isNegationOf(formula('(q=p),(q-r)')));
+    assertTrue(formula('~((r-q)v(p=q))').isNegationOf(formula('(q=p)v(q-r)')));
 
-    assertFalse(formula('~((r-q),(p=q))').isNegationOf(formula('(q=p)-(q-r)')));
+    assertFalse(formula('~((r-q)v(p=q))').isNegationOf(formula('(q=p)-(q-r)')));
     assertFalse(formula('~(r>q)').isNegationOf(formula('q>r')));
     assertFalse(formula('~~p').isNegationOf(formula('p')));
     assertFalse(formula('~q').isNegationOf(formula('p')));
-    assertFalse(formula('~q,p').isNegationOf(formula('q,p')));
+    assertFalse(formula('~qvp').isNegationOf(formula('qvp')));
 
     // ----------------
     // contradiction tests 
@@ -146,7 +148,7 @@ try {
 
     assertFalse(formula('p-p').isContradiction());
     assertFalse(formula('~p-~p').isContradiction());
-    assertFalse(formula('~p,p').isContradiction());
+    assertFalse(formula('~pvp').isContradiction());
     assertFalse(formula('~p>p').isContradiction());
     assertFalse(formula('(p>q)-(~p>q)').isContradiction());
 
@@ -155,22 +157,61 @@ try {
     // ----------------
 
     assertTrue(formula('p').equals(formula('p')));
-    assertTrue(formula('p,r').equals(formula('p,r')));
-    assertTrue(formula('p,r').equals(formula('r,p')));
-    assertTrue(formula('(p,r)').equals(formula('r,p')));
-    assertTrue(formula('(p,r)').equals(formula('(r,p)')));
-    assertTrue(formula('~(p,r)').equals(formula('~(r,p)')));
-    assertTrue(formula('~(p,~r)').equals(formula('~(~r,p)')));
-    assertTrue(formula('(p,r),(q,s)').equals(formula('((s,q),(r,p))')));
+    assertTrue(formula('pvr').equals(formula('pvr')));
+    assertTrue(formula('pvr').equals(formula('rvp')));
+    assertTrue(formula('(pvr)').equals(formula('rvp')));
+    assertTrue(formula('(pvr)').equals(formula('(rvp)')));
+    assertTrue(formula('~(pvr)').equals(formula('~(rvp)')));
+    assertTrue(formula('~(pv~r)').equals(formula('~(~rvp)')));
+    assertTrue(formula('(pvr)v(qvs)').equals(formula('((svq)v(rvp))')));
 
     assertFalse(formula('p').equals(formula('q')));
     assertFalse(formula('~p').equals(formula('~q')));
     assertFalse(formula('p>r').equals(formula('r>p')));
-    assertFalse(formula('(p,q)-r').equals(formula('p,(q-r)')));
-    assertFalse(formula('(p-r)=(q,s)').equals(formula('((s-q)=(r,p))')));
-    assertFalse(formula('~(p,r)').equals(formula('~r,p')));
-    assertFalse(formula('~p,r').equals(formula('~r,p')));
-    assertFalse(formula('~p,r').equals(formula('~(p,r)')));
+    assertFalse(formula('(pvq)-r').equals(formula('pv(q-r)')));
+    assertFalse(formula('(p-r)=(qvs)').equals(formula('((s-q)=(rvp))')));
+    assertFalse(formula('~(pvr)').equals(formula('~rvp')));
+    assertFalse(formula('~pvr').equals(formula('~rvp')));
+    assertFalse(formula('~pvr').equals(formula('~(pvr)')));
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // ---    argument tests    --- 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    var a = new Argument(form('p,q:r'));
+    assertFormulasEqual(formula('r'), a.conclusion);
+    assertListsEqual([formula('p'), formula('q')], a.premises);
+
+    var a = new Argument(form('p,p>q,q>p:p-(p=q)'));
+    assertFormulasEqual(formula('p-(p=q)'), a.conclusion);
+    assertListsEqual([formula('p'), formula('p>q'), formula('q>p')], a.premises);
+
+    var a = new Argument(form('(p),(p>q),q>p:(pvq)'));
+    assertFormulasEqual(formula('pvq'), a.conclusion);
+    assertListsEqual([formula('p'), formula('p>q'), formula('q>p')], a.premises);
+
+    var a = new Argument(form(':pv~p'));
+    assertFormulasEqual(formula('pv~p'), a.conclusion);
+    assertListsEqual([], a.premises);
+
+    assertInvalidArgument(':');
+    assertInvalidArgument(',,:');
+    assertInvalidArgument('p,q,:p');
+    assertInvalidArgument(',:p');
+    assertInvalidArgument(',p:p');
+    assertInvalidArgument(',p:p:');
+    assertInvalidArgument(',p:p:');
+    assertInvalidArgument('p:p,q');
+    assertInvalidArgument('(q,p:p)');
+    assertInvalidArgument('(q,p):p');
+    assertInvalidArgument('(,):p');
+    assertInvalidArgument('():p');
+    assertInvalidArgument('1:p');
+    assertInvalidArgument('1:2');
+    assertInvalidArgument(':2');
+    assertInvalidArgument('p,():p');
+    assertInvalidArgument('p:()');
+    assertInvalidArgument('(p,q),r:p');
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ---    deduction tests    --- 
@@ -209,7 +250,7 @@ try {
         impE(1,2).equals(formula('q'))
     );
     assertTrue(
-        deduction('~((p,q)=(p-~r))>((q>r)=~~p)', '~((q,p)=(~r-p))').
+        deduction('~((pvq)=(p-~r))>((q>r)=~~p)', '~((qvp)=(~r-p))').
         impE(1,2).equals(formula('(q>r)=~~p'))
     );
 
@@ -219,7 +260,7 @@ try {
     assertUndefined(deduction('p>q','p').impE(2,4));
     assertUndefined(deduction('p>q','~p').impE(1,2));
     assertUndefined(deduction('p>q','p>q').impE(1,2));
-    assertUndefined(deduction('(p-q)>q','p,q').impE(1,2));
+    assertUndefined(deduction('(p-q)>q','pvq').impE(1,2));
     assertUndefined(deduction('~(p-q)>q','~p-q').impE(1,2));
     assertUndefined(deduction('(p-q)=q','p-q').impE(1,2));
 
@@ -253,43 +294,43 @@ try {
 
     assertFormulasEqual(
         formula('r'),
-        deduction('p>r', 'q>r', 'p,q').disE(1,2,3)
+        deduction('p>r', 'q>r', 'pvq').disE(1,2,3)
     );
     assertFormulasEqual(
         formula('r'),
-        deduction('p>r', 'q>r', 'p,q').disE(2,3,1)
+        deduction('p>r', 'q>r', 'pvq').disE(2,3,1)
     );
     assertFormulasEqual(
         formula('r'),
-        deduction('p>r', 'q>r', 'p,q').disE(3,1,2)
+        deduction('p>r', 'q>r', 'pvq').disE(3,1,2)
     );
     assertFormulasEqual(
         formula('q'),
-        deduction('p>q', 'r>q', 'p,r').disE(1,2,3)
+        deduction('p>q', 'r>q', 'pvr').disE(1,2,3)
     );
     assertFormulasEqual(
         formula('~~(r)'),
-        deduction('(p-q)>(~~r)', '(q,s)>~~(r)', '(s,q),(q-p)').disE(1,2,3)
+        deduction('(p-q)>(~~r)', '(qvs)>~~(r)', '(svq)v(q-p)').disE(1,2,3)
     );
     assertFormulasEqual(
         formula('q=p'),
-        deduction('(~r>(p=q))', '~~~(~s,p)>(q=p)', '((~r),~~~(p,~s))').disE(1,2,3)
+        deduction('(~r>(p=q))', '~~~(~svp)>(q=p)', '((~r)v~~~(pv~s))').disE(1,2,3)
     );
     assertFormulasEqual(
-        formula('r,s'),
-        deduction('(p>(s,r))', '~p>(r,s)', 'p,~p').disE(1,2,3)
+        formula('rvs'),
+        deduction('(p>(svr))', '~p>(rvs)', 'pv~p').disE(1,2,3)
     );
     assertFormulasEqual(
-        formula('r,s'),
-        deduction('(p>(s,r))', 'p>(r,s)', 'p,p').disE(1,2,3)
+        formula('rvs'),
+        deduction('(p>(svr))', 'p>(rvs)', 'pvp').disE(1,2,3)
     );
 
-    assertUndefined(deduction('(p>(s,r))', '~p=(r,s)', 'p,~p').disE(1,2,3));
-    assertUndefined(deduction('(p>(s,r))', 'p=(r,s)', 'p,~p').disE(1,2,3));
-    assertUndefined(deduction('(p>(s,r))', 'q=(r,s)', 'p,r').disE(1,2,3));
-    assertUndefined(deduction('(p>(s,r))', '~p=(r=s)', 'p,~p').disE(1,2,3));
-    assertUndefined(deduction('p>q', 'r>q', 'p,r').disE(0,2,3));
-    assertUndefined(deduction('p>q', 'r>q', 'p,r').disE(1,2,10));
+    assertUndefined(deduction('(p>(svr))', '~p=(rvs)', 'pv~p').disE(1,2,3));
+    assertUndefined(deduction('(p>(svr))', 'p=(rvs)', 'pv~p').disE(1,2,3));
+    assertUndefined(deduction('(p>(svr))', 'q=(rvs)', 'pvr').disE(1,2,3));
+    assertUndefined(deduction('(p>(svr))', '~p=(r=s)', 'pv~p').disE(1,2,3));
+    assertUndefined(deduction('p>q', 'r>q', 'pvr').disE(0,2,3));
+    assertUndefined(deduction('p>q', 'r>q', 'pvr').disE(1,2,10));
 
     // ----------------
     // eqvE tests 
@@ -300,13 +341,13 @@ try {
         deduction('q=p').eqvE(1)
     );
     assertListsEqual(
-        [formula('(p=q)>~(r,~s)'), formula('~(r,~s)>(p=q)')],
-        deduction('(p=q)=~(r,~s)').eqvE(1)
+        [formula('(p=q)>~(rv~s)'), formula('~(rv~s)>(p=q)')],
+        deduction('(p=q)=~(rv~s)').eqvE(1)
     );
 
     assertUndefined(deduction('p').eqvE(1));
-    assertUndefined(deduction('p,q').eqvE(1));
-    assertUndefined(deduction('p>(s,r)').eqvE(1));
+    assertUndefined(deduction('pvq').eqvE(1));
+    assertUndefined(deduction('p>(svr)').eqvE(1));
     assertUndefined(deduction('p=q').eqvE(0));
     assertUndefined(deduction('p=q').eqvE(2));
 
@@ -339,14 +380,14 @@ try {
         deduction('~~(~r)').negE(1)
     );
     assertFormulasEqual(
-        formula('~s,~r'),
-        deduction('~~(~s,~r)').negE(1)
+        formula('~sv~r'),
+        deduction('~~(~sv~r)').negE(1)
     );
 
-    assertUndefined(deduction('p>(s,r)').negE(1));
+    assertUndefined(deduction('p>(svr)').negE(1));
     assertUndefined(deduction('~p').negE(1));
     assertUndefined(deduction('~~s>p').negE(1));
-    assertUndefined(deduction('p,~~s').negE(1));
+    assertUndefined(deduction('pv~~s').negE(1));
     assertUndefined(deduction('~~s').negE(0));
     assertUndefined(deduction('~~s').negE(2));
 
@@ -359,8 +400,8 @@ try {
         deduction('~~r', 'p').conI(1,2)
     );
     assertFormulasEqual(
-        formula('(p>q)-(~q,r)'),
-        deduction('p>q', '~q,r').conI(1,2)
+        formula('(p>q)-(~qvr)'),
+        deduction('p>q', '~qvr').conI(1,2)
     );
     assertFormulasEqual(
         formula('(r-q)-~p'),
@@ -372,16 +413,16 @@ try {
     // ----------------
 
     assertFormulasEqual(
-        formula('~~r,p'),
+        formula('~~rvp'),
         deduction('~~r').disI(1,formula('p'))
     );
     assertFormulasEqual(
-        formula('(p>q),(~q,r)'),
-        deduction('p>q').disI(1,formula('~q,r'))
+        formula('(p>q)v(~qvr)'),
+        deduction('p>q').disI(1,formula('~qvr'))
     );
     assertFormulasEqual(
-        formula('(r,q),~p'),
-        deduction('r,q').disI(1,formula('~p'))
+        formula('(rvq)v~p'),
+        deduction('rvq').disI(1,formula('~p'))
     );
 
     // ----------------
@@ -409,14 +450,14 @@ try {
         deduction('(q-p)>(s=r)', '(r=s)>(p-q)').eqvI(1,2)
     );
     assertFormulasEqual(
-        formula('((~~r,p),s)=~(s-p)'),
-        deduction('((~~r,p),s)>~(s-p)', '~(p-s)>(s,(~~r,p))').eqvI(1,2)
+        formula('((~~rvp)vs)=~(s-p)'),
+        deduction('((~~rvp)vs)>~(s-p)', '~(p-s)>(sv(~~rvp))').eqvI(1,2)
     );
 
     assertUndefined(deduction('p>q', 'p>q').eqvI(1,2));
     assertUndefined(deduction('p>q', 'q>~p').eqvI(1,2));
     assertUndefined(deduction('(p>q)>r', '(r>p)>q').eqvI(1,2));
-    assertUndefined(deduction('(q-p)>(s=r)', '(r,s)>(p-q)').eqvI(1,2));
+    assertUndefined(deduction('(q-p)>(s=r)', '(rvs)>(p-q)').eqvI(1,2));
     assertUndefined(deduction('p>q', 'q>p').eqvI(0,2));
     assertUndefined(deduction('p>q', 'q>p').eqvI(2,3));
 
@@ -466,8 +507,8 @@ try {
     assertEquals(0, d.nestingLevels[2]);
 
     var d = deduction();
-    d.hyp(formula('(~q,p)-~(p,~q)'));
-    assertFormulasEqual(formula('~((~q,p)-~(p,~q))'), d.negI());
+    d.hyp(formula('(~qvp)-~(pv~q)'));
+    assertFormulasEqual(formula('~((~qvp)-~(pv~q))'), d.negI());
     assertEquals(1, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
 
@@ -475,7 +516,7 @@ try {
     assertUndefined(deduction('p-~p').negI());
     assertUndefined(deduction('p-~p', 'p').negI());
     var d = deduction();
-    d.hyp(formula('p,~p'));
+    d.hyp(formula('pv~p'));
     assertUndefined(d.negI());
     var d = deduction();
     d.hyp(formula('~p'));
@@ -741,14 +782,14 @@ try {
     assertUndefined(d.conE(6));
     assertUndefined(d.conE(7));
     d.disI(4, formula('~p'));
-    assertFormulasEqual(formula('(p-q),~p'), d.get(7));
+    assertFormulasEqual(formula('(p-q)v~p'), d.get(7));
     assertUndefined(d.conE(0));
     assertEquals(d.symbols.length, d.formulas.length);
 
-    var d = deduction('p>r', 'q>r', 's', 's>(p,q)');
+    var d = deduction('p>r', 'q>r', 's', 's>(pvq)');
     assertUndefined(d.impE(1,2));
     d.impE(3,4);
-    assertFormulasEqual(formula('p,q'), d.get(5));
+    assertFormulasEqual(formula('pvq'), d.get(5));
     assertUndefined(d.disE(1,2,3));
     d.disE(1,2,5);
     assertFormulasEqual(formula('r'), d.get(6));
@@ -760,22 +801,22 @@ try {
     // complex deduction tests 
     // ------------------------
 
-    // deducing p,~p
+    // deducing pv~p
     var d = deduction();
-    d.hyp(formula('~(p,~p)'));		// 1.  | ~(p,~p)
+    d.hyp(formula('~(pv~p)'));		// 1.  | ~(pv~p)
     d.hyp(formula('p'));		// 2.  || p
-    d.disI(2, formula('~p'));		// 3.  || p,~p
-    d.rep(1);  				// 4.  || ~(p,~p)
-    d.conI(3,4);			// 5.  || (p,~p)-~(p,~p)
+    d.disI(2, formula('~p'));		// 3.  || pv~p
+    d.rep(1);  				// 4.  || ~(pv~p)
+    d.conI(3,4);			// 5.  || (pv~p)-~(pv~p)
     d.negI();				// 6.  | ~p
-    d.disI(6, formula('p'));		// 7.  | ~p,p
-    d.conI(1,7);			// 8.  | (p,~p)-~(p,~p)
-    d.negI();				// 9.  ~~(p,~p)
-    d.negE(9);				// 10. p,~p
-    assertFormulasEqual(d.get(4), formula('~(p,~p)'));
+    d.disI(6, formula('p'));		// 7.  | ~pvp
+    d.conI(1,7);			// 8.  | (pv~p)-~(pv~p)
+    d.negI();				// 9.  ~~(pv~p)
+    d.negE(9);				// 10. pv~p
+    assertFormulasEqual(d.get(4), formula('~(pv~p)'));
     assertFormulasEqual(d.get(6), formula('~p'));
-    assertFormulasEqual(d.get(9), formula('~~(p,~p)'));
-    assertFormulasEqual(d.get(10), formula('p,~p'));
+    assertFormulasEqual(d.get(9), formula('~~(pv~p)'));
+    assertFormulasEqual(d.get(10), formula('pv~p'));
     assertEquals(d.symbols.length, d.formulas.length);
 
     // deducing p>(q>p)
@@ -891,8 +932,8 @@ function deduction() {
 
 function form(formula) {
     var result = formula;
-    for (con in connectives) {
-        result = result.replace(new RegExp(con, 'g'), connectives[con]);
+    for (con in symbols) {
+        result = result.replace(new RegExp(con, 'g'), symbols[con]);
     }
     return result;
 }
@@ -916,14 +957,21 @@ function getErrorLineNumber(e) {
 
 function assertForm(f, con, sf1, sf2) {
     frm = new Formula(form(f));
-    assertEquals(connectives[con], frm.con);
+    assertEquals(symbols[con], frm.con);
     assertEquals(form(sf1), frm.sf1 == null? '' : frm.sf1.lit);
     assertEquals(form(sf2), frm.sf2 == null? '' : frm.sf2.lit);
 }
 
 function assertInvalidForm(f) {
     err = '';
-    try { new Formula(f); }
+    try { new Formula(form(f)); }
+    catch (e) { err = e; }
+    assertFalse(err == '');
+}
+
+function assertInvalidArgument(string) {
+    err = '';
+    try { new Argument(form(string)); }
     catch (e) { err = e; }
     assertFalse(err == '');
 }

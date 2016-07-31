@@ -4,6 +4,11 @@ from django.db import models
 from django.forms.widgets import TextInput
 
 from .actions import export_as_csv_action
+from .forms import (
+    QuestionForm,
+    FormulationAnswerFormSet,
+    TruthTableQuestionForm,
+)
 from .models import (
     Chapter,
     OpenQuestion,
@@ -25,6 +30,7 @@ formal_text_widget = {'widget': TextInput(attrs={
     
 class FormulationAnswerInline(admin.StackedInline):
     model = FormulationAnswer
+    formset = FormulationAnswerFormSet
     extra = 0
     formfield_overrides = {
         models.CharField: formal_text_widget
@@ -65,14 +71,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
     list_filter = ['chapter']
     ordering = ['chapter', 'number']
-
-    def get_form(self, *args, **kwargs):
-        exclude = ['number']
-        if self.exclude:
-            self.exclude.extend(exclude)
-        else:
-            self.exclude = exclude
-        return super(QuestionAdmin, self).get_form(*args, **kwargs)
+    form = QuestionForm
 
 class TextualQuestionAdmin(QuestionAdmin):
     search_fields = ['text']
@@ -81,6 +80,9 @@ class OpenQuestionAdmin(TextualQuestionAdmin):
     pass
 
 class FormulationQuestionAdmin(TextualQuestionAdmin):
+    list_display = TextualQuestionAdmin.list_display + ['followup']
+    list_filter = TextualQuestionAdmin.list_filter + ['followup']
+
     inlines = [
         FormulationAnswerInline,
     ]
@@ -101,14 +103,7 @@ class FormalQuestionAdmin(QuestionAdmin):
 class TruthTableQuestionAdmin(FormalQuestionAdmin):
     list_display = ['number', 'chapter', 'table_type', 'formula']
     list_filter = QuestionAdmin.list_filter + ['table_type']
-
-    def get_form(self, *args, **kwargs):
-        exclude = ['table_type']
-        if self.exclude:
-            self.exclude.extend(exclude)
-        else:
-            self.exclude = exclude
-        return super(TruthTableQuestionAdmin, self).get_form(*args, **kwargs)
+    form = TruthTableQuestionForm
 
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct']

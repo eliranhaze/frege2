@@ -41,7 +41,13 @@ table {
   -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
   box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
-
+.btn-q {
+  height: 35px;
+  width: 40px;
+  margin-top: 8px;
+  text-align: center;
+  padding: 5px;
+}
 /* Modal */
 .modal-header {
     border-bottom: 1px solid #e5e5e5;
@@ -141,6 +147,7 @@ input:-webkit-autofill {
     width: 30px;
     height: 30px;
     padding: 0px;
+    direction: ltr;
 }
 .sym-btn:hover {
   background-color: #ddd;

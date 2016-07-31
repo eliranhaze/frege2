@@ -15,6 +15,8 @@ from .formula import (
     Argument,
     TruthTable,
     MultiTruthTable,
+    formalize,
+    formal_type,
 )
 from .models import (
     Chapter,
@@ -194,7 +196,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         # update answer data
         answer = None
-        user_answer = UserAnswer.objects.filter(user=self.request.user,chapter=question.chapter,question_number=question.number).first()
+        user_answer = UserAnswer.objects.filter(
+            user=self.request.user,
+            chapter=question.chapter,
+            question_number=question.number,
+            is_followup = self._is_followup(),
+        ).first()
         if user_answer:
             answer = user_answer.answer
  
@@ -234,9 +241,10 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         # register user answer
         user_ans, created = UserAnswer.objects.get_or_create(
             user=request.user,
-            chapter=chapter,
+            chapter=question.chapter,
             submission=submission,
             question_number=question.number,
+            is_followup = self._is_followup(),
             defaults={
                 'correct': correct,
                 'answer': answer,
@@ -251,14 +259,22 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         logger.info('saved answer: user %s question %s/%s, correct=%s', request.user, chnum, qnum, correct)
 
+        if question.has_followup():
+            next_url = reverse('logic:followup', args=(chnum, qnum))
+        else:
+            next_url = next_question_url(question.chapter, self.request.user)
+
         # make a response
         response = {
             'complete': submission.is_complete(),
-            'next': ('location.href="%s";' % next_question_url(question.chapter, self.request.user)),
+            'next': 'location.href="%s";' % next_url,
         }
         if ext_data:
             response.update(ext_data)
         return JsonResponse(response)
+
+    def _is_followup(self):
+        return self.__class__ == FollowupQuestionView
 
     # ========================
     # Question types
@@ -274,15 +290,23 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def _handle_formulation_context(self, question, answer):
         self.template_name = 'logic/formulation.html'
-        return {'answer':answer} if answer else {}
+        ans_type = formal_type(FormulationAnswer.objects.filter(question=self.object).first().formula)
+        context = {
+            'type': ans_type.__name__,
+        }
+        if answer:
+            context['answer'] = answer
+        return context
 
     def _handle_formulation_post(self, request, question):
+        is_correct = False
         answer = request.POST['formulation']
-        formula = Formula(answer)
+        formalized = formalize(answer)
         for correct_ans in FormulationAnswer.objects.filter(question=question):
-            if Formula(correct_ans.formula) == formula:
-                return True, None
-        return False, None, answer
+            if formalize(correct_ans.formula) == formalized:
+                is_correct = True
+                break
+        return is_correct, None, answer
 
     def _handle_truth_table_context(self, question, answer):
         self.template_name = 'logic/truth_table.html'
@@ -347,4 +371,45 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def _handle_deduction_post(self, request, question):
         argument = Argument(question.formula)
         return Formula(request.POST['conclusion']) == argument.conclusion, None, request.POST['obj']
+
+class FollowupQuestionView(QuestionView):
+
+    def _get_answer(self, question):
+        return UserAnswer.objects.filter(user=self.request.user, question_number=question.number).first()
+
+    def dispatch(self, request, chnum, qnum):
+        question = get_question_or_404(chapter__number=chnum, number=qnum)
+        if not question.has_followup() or self._get_answer(question) is None:
+            # no followup
+            return HttpResponseRedirect(reverse('logic:question', args=(chnum, qnum)))
+        return super(FollowupQuestionView, self).dispatch(request, chnum, qnum)
+
+    def get_object(self):
+        original = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
+        if original.followup == FormulationQuestion.TRUTH_TABLE:
+            followup = TruthTableQuestion()
+        elif original.followup == FormulationQuestion.DEDUCTION:
+            followup = DeductionQuestion()
+        else:
+            raise ValueError('invalid followup type %r in question %s' % (original.followup, original)) 
+        followup.chapter = original.chapter
+        followup.number = original.number
+        followup.formula = self._get_answer(original).answer
+        if type(followup) == TruthTableQuestion:
+            followup._set_table_type()
+        return followup
+
+    def get_context_data(self, **kwargs):
+        context = super(FollowupQuestionView, self).get_context_data(**kwargs)
+        context['followup'] = True
+        return context
+
+    def _handle_formulation_post(self, request, question):
+        if question.followup == FormulationQuestion.TRUTH_TABLE:
+            handler = self._handle_truth_table_post
+        elif question.followup == FormulationQuestion.DEDUCTION:
+            handler = self._handle_deduction_post
+        else:
+            raise ValueError('invalid followup type %r in question %s' % (question.followup, question)) 
+        return handler(request, self.get_object())
 

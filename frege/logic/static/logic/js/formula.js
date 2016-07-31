@@ -11,6 +11,7 @@ var CON = '·'; // @@export
 var DIS = '∨'; // @@export
 var IMP = '⊃'; // @@export
 var EQV = '≡'; // @@export
+var THF = '∴'; // @@export
 
 // ==========================
 // formula 
@@ -194,4 +195,37 @@ function stripBrackets(f) {
         }   
     }
     return f;
+}
+
+// ==========================
+// argument 
+// ==========================
+
+// argument constructor
+function Argument(str) { // @@export
+    try {
+        var splits = str.split(THF);
+        this.conclusion = new Formula(splits[1]);
+        this.premises = [];
+        var prmSplits = splits[0].split(',');
+        if (prmSplits.length > 1 || prmSplits[0] != '') {
+            for (var i = 0; i < prmSplits.length; i++) {
+                this.premises.push(new Formula(prmSplits[i]));
+            }
+        }
+    }
+    catch (e) {
+        throw new Error('טיעון לא תקין');
+    } 
+}
+
+function formalize(str, expectedType) {
+    if (str.indexOf(THF) >= 0) {
+        if (expectedType != 'Argument') throw new Error('ההצרנה צריכה להיות טענה');
+        return new Argument(str);
+    }
+    else {
+        if (expectedType != 'Formula') throw new Error('ההצרנה צריכה להיות טיעון');
+        return new Formula(str);
+    }
 }
