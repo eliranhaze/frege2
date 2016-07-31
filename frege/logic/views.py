@@ -180,7 +180,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         }
 
     def get_object(self):
-        return get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
+        question = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
+        logger.debug('get_object: question is %s', question)
+        return question
 
     def get_context_data(self, **kwargs):
         context = super(QuestionView, self).get_context_data(**kwargs)
@@ -260,19 +262,21 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         logger.info('saved answer: user %s question %s/%s, correct=%s', request.user, chnum, qnum, correct)
 
-        if question.has_followup():
-            next_url = reverse('logic:followup', args=(chnum, qnum))
-        else:
-            next_url = next_question_url(question.chapter, self.request.user)
-
         # make a response
         response = {
             'complete': submission.is_complete(),
-            'next': 'location.href="%s";' % next_url,
+            'next': 'location.href="%s";' % self._next_url(self.request, question),
         }
         if ext_data:
             response.update(ext_data)
+        logger.debug('post response: %s', response)
         return JsonResponse(response)
+
+    def _next_url(self, request, question):
+        if question.has_followup():
+            return reverse('logic:followup', args=(question.chapter.number, question.number))
+        else:
+            return next_question_url(question.chapter, request.user)
 
     def _is_followup(self):
         return self.__class__ == FollowupQuestionView
@@ -339,7 +343,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 break
             answers.append(l)
         boolean_answers = [[v == 'T' for v in values] for values in answers]
-  
+ 
         if question.is_formula:
             formulas = [Formula(question.formula)]
             correct_option = formulas[0].correct_option
@@ -376,7 +380,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 class FollowupQuestionView(QuestionView):
 
     def _get_answer(self, question):
-        return UserAnswer.objects.filter(user=self.request.user, question_number=question.number).first()
+        return UserAnswer.objects.filter(
+            user=self.request.user,
+            chapter=question.chapter,
+            question_number=question.number
+        ).first()
 
     def dispatch(self, request, chnum, qnum):
         question = get_question_or_404(chapter__number=chnum, number=qnum)
@@ -398,12 +406,17 @@ class FollowupQuestionView(QuestionView):
         followup.formula = self._get_answer(original).answer
         if type(followup) == TruthTableQuestion:
             followup._set_table_type()
+
+        logger.debug('get_object: followup question is %s', followup)
         return followup
 
     def get_context_data(self, **kwargs):
         context = super(FollowupQuestionView, self).get_context_data(**kwargs)
         context['followup'] = True
         return context
+
+    def _next_url(self, request, question):
+        return next_question_url(question.chapter, request.user)
 
     def _handle_formulation_post(self, request, question):
         if question.followup == FormulationQuestion.TRUTH_TABLE:

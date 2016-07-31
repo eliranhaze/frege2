@@ -13,8 +13,9 @@
     {% block question_content %}
     {% endblock %}
     <div class="noselect" style="padding: 5px;margin-top: 20px;">
+      {% if followup %}<a href='{% url 'logic:question' chapter.number question.number %}' class="btn btn-default answered btn-lg">חזרה</a>{% endif %}
       <button class="btn btn-default btn-lg" id="answer">אישור</button>
-      <button class="btn btn-default answered btn-lg" style="display: none;" id="next">{% if question.has_followup %}המשך{% else %}שאלה הבאה{% endif %}</button>
+      <button class="btn btn-default answered btn-lg" {% if answer and question.has_followup %}onclick="location.href='{% url 'logic:followup' chapter.number question.number %}';"{% else %}style="display: none;"{% endif %} id="next">{% if question.has_followup %}המשך{% else %}שאלה הבאה{% endif %}</button>
       <button class="btn btn-primary btn-lg" style="display: {% if complete %}inline{% else %}none{% endif %};" id="sum" data-toggle="modal" data-target="#confirm-delete">סיום פרק</button>
     </div>
   </div>
