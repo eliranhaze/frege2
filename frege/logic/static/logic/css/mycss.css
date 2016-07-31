@@ -44,6 +44,24 @@ table {
   box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
 
+.btn.silent {
+  background-color: #eee;
+}
+.btn.silent:hover {
+  background-color: #ddd;
+}
+.btn.silent:active {
+  background-color: #eee;
+  background-image: -webkit-radial-gradient(circle, #ddd 10%, #eee 11%);
+  background-image: -o-radial-gradient(circle, #ddd 10%, #eee 11%);
+  background-image: radial-gradient(circle, #ddd 10%, #eee 11%);
+  background-repeat: no-repeat;
+  -webkit-background-size: 1000% 1000%;
+  background-size: 1000%;
+  -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+
 .btn-q {
   height: 35px;
   width: 40px;

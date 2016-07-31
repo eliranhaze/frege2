@@ -61,9 +61,15 @@ def next_question_url(chapter, user):
     return url
 
 def chapter_questions_user_data(chapter, user):
-    user_answers = {ans.question_number : ans.correct \
+    user_answers = {(ans.question_number, ans.is_followup) \
                     for ans in UserAnswer.objects.filter(user=user, chapter=chapter)}
-    return {q.number : user_answers.get(q.number) for q in chapter.questions()}
+    data = {}
+    for q in chapter.questions():
+        data[q.number] = (q.number, False) in user_answers
+        if q.has_followup() and data[q.number]:
+            if not (q.number, True) in user_answers:
+                data[q.number] = 'half'
+    return data
 
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
