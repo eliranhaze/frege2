@@ -1,7 +1,9 @@
 {% extends "logic/question_base.html" %}
 {% load index %}
 
-{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal formal-dsp">{{question.display}}</p>{% endblock %}
+{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal formal-dsp">{{question.display}}</p>
+<p>יש למלא את הטבלה ולבחור את האפשרות הנכונה.</p>
+{% endblock %}
 {% block question_instruction %}טבלת אמת{% endblock %}
 
 {% block question_content %}
