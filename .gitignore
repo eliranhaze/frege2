@@ -49,9 +49,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-
 # Sphinx documentation
 docs/_build/
 
@@ -68,4 +65,3 @@ target/
 
 # js tests temp file
 testslib.js
-static/
