@@ -106,9 +106,9 @@ class TruthTableQuestionAdmin(FormalQuestionAdmin):
     form = TruthTableQuestionForm
 
 class UserAnswerAdmin(admin.ModelAdmin):
-    list_display = ['user', 'chapter', 'question_number', 'correct']
+    list_display = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time']
     ordering = ['user', 'chapter', 'question_number']
-    readonly_fields = ['user', 'chapter', 'question_number', 'correct']
+    readonly_fields = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time', 'answer']
     actions = [export_as_csv_action(fields=['user', 'question_number', 'correct'])]
  
     def has_add_permission(self, request, obj=None):
@@ -150,6 +150,7 @@ admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
+admin.site.register(UserAnswer, UserAnswerAdmin)
 
 # override admin stuff like so
 admin.site.site_title = 'ממשק ניהול'
