@@ -3,6 +3,8 @@
 Code for handling classical propositional logic formulas.
 """
 
+import re
+
 # Connectives
 NEG = '~'
 CON = u'·'
@@ -150,8 +152,8 @@ class Formula(object):
                 raise ValueError('%s is invalid; only 1 letter atoms are allowed' % self.literal)
             if len(self.literal) == 0:
                 raise ValueError('empty formula')
-            if not self.literal.isalpha():
-                raise ValueError('%s must be a letter')
+            if not self.literal.isalpha() or re.findall('[^ a-zA-Z]', self.literal, flags=re.UNICODE):
+                raise ValueError('%s must be a latin letter')
         else:
             assert len(self.literal) > 1
             # validate of sub formulas is not called here since it is called while creating them above

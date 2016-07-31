@@ -224,8 +224,8 @@ class QuestionTests(TestCase):
         qc = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         qo = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=2)
         qf = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3)
-        qt = TruthTableQuestion.objects.create(chapter=chapter, formula='pvq', number=4)
-        qd = DeductionQuestion.objects.create(chapter=chapter, formula='pvq', number=5)
+        qt = TruthTableQuestion.objects.create(chapter=chapter, formula='p%sq'%DIS, number=4)
+        qd = DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=5)
         self.assertItemsEqual(Question._all(), [qc, qo, qf, qt, qd])
         self.assertItemsEqual(Question._filter(chapter=chapter), [qc, qo, qf, qt, qd])
         self.assertItemsEqual(Question._filter(number=5), [qd])
@@ -424,6 +424,16 @@ class FormulaTests(TestCase):
         self.assertRaises(ValueError, Formula, '')
         self.assertRaises(ValueError, Formula, ' ')
         self.assertRaises(ValueError, Formula, '  ')
+
+    def test_analyze_nonlatin(self):
+        self.assertRaises(ValueError, Formula, '1')
+        self.assertRaises(ValueError, Formula, '~2')
+        self.assertRaises(ValueError, Formula, '1%s#' % CON)
+        self.assertRaises(ValueError, Formula, u'ש')
+        self.assertRaises(ValueError, Formula, u'~ש')
+        self.assertRaises(ValueError, Formula, u'א%sב' % CON)
+        self.assertRaises(ValueError, Formula, 'ש')
+        self.assertRaises(ValueError, Formula, '~ש')
 
     def test_analyze_invalid(self):
         self.assertRaises(ValueError, Formula, 'pq')
