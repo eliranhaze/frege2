@@ -12,7 +12,7 @@ from .formula import (
     Formula,
     FormulaSet,
     Argument,
-    formalize,
+    formal_type,
 )
 
 import logging
@@ -80,7 +80,7 @@ class Question(models.Model):
     def clean(self):
         # TODO: does this have unit tests? it should
         super(Question, self).clean()
-        if self.chapter and self.number > 0: # TODO: probably add condition for followup question with the same number
+        if self.chapter_id and self.number > 0: # TODO: probably add condition for followup question with the same number
             chapter_questions = Question._filter(chapter=self.chapter)
             if self.number in set([q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]):
                 raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
@@ -232,7 +232,7 @@ class TruthTableQuestion(FormalQuestion):
         (ARGUMENT, 'טיעון'),
     )
     table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES)
-    formula = models.CharField(verbose_name='טקסט', max_length=60)
+    formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60)
 
     @property
     def options(self):
@@ -283,7 +283,7 @@ class TruthTableQuestion(FormalQuestion):
                 Formula: self.FORMULA,
                 FormulaSet: self.SET,
                 Argument: self.ARGUMENT
-            }[type(formalize(self.formula))]
+            }[formal_type(self.formula)]
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
@@ -311,7 +311,13 @@ class FormulationAnswer(models.Model):
 
     def clean(self):
         super(FormulationAnswer, self).clean()
-        self.formula = validate_formula(self.formula)
+        ftype = formal_type(self.formula)
+        if ftype == Formula:
+            self.formula = validate_formula(self.formula)
+        elif ftype == FormulaSet:
+            self.formula = validate_formula_set(self.formula)
+        elif ftype == Argument:
+            self.formula = validate_argument(self.formula)
         # TODO: if formula is FOL, followup must not be truth table
 
     def __unicode__(self):

@@ -449,14 +449,17 @@ class Argument(object):
 
     __str__ = __unicode__
 
+def formal_type(string):
+    if Argument.THEREFORE in string:
+        return Argument
+    elif FormulaSet.SEP in string:
+        return FormulaSet
+    else:
+        return Formula
+
 def formalize(string):
     """
     takes a string representing a formula, a formula set, or an argument
     and returns the appropriate object
     """
-    if Argument.THEREFORE in string:
-        return Argument(string)
-    elif FormulaSet.SEP in string:
-        return FormulaSet(string)
-    else:
-        return Formula(string)
+    return formal_type(string)(string)
