@@ -1,5 +1,7 @@
 @CHARSET "UTF-8";
 
+/* Tables */
+
 body {
     background-color: #F8F8F8;
     padding-top: 65px; 
@@ -41,6 +43,7 @@ table {
   -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
   box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
+
 .btn-q {
   height: 35px;
   width: 40px;
@@ -48,7 +51,9 @@ table {
   text-align: center;
   padding: 5px;
 }
+
 /* Modal */
+
 .modal-header {
     border-bottom: 1px solid #e5e5e5;
 }
@@ -98,6 +103,11 @@ input:-webkit-autofill {
     color: crimson;
 }
 
+.hint {
+    font-size: 95%;
+    margin: 0;
+}
+
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -107,6 +117,8 @@ input:-webkit-autofill {
     user-select: none;
     cursor: default;
 }
+
+/* Truth tables */
 
 .tt-notice {
     color: crimson;
@@ -173,6 +185,8 @@ input:-webkit-autofill {
   bottom:0px;
   left:0px;
 }
+
+/* Other */
 
 input[type=text], textarea {
   -webkit-transition: all 0.3s ease-in-out;

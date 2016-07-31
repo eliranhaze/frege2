@@ -203,6 +203,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             is_followup = self._is_followup(),
         ).first()
         if user_answer:
+            context['ans_time'] = user_answer.time
             answer = user_answer.answer
  
         # update context according to type
@@ -251,11 +252,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             },
         )
 
-        # save only if value changed
-        if user_ans.correct != correct or user_ans.answer != answer:
-            user_ans.correct = correct
-            user_ans.answer = answer
-            user_ans.save()
+        # save user answer
+        user_ans.correct = correct
+        user_ans.answer = answer
+        user_ans.time = timezone.localtime(timezone.now())
+        user_ans.save()
 
         logger.info('saved answer: user %s question %s/%s, correct=%s', request.user, chnum, qnum, correct)
 

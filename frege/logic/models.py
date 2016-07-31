@@ -398,6 +398,7 @@ class UserAnswer(models.Model):
     correct = models.BooleanField(verbose_name='תשובה נכונה')
     answer = models.TextField()
     is_followup = models.BooleanField(default=False)
+    time = models.DateTimeField(verbose_name='זמן', blank=True, null=True)
 
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
