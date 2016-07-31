@@ -1,0 +1,8 @@
+#! /bin/bash
+sed s/oncheck/oc/g deduction.min.js | sed s/analyze/an/g | sed s/isOnCurrentLevel/ic/g | sed s/nestingStack/ns/g | sed s/lastSymbol/ls/g | sed s/isAtomic/ia/g | sed s/combine/cm/g | sed s/reverseStack/rs/g | sed s/nestingLevels/nl/g | sed s/equals/eq/g | sed s/isOpenNested/io/g | sed s/formulas/fs/g | sed s/isNegationOf/ing/g | sed s/wrap/wr/g | sed s/isContradiction/icn/g | sed s/validateSub/vs/g | sed s/openIndex/oi/g | sed s/negate/ng/g | sed s/sf/s/g > tmp
+mv tmp deduction.min.js
+rm -f tmp
+
+sed s/oncheck/oc/g formula.min.js | sed s/analyze/an/g | sed s/isOnCurrentLevel/ic/g | sed s/nestingStack/ns/g | sed s/lastSymbol/ls/g | sed s/isAtomic/ia/g | sed s/combine/cm/g | sed s/reverseStack/rs/g | sed s/nestingLevels/nl/g | sed s/equals/eq/g | sed s/isOpenNested/io/g | sed s/formulas/fs/g | sed s/isNegationOf/ing/g | sed s/wrap/wr/g | sed s/isContradiction/icn/g | sed s/validateSub/vs/g | sed s/\.con/.c/g | sed s/negate/ng/g | sed s/sf/s/g > tmp
+mv tmp formula.min.js
+rm -f tmp
