@@ -354,7 +354,12 @@ class ChapterSubmission(models.Model):
     time = models.DateTimeField(verbose_name='זמן הגשה', blank=True, null=True)
 
     def is_complete(self):
-        return self.chapter.num_questions() == len(UserAnswer.objects.filter(chapter=self.chapter))
+        user_answers = UserAnswer.objects.filter(chapter=self.chapter, user=self.user)
+        chapter_questions = {q.number: q for q in self.chapter.questions()}
+        chapter_followups = {q.number for q in chapter_questions.itervalues() if q.has_followup()}
+        answered_questions = {a.question_number for a in user_answers if not a.is_followup}
+        answered_followups = {a.question_number for a in user_answers if a.is_followup}
+        return set(chapter_questions.keys()) == answered_questions and chapter_followups == answered_followups
 
     @property
     def max_attempts(self):

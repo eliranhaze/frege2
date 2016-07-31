@@ -276,6 +276,33 @@ class ChapterSubmissionTests(TestCase):
         ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=2,correct=True)
         self.assertTrue(cs.is_complete())
 
+    def test_is_complete_followups(self):
+        user = User.objects.create(username='u', password='pw')
+        chapter = Chapter.objects.create(title='chap', number=1)
+        cs = self.create_submission(chapter, user)
+
+        # with 1 question + followup
+        FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=1, followup=FormulationQuestion.DEDUCTION)
+        self.assertFalse(cs.is_complete())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False,is_followup=False)
+        self.assertFalse(cs.is_complete())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False,is_followup=True)
+        self.assertTrue(cs.is_complete())
+
+        # 2nd question
+        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
+        self.assertFalse(cs.is_complete())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=2,correct=True)
+        self.assertTrue(cs.is_complete())
+
+        # 3rd question + followup
+        FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3, followup=FormulationQuestion.DEDUCTION)
+        self.assertFalse(cs.is_complete())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=3,correct=False,is_followup=False)
+        self.assertFalse(cs.is_complete())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=3,correct=False,is_followup=True)
+        self.assertTrue(cs.is_complete())
+
 class FormulaTests(TestCase):
 
     def test_strip(self):
