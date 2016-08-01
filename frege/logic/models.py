@@ -46,8 +46,12 @@ class Chapter(models.Model):
     number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
     title = models.CharField(verbose_name='כותרת', max_length=30)
 
-    def num_questions(self):
-        return Question._count(chapter__number=self.number)
+    def num_questions(self, followups=False):
+        if followups:
+            questions = Question._filter(chapter=self)
+            return len(questions) + sum(1 for q in questions if q.has_followup())
+        else:
+            return Question._count(chapter=self)
     num_questions.short_description = 'מספר שאלות'
 
     def questions(self):
@@ -354,12 +358,17 @@ class ChapterSubmission(models.Model):
     time = models.DateTimeField(verbose_name='זמן הגשה', blank=True, null=True)
 
     def is_complete(self):
+        """
+        a submission is complete iff all chapter questions were answered including all followups
+        this is premised on the assumption that a user can always advance to the followup question,
+        even if the preliminary one is incorrect
+        """
         user_answers = UserAnswer.objects.filter(chapter=self.chapter, user=self.user)
         chapter_questions = {q.number: q for q in self.chapter.questions()}
         chapter_followups = {q.number for q in chapter_questions.itervalues() if q.has_followup()}
-        answered_questions = {a.question_number for a in user_answers if not a.is_followup}
+        answered_questions = {a.question_number: a.correct for a in user_answers if not a.is_followup}
         answered_followups = {a.question_number for a in user_answers if a.is_followup}
-        return set(chapter_questions.keys()) == answered_questions and chapter_followups == answered_followups
+        return set(chapter_questions.keys()) == set(answered_questions.keys()) and chapter_followups == answered_followups
 
     @property
     def max_attempts(self):
@@ -373,10 +382,18 @@ class ChapterSubmission(models.Model):
         return self.percent_correct()
 
     def percent_correct(self):
-        user_answers = UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
-        num_correct = sum(1 for u in user_answers if u.correct)
-        return int(round(num_correct * 100. / self.chapter.num_questions()))
+        _, _, pct = self.correctness_data()
+        return pct
     percent_correct.short_description = 'ציון'
+
+    def correctness_data(self):
+        answer_data = {
+            (ans.question_number, ans.is_followup): ans.correct 
+            for ans in UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
+        }
+        num_correct = sum(1 for correct in answer_data.itervalues() if correct)
+        pct = int(round(num_correct * 100. / self.chapter.num_questions(followups=True)))
+        return answer_data, num_correct, pct
 
     @property
     def chapter_number_f(self):
@@ -387,7 +404,16 @@ class ChapterSubmission(models.Model):
     chapter_number.short_description = 'פרק'
 
     def __unicode__(self):
-        return '%s/%s' % (self.user, self.chapter.number)
+        return '%s/%s%s complete=%s, ongoing=%s, attempts=%d, retry=%s, pct=%.1f' % (
+            self.user,
+            self.chapter.number,
+            ' [%s]' % self.time if self.time else '',
+            self.is_complete(),
+            self.ongoing,
+            self.attempt,
+            self.can_try_again(),
+            self.percent_correct(),
+        )
 
     class Meta:
         verbose_name = 'הגשת משתמש'

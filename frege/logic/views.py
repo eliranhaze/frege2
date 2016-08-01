@@ -136,13 +136,16 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ChapterSummaryView, self).get_context_data(**kwargs)
         chapter = self.object
-        chap_questions = chapter_questions_user_data(chapter, self.request.user)
         submission = ChapterSubmission.objects.filter(chapter=chapter).first()
         if submission and not submission.ongoing and submission.is_complete():
-            context['num_correct'] = sum(1 for _, correct in chap_questions.iteritems() if correct)
-            context['chap_questions'] = chap_questions
-            context['pct'] = submission.percent_correct()
+            answer_data, num_correct, pct = submission.correctness_data()
+            sorted_answer_data = [(qnum, followup, correct) for (qnum, followup), correct in answer_data.iteritems()]
+            sorted_answer_data.sort()
+            context['answer_data'] = sorted_answer_data
+            context['num_correct'] = num_correct
+            context['pct'] = pct
             context['remaining'] = submission.max_attempts - submission.attempt
+            logger.debug('serving chapter %s summary for %s, context=%s', chapter.number, self.request.user, context)
         else:
             logger.debug('not serving chapter %s summary for %s', chapter.number, self.request.user)
         return context
@@ -155,13 +158,16 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             chapter=chapter,
         )
         response = {}
-        if submission.is_complete() and submission.can_try_again():
+        if submission.is_complete() and submission.can_try_again() and submission.ongoing:
             submission.time = timezone.localtime(timezone.now())
             submission.attempt += 1
             submission.ongoing = False
             submission.save()
-            logger.info('saved submission: user %s chapter %s, attempt=%d, time=%s', request.user, chnum, submission.attempt, submission.time)
+            logger.info('saved submission: %s', submission)
             response['next'] = reverse('logic:chapter-summary', args=(chapter.number,))
+        else:
+            logger.info('submission not allowed: %s', submission)
+        logger.debug('submission post response: %s', response)
         return JsonResponse(response)
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
@@ -275,7 +281,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         }
         if ext_data:
             response.update(ext_data)
-        logger.debug('post response: %s', response)
+        logger.debug('question post response: %s', response)
         return JsonResponse(response)
 
     def _next_url(self, request, question):

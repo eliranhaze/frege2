@@ -88,6 +88,21 @@ class QuestionViewTests(TestCase):
             choices.append(Choice.objects.create(question=q, text='choicenum%s'%i, is_correct=(i==1)))
         return q, choices
 
+    def _create_formulation_question(self, number=1, ans=[], followup=False):
+        q = FormulationQuestion.objects.create(
+            chapter=self.chapter,
+            number=number,
+            text='hithere',
+            followup=FormulationQuestion.DEDUCTION if followup else FormulationQuestion.NONE,
+        )
+        answers = [
+            FormulationAnswer.objects.create(
+                question=q,
+                formula=a,
+            ) for a in ans
+        ]
+        return q, answers
+
     def _get_url(self, question):
         return reverse('logic:question', args=(question.chapter.number, question.number))
 
@@ -108,6 +123,17 @@ class QuestionViewTests(TestCase):
 
     def _post_choice(self, question, choice, allowed=True):
         response = self.client.post(self._get_url(question), {'choice':choice.id})
+        self.assertTrue(allowed == ('next' in response.json()))
+
+    def _post_followup(self, question, conclusion, allowed=True):
+        response = self.client.post(
+            reverse('logic:followup', args=(question.chapter.number, question.number)),
+            {'conclusion':conclusion, 'obj':''}
+        )
+        self.assertTrue(allowed == ('next' in response.json()))
+
+    def _post_formulation(self, question, answer, allowed=True):
+        response = self.client.post(self._get_url(question), {'formulation':answer})
         self.assertTrue(allowed == ('next' in response.json()))
 
     def _post_submission(self, allowed):
@@ -206,6 +232,80 @@ class QuestionViewTests(TestCase):
         self._post_choice(q3, choices3[1], allowed=False)
         self._get_submission(allowed=True)
 
+    def test_chapter_submission_followups(self):
+        # create questions
+        q1, choices1 = self._create_choice_question(number=1, num_choices=3)
+        q2, answers2 = self._create_formulation_question(number=2, ans=[u'p∴p',u'q∴q'], followup=True)
+        q3, answers3 = self._create_formulation_question(number=3, ans=[u'~(p%sq)∴~q' % DIS,u'~q%s~p∴~p' % CON], followup=True)
+        q4, answers4 = self._create_formulation_question(number=4, ans=['~p','~q'], followup=False)
+
+        # post answers
+        self._post_choice(q1, choices1[1]) # correct
+        self._get_submission(allowed=False)
+        self._post_formulation(q2, u'~p∴p') # incorrect
+        self._post_submission(allowed=False)
+        self._post_followup(q2, u'~p') # incorrect (followup)
+        self._post_submission(allowed=False)
+        self._get_submission(allowed=False)
+        self._post_submission(allowed=False)
+        self._post_submission(allowed=False)
+        self._post_formulation(q3, u'~p%s~q∴~p' % CON) # correct, followup skipped
+        self._get_submission(allowed=False)
+        self._post_submission(allowed=False)
+        self._post_formulation(q4, u'p') # incorrect
+        self._post_submission(allowed=False)
+        self._post_followup(q3, u'~p') # correct (followup)
+        self._post_submission(allowed=True)
+        self._post_submission(allowed=False)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 1)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), True)
+        self.assertEquals(cs.percent_correct(), 50) # 3/6
+
+        # 2nd attempt
+        self._post_formulation(q2, u'p∴p') # correct
+        self._get_submission(allowed=False)
+        self._post_followup(q2, u'~p') # incorrect (followup)
+        self._get_submission(allowed=False)
+        self._post_formulation(q4, u'p') # incorrect
+        self._get_submission(allowed=False)
+        self._post_submission(allowed=True)
+        self._post_submission(allowed=False)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 2)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), True)
+        self.assertEquals(cs.percent_correct(), 67) # 4/6
+
+        # 3rd attempt
+        self._post_formulation(q2, u'p∴p') # correct
+        self._get_submission(allowed=False)
+        self._post_followup(q2, u'p') # correct (followup)
+        self._get_submission(allowed=False)
+        self._post_formulation(q4, u'~p') # correct
+        self._get_submission(allowed=False)
+        self._post_submission(allowed=True)
+        self._post_submission(allowed=False)
+
+        # check submission
+        cs = ChapterSubmission.objects.get(chapter=self.chapter, user=self.user)
+        self.assertEquals(cs.attempt, 3)
+        self.assertEquals(cs.ongoing, False)
+        self.assertEquals(cs.is_complete(), True)
+        self.assertEquals(cs.can_try_again(), False)
+        self.assertEquals(cs.percent_correct(), 100) # 6/6
+
+        # illegal attempt
+        self._post_formulation(q2, u'p∴p', allowed=False)
+        self._get_submission(allowed=True)
+
 class QuestionTests(TestCase):
 
     def test_clean_duplicate_number(self):
@@ -284,7 +384,7 @@ class ChapterSubmissionTests(TestCase):
         # with 1 question + followup
         FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=1, followup=FormulationQuestion.DEDUCTION)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False,is_followup=False)
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=True,is_followup=False)
         self.assertFalse(cs.is_complete())
         ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False,is_followup=True)
         self.assertTrue(cs.is_complete())
