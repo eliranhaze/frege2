@@ -11,6 +11,9 @@ CON = u'·'
 DIS = u'∨'
 IMP = u'⊃'
 EQV = u'≡'
+# Quantifiers
+ALL = '@'
+EXS = '#'
 #CON = '&'
 #DIS = '|'
 #IMP = '>'
@@ -18,6 +21,7 @@ EQV = u'≡'
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
 COMMUTATIVE = set([CON, DIS, EQV])
+QUANTIFIERS = set([ALL, EXS])
 
 class Option(object):
 
@@ -72,6 +76,9 @@ class Formula(object):
         self.sf2 = None
         self.literal = self._strip(string.replace(' ',''))
 
+        self._deep_analyze()
+
+    def _deep_analyze(self):
         nesting = 0
         if (len(self.literal) == 1):
             # atomic formula
@@ -81,7 +88,7 @@ class Formula(object):
                 nesting += 1
                 # validate next char
                 nxt = self.literal[i+1]
-                if not (nxt.isalpha() or nxt == NEG or nxt == '('):
+                if not self._is_valid_first_letter(nxt):
                     raise ValueError("illegal character %s after %s" % (nxt, c))
             elif c == ')':
                 nesting -= 1
@@ -92,16 +99,13 @@ class Formula(object):
                         # binary connective, create 2 sub formulas and return
                         self.con = c
                         literals = self.literal[:i], self.literal[i+1:]
-                        self.sf1 = Formula(literals[0])
-                        self.sf2 = Formula(literals[1])
+                        self.sf1 = self.__class__(literals[0])
+                        self.sf2 = self.__class__(literals[1])
                         # check that sub formulas are properly formed
                         for i, sf in enumerate([self.sf1, self.sf2]):
                             literal = literals[i]
                             if sf.is_binary and self._strip(literal) == literal:
                                 raise ValueError('missing parentheses in sub formula %s' % literal) 
-                        # create sub formulas
-                        self.sf1 = Formula(literals[0])
-                        self.sf2 = Formula(literals[1])
                         return
                     if c == NEG:
                         # unary connective, create 1 sub formula
@@ -110,19 +114,19 @@ class Formula(object):
                             assert self.sf1
                         else:
                             self.con = c
-                            self.sf1 = Formula(self.literal[i+1:])
+                            self.sf1 = self.__class__(self.literal[i+1:])
                             # do not return here since a binary connective might be found
                             # later and, if so, that would be the main connective
                 except ValueError:
-	            raise ValueError('%s is not a syntactically valid formula' % string)
+	            raise ValueError('invalid syntax %s' % self.literal)
             elif nesting < 0:
-                raise ValueError('unbalanced parentheses in %s' % string)
+                raise ValueError('unbalanced parentheses %s' % self.literal)
         if self.con == NEG:
             # if this formula is a negation, make sure all literals were consumed
             if self.literal[0] != self.con or self.sf1.literal != self._strip(self.literal[1:]):
-                raise ValueError('ill-formed negation formula %s' % string)
+                raise ValueError('ill-formed negation formula %s' % self.literal)
         if nesting != 0:
-            raise ValueError('unbalanced parentheses in %s' % string)
+            raise ValueError('unbalanced parentheses %s' % self.literal)
 
     def _strip(self, string):
         """ strip all outmost brackets of a string representation of a formula """
@@ -148,18 +152,22 @@ class Formula(object):
     def _validate(self):
         if self.is_atomic:
             assert not self.sf1 and not self.sf2
-            if len(self.literal) > 1:
-                raise ValueError('%s is invalid; only 1 letter atoms are allowed' % self.literal)
             if len(self.literal) == 0:
                 raise ValueError('empty formula')
-            if not self.literal.isalpha() or re.findall('[^ a-zA-Z]', self.literal, flags=re.UNICODE):
-                raise ValueError('%s must be a latin letter')
+            if not self._is_valid_atomic(self.literal):
+                raise ValueError('%s is not a valid atomic formula' % self.literal)
         else:
             assert len(self.literal) > 1
             # validate of sub formulas is not called here since it is called while creating them above
             assert self.sf1
             if self.con in BINARY_CONNECTIVES:
                 assert self.sf2
+
+    def _is_valid_first_letter(self, letter):
+        return letter.islower() or letter.isupper() or letter == NEG or letter == '('
+
+    def _is_valid_atomic(self, literal):
+        return len(literal) == 1 and (literal.islower() or literal.isupper())
 
     @classmethod
     def from_set(cls, formula_set):
@@ -278,6 +286,84 @@ class Formula(object):
         return '<%s: %s>' % (self.__class__.__name__, unicode(self))
 
     __str__ = __unicode__
+
+class PredicateFormula(Formula):
+
+    def _deep_analyze(self):
+        self.quantifier = None
+        self.quantified = None
+        if self.literal[0] in QUANTIFIERS and self._quantifier_range(self.literal) == self.literal[2:]:
+            if len(self.literal) < 4: # quantifier + var + atomic
+                raise ValueError('formula too short: %s' % self.literal)
+            self.quantifier = self.literal[0]
+            self.quantified = self.literal[1]
+            if not self.quantified.islower():
+                raise ValueError('illegal quantified variable: %s' % self.quantified)
+            self.sf1 = PredicateFormula(self.literal[2:])
+        else:
+            super(PredicateFormula, self)._deep_analyze()
+
+    def _quantifier_range(self, string):
+        if len(string) > 3 and string[0] in QUANTIFIERS:
+            if string[2] == '(':
+                qrange = ''
+                stack = []
+                for s in string[2:]:
+                    qrange += s
+                    if s == '(':
+                        stack.append(s)
+                    elif s == ')':
+                        stack.pop()
+                if len(stack) == 0:
+                    return qrange
+            elif string[2] == NEG:
+                return string[2] + self._quantifier_range(string.replace('~','',1))
+            elif string[2] in QUANTIFIERS:
+                return string[2:4] + self._quantifier_range(string[2:])
+            else:
+                i = 0
+                qrange = ''
+                while self._is_valid_atomic(string[2:i+4]) and i < len(string) - 3:
+                    qrange = string[2:i+4]
+                    i += 1
+                return qrange
+                
+    def _is_valid_atomic(self, literal):
+        if len(literal) > 1 and literal[0].isupper():
+            for lit in literal[1:]:
+                if not lit.islower():
+                    return False
+            return True
+        return False
+
+    @property
+    def is_atomic(self):
+        return not self.con and not self.quantifier
+
+    @property
+    def variables(self):
+        raise NotImplementedError()
+
+    def _var_list(self):
+        raise NotImplementedError()
+
+    def assign(self, assignment):
+        raise NotImplementedError()
+
+    def options(self):
+        raise NotImplementedError()
+
+    @property
+    def correct_option(self):
+        raise NotImplementedError()
+
+    @property
+    def is_tautology(self):
+        raise NotImplementedError()
+
+    @property
+    def is_contradiction(self):
+        raise NotImplementedError()
 
 class TruthTable(object):
 

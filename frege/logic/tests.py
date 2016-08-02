@@ -11,6 +11,7 @@ from django.test import TestCase
 
 from .formula import (
     Formula,
+    PredicateFormula,
     TruthTable,
     MultiTruthTable,
     FormulaSet,
@@ -20,6 +21,8 @@ from .formula import (
     DIS,
     IMP,
     EQV,
+    ALL,
+    EXS,
     Tautology,
     Contingency,
     Contradiction,
@@ -758,6 +761,81 @@ class FormulaTests(TestCase):
            Formula('%s(p%sq)%s(r%sq)' % (NEG, EQV, CON, IMP)),
            Formula('(q%sr)%s%s(q%sp)' % (IMP, CON, NEG, EQV)),
        )
+
+class PredicateFormulaTests(TestCase):
+
+    def __form(self, s):
+        return s.replace('@', ALL) \
+                .replace('#', EXS) \
+                .replace('-', CON) \
+                .replace('>', IMP)
+
+    def _form(self, s):
+        return PredicateFormula(
+            self.__form(s)
+        )
+
+    def test_create(self):
+        f = self._form('@xPx')
+        self.assertEquals(ALL, f.quantifier)
+        self.assertEquals('x', f.quantified)
+        self.assertEquals('Px', f.sf1.literal)
+        self.assertEquals(self._form('Px'), f.sf1)
+
+    def test_create2(self):
+        f = self._form('@x~#yPxy')
+        self.assertEquals(ALL, f.quantifier)
+        self.assertEquals('x', f.quantified)
+        self.assertEquals(self._form('~#yPxy'), f.sf1)
+        self.assertEquals(NEG, f.sf1.con)
+        self.assertEquals(self._form('#yPxy'), f.sf1.sf1)
+        self.assertEquals(EXS, f.sf1.sf1.quantifier)
+        self.assertEquals('y', f.sf1.sf1.quantified)
+        self.assertEquals(self._form('Pxy'), f.sf1.sf1.sf1)
+
+    def test_create_propositional(self):
+        f = self._form('@xPx>#yRay')
+        self.assertEquals(IMP, f.con)
+        self.assertEquals(None, f.quantifier)
+        self.assertEquals(None, f.quantified)
+        self.assertEquals(self._form('@xPx'), f.sf1)
+        self.assertEquals(self._form('#yRay'), f.sf2)
+
+    def test_create_propositional2(self):
+        f = self._form('@xPx>(#yRay-~@x~Px)')
+        self.assertEquals(IMP, f.con)
+        self.assertEquals(None, f.quantifier)
+        self.assertEquals(None, f.quantified)
+        self.assertEquals(self._form('@xPx'), f.sf1)
+        self.assertEquals(self._form('#yRay-~@x~Px'), f.sf2)
+        self.assertEquals(ALL, f.sf1.quantifier)
+        self.assertEquals('x', f.sf1.quantified)
+        self.assertEquals(self._form('Px'), f.sf1.sf1)
+        self.assertEquals(None, f.sf2.quantifier)
+        self.assertEquals(None, f.sf2.quantified)
+        self.assertEquals(self._form('#yRay'), f.sf2.sf1)
+        self.assertEquals(self._form('~@x~Px'), f.sf2.sf2)
+
+    def test_create_with_brackets(self):
+        f = self._form('@x(Px>(#yRxy))')
+        self.assertEquals(ALL, f.quantifier)
+        self.assertEquals('x', f.quantified)
+        self.assertEquals(self._form('Px>#yRxy'), f.sf1)
+        self.assertEquals(IMP, f.sf1.con)
+        self.assertEquals(None, f.sf1.quantifier)
+        self.assertEquals(None, f.sf1.quantified)
+        self.assertEquals(self._form('Px'), f.sf1.sf1)
+        self.assertEquals(self._form('#yRxy'), f.sf1.sf2)
+
+    def test_range(self):
+       f = self._form('@xPx') # dummy
+       self.assertEquals(self.__form('Px'), f._quantifier_range(self.__form('@xPx')))
+       self.assertEquals(self.__form('@xPx'), f._quantifier_range(self.__form('@y@xPx')))
+       self.assertEquals(self.__form('~Px'), f._quantifier_range(self.__form('@x~Px')))
+       self.assertEquals(self.__form('~@y~Px'), f._quantifier_range(self.__form('@x~@y~Px')))
+       self.assertEquals(self.__form('#xPxy'), f._quantifier_range(self.__form('@y#xPxy>#y#xPxy')))
+       self.assertEquals(self.__form('#x(Pxy>#y#xPxy)'), f._quantifier_range(self.__form('@y#x(Pxy>#y#xPxy)')))
+       self.assertEquals(self.__form('(#xPxy>#y#xPxy)'), f._quantifier_range(self.__form('@y(#xPxy>#y#xPxy)')))
 
 class TruthTableTests(TestCase):
 
