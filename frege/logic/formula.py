@@ -542,7 +542,10 @@ def formal_type(string):
         return Argument
     elif FormulaSet.SEP in string:
         return FormulaSet
-    else:
+    try:
+        PredicateFormula(string)
+        return PredicateFormula
+    except:
         return Formula
 
 def formalize(string):
