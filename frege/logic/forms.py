@@ -38,5 +38,9 @@ class FormulationAnswerFormSet(forms.BaseInlineFormSet):
             raise ValidationError('כל התשובות צריכות להיות מאותו סוג (נוסחה/טיעון)')
         if FormulaSet in types:
             raise ValidationError('לא ניתן להזין קבוצת נוסחאות - רק נוסחה בודדת או טיעון')
-        if self.instance.followup == FormulationQuestion.DEDUCTION and types.pop() != Argument:
-            raise ValidationError('כל תשובה חייבת להיות טיעון על מנת לשמש בשאלת המשך מסוג דדוקציה')
+        if self.instance.followup == FormulationQuestion.DEDUCTION:
+            if types.pop() != Argument:
+                raise ValidationError('כל תשובה חייבת להיות טיעון על מנת לשמש בשאלת המשך מסוג דדוקציה')
+            for answer in all_answers:
+                if not Argument(answer).is_valid:
+                   raise ValidationError(u'הטיעון %s אינו ניתן להוכחה' % answer)
