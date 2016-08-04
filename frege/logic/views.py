@@ -53,7 +53,7 @@ def next_question(chapter, user):
             return question
 
     # all questions are answered, check if re-answering
-    submission = ChapterSubmission.objects.filter(chapter=chapter).first()
+    submission = ChapterSubmission.objects.filter(chapter=chapter, user=user).first()
     if submission and submission.ongoing:
         return chapter.first_question()
 
@@ -141,7 +141,8 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ChapterSummaryView, self).get_context_data(**kwargs)
         chapter = self.object
-        submission = ChapterSubmission.objects.filter(chapter=chapter).first()
+        submission = ChapterSubmission.objects.filter(chapter=chapter, user=self.request.user).first()
+        logger.debug('fetched submission %s for context', submission)
         if submission and not submission.ongoing and submission.is_complete():
             answer_data, num_correct, pct = submission.correctness_data()
             sorted_answer_data = [(qnum, followup, correct) for (qnum, followup), correct in answer_data.iteritems()]
@@ -208,7 +209,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
 
         # update submission data
-        submission = ChapterSubmission.objects.filter(chapter=question.chapter).first()
+        submission = ChapterSubmission.objects.filter(chapter=question.chapter, user=self.request.user).first()
         if submission:
             context['complete'] = submission.is_complete()
             context['remaining'] = submission.max_attempts - submission.attempt
@@ -229,6 +230,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context.update(
             self.context_handlers[type(question)](question, answer)
         )
+        logger.debug('serving question %s/%s for %s, context=%s', question.chapter.number, question.number, self.request.user, context)
         return context
 
     def post(self, request, chnum, qnum):
