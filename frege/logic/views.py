@@ -47,6 +47,11 @@ def next_question(chapter, user):
         if not question.user_answer(user):
             return question
 
+    # check for unanswered followups
+    for question in questions:
+        if question.has_followup() and len(question.user_answer(user)) == 1:
+            return question
+
     # all questions are answered, check if re-answering
     submission = ChapterSubmission.objects.filter(chapter=chapter).first()
     if submission and submission.ongoing:
