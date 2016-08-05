@@ -840,11 +840,43 @@ class PredicateFormulaTests(TestCase):
     def test_valid(self):
         self.assertIsNotNone(self._form('@x@y@zRxyz'))
         self.assertIsNotNone(self._form('@x(@y@zRxyz)'))
+        self.assertIsNotNone(self._form('~@x~#y~Rxy'))
         self.assertIsNotNone(self._form('@x(#yRxy)'))
         self.assertIsNotNone(self._form('@x(Fx>#yRxy)'))
         self.assertIsNotNone(self._form('(@xFx>#yFy)'))
         self.assertIsNotNone(self._form('(@xFx>#yFy)-Fa'))
         self.assertIsNotNone(self._form('(@xFx>#yFy)>~@x~#y~Rxy'))
+        self.assertIsNotNone(self._form('Rxyzxyzxyzxyz'))
+        self.assertIsNotNone(self._form('Ra>Rb'))
+        self.assertIsNotNone(self._form('~Pa>(~Qb>~Pa)'))
+        self.assertIsNotNone(self._form('~~@x~~#yRxy>@x((Sx>#zRxz)-~#w(Rww))'))
+
+    def test_invalid(self):
+        self.assertRaises(ValueError, self._form, '@x')
+        self.assertRaises(ValueError, self._form, 'x')
+        self.assertRaises(ValueError, self._form, '')
+        self.assertRaises(ValueError, self._form, '@')
+        self.assertRaises(ValueError, self._form, '@x@y')
+        self.assertRaises(ValueError, self._form, '~')
+        self.assertRaises(ValueError, self._form, '~@x')
+        self.assertRaises(ValueError, self._form, 'x@')
+        self.assertRaises(ValueError, self._form, '@Fx')
+        self.assertRaises(ValueError, self._form, '@xx')
+        self.assertRaises(ValueError, self._form, '###')
+        self.assertRaises(ValueError, self._form, '@@x')
+
+    def test_invalid2(self):
+        self.assertRaises(ValueError, self._form, 'Fx@x')
+        self.assertRaises(ValueError, self._form, 'xF')
+        self.assertRaises(ValueError, self._form, '@@xFx')
+        self.assertRaises(ValueError, self._form, '@xFx@y')
+        self.assertRaises(ValueError, self._form, 'Fx#yFy')
+        self.assertRaises(ValueError, self._form, 'F>Fx')
+        self.assertRaises(ValueError, self._form, 'Rxy>@Rxyz')
+        self.assertRaises(ValueError, self._form, '((@xFx)')
+        self.assertRaises(ValueError, self._form, '@xFx~x')
+        self.assertRaises(ValueError, self._form, '@xFxFy')
+        self.assertRaises(ValueError, self._form, '@x#y@Fxy')
 
 class TruthTableTests(TestCase):
 

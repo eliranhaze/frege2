@@ -322,7 +322,10 @@ class PredicateFormula(Formula):
             elif string[2] == NEG:
                 return string[2] + self._quantifier_range(string.replace('~','',1))
             elif string[2] in QUANTIFIERS:
-                return string[2:4] + self._quantifier_range(string[2:])
+                remaining_range = self._quantifier_range(string[2:])
+                if not remaining_range:
+                    raise ValueError('illegal quantified expression: %s' % string)
+                return string[2:4] + remaining_range
             else:
                 i = 0
                 qrange = ''
