@@ -578,4 +578,10 @@ def formalize(string):
     takes a string representing a formula, a formula set, or an argument
     and returns the appropriate object
     """
-    return formal_type(string)(string)
+    ftype = formal_type(string)
+    if ftype in [Argument, FormulaSet]:
+        try: 
+            return ftype(string, formula_cls=PredicateFormula)
+        except:
+            pass
+    return ftype(string)
