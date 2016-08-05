@@ -327,12 +327,12 @@ class PredicateFormula(Formula):
                 remaining_range = self._quantifier_range(remaining)
                 if not remaining_range:
                     raise ValueError('illegal quantified expression: %s' % string)
-                return string[2:4] + remaining_range
+                return remaining[:2] + remaining_range
             else:
                 i = 0
                 qrange = ''
-                while self._is_valid_atomic(string[2:i+4]) and i < len(string) - 3:
-                    qrange = string[2:i+4]
+                while self._is_valid_atomic(remaining[:i+2]) and i < len(string) - 3:
+                    qrange = remaining[:i+2]
                     i += 1
                 return qrange
                 
