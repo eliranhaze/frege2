@@ -442,7 +442,7 @@ class FollowupQuestionView(QuestionView):
         if type(followup) == TruthTableQuestion:
             followup._set_table_type()
 
-        logger.debug('%s: followup question is %s', self.request.user, followup)
+        logger.debug('%s: followup question is %s %s', self.request.user, type(followup).__name__, followup)
         return followup
 
     def get_context_data(self, **kwargs):
