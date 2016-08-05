@@ -6,8 +6,11 @@
 var lib = require('./testslib.js');
 
 var Formula = lib.Formula;
+var PredicateFormula = lib.PredicateFormula;
 var Argument = lib.Argument;
 var Deduction = lib.Deduction;
+
+var quantifierRange = lib.quantifierRange;
 
 var symbols = {
     '~': lib.NEG,
@@ -15,6 +18,8 @@ var symbols = {
     'v': lib.DIS,
     '>': lib.IMP,
     '=': lib.EQV,
+    '@': lib.ALL,
+    '#': lib.EXS,
     ':': lib.THF,
 };
 
@@ -173,6 +178,61 @@ try {
     assertFalse(formula('~(pvr)').equals(formula('~rvp')));
     assertFalse(formula('~pvr').equals(formula('~rvp')));
     assertFalse(formula('~pvr').equals(formula('~(pvr)')));
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // ---   predicate formula tests   --- 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // ----------------------
+    // quantifier range tests 
+    // ----------------------
+
+    assertEquals(form('Px'), quantifierRange(form('@xPx')));
+    assertEquals(form('Px'), quantifierRange(form('#xPx')));
+    assertEquals(form('@yRxy'), quantifierRange(form('@x@yRxy')));
+    assertEquals(form('~@yRxy'), quantifierRange(form('#x~@yRxy')));
+    assertEquals(form('~@y~Rxy'), quantifierRange(form('@x~@y~Rxy')));
+    assertEquals(form('~Rxy'), quantifierRange(form('@x~Rxy')));
+    assertEquals(form('Px'), quantifierRange(form('@xPx>Pa')));
+    assertEquals(form('~~Px'), quantifierRange(form('@x~~Px>Pa')));
+    assertEquals(form('(Px>#yMy)'), quantifierRange(form('@x(Px>#yMy)>Pa')));
+
+    assertUndefined(quantifierRange(form('@x')));
+    assertUndefined(quantifierRange(form('@')));
+
+    // ----------------
+    // creation tests 
+    // ----------------
+
+    assertPredicateForm('Pa', '', '', '', '', '');
+    assertPredicateForm('~Pa', '~', 'Pa', '', '', '');
+    assertPredicateForm('Rxy>Ryx', '>', 'Rxy', 'Ryx', '', '');
+    assertPredicateForm('Rxy>~Sxyz', '>', 'Rxy', '~Sxyz', '', '');
+    assertPredicateForm('((Rxy)>Ryx)', '>', 'Rxy', 'Ryx', '', '');
+
+    assertPredicateForm('@xPx', '', 'Px', '', '@', 'x');
+    assertPredicateForm('@x~Px', '', '~Px', '', '@', 'x');
+    assertPredicateForm('@x#yLxy', '', '#yLxy', '', '@', 'x');
+    assertPredicateForm('#y@xLxy', '', '@xLxy', '', '#', 'y');
+    assertPredicateForm('@x(#yLxy>Mx)', '', '#yLxy>Mx', '', '@', 'x');
+    assertPredicateForm('@x#y@z@wUxyzw', '', '#y@z@wUxyzw', '', '@', 'x');
+
+    assertPredicateForm('~@xPx', '~', '@xPx', '', '', '');
+    assertPredicateForm('@xPx>(@yLy>@xPx)', '>', '@xPx', '@yLy>@xPx', '', '');
+    assertPredicateForm('@x#yLxy>@xMx', '>', '@x#yLxy', '@xMx', '', '');
+
+    assertInvalidForm('@x', PredicateFormula);
+    assertInvalidForm('@', PredicateFormula);
+    assertInvalidForm('', PredicateFormula);
+    assertInvalidForm('@x#y', PredicateFormula);
+    assertInvalidForm('@x#y@z', PredicateFormula);
+    assertInvalidForm('@Px', PredicateFormula);
+    assertInvalidForm('@xxPx', PredicateFormula);
+    assertInvalidForm('@@xPx', PredicateFormula);
+    assertInvalidForm('@xP', PredicateFormula);
+    assertInvalidForm('aP', PredicateFormula);
+    assertInvalidForm('aRb', PredicateFormula);
+    assertInvalidForm('#yPy>@x', PredicateFormula);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ---    argument tests    --- 
@@ -922,6 +982,10 @@ function formula(f) {
     return new Formula(form(f));
 }
 
+function predicateFormula(f) {
+    return new PredicateFormula(form(f));
+}
+
 function deduction() {
     var d = new Deduction();
     for (var i = 0; i < arguments.length; i++) {
@@ -955,16 +1019,25 @@ function getErrorLineNumber(e) {
 // asserts
 // =============
 
-function assertForm(f, con, sf1, sf2) {
-    frm = new Formula(form(f));
-    assertEquals(symbols[con], frm.con);
+function assertForm(f, con, sf1, sf2, cls) {
+    if (!cls) cls = Formula;
+    frm = new cls(form(f));
+    assertEquals(con? symbols[con] : null, frm.con);
     assertEquals(form(sf1), frm.sf1 == null? '' : frm.sf1.lit);
     assertEquals(form(sf2), frm.sf2 == null? '' : frm.sf2.lit);
+    return frm;
 }
 
-function assertInvalidForm(f) {
+function assertPredicateForm(f, con, sf1, sf2, quantifier, quantified) {
+    frm = assertForm(f, con, sf1, sf2, PredicateFormula);
+    assertEquals(quantifier? symbols[quantifier] : null, frm.quantifier);
+    assertEquals(quantified? quantified : null, frm.quantified);
+}
+
+function assertInvalidForm(f, cls) {
+    if (!cls) cls = Formula;
     err = '';
-    try { new Formula(form(f)); }
+    try { new cls(form(f)); }
     catch (e) { err = e; }
     assertFalse(err == '');
 }

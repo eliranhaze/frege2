@@ -11,6 +11,8 @@ var CON = '·'; // @@export
 var DIS = '∨'; // @@export
 var IMP = '⊃'; // @@export
 var EQV = '≡'; // @@export
+var ALL = '∀'; // @@export
+var EXS = '∃'; // @@export
 var THF = '∴'; // @@export
 
 // ==========================
@@ -51,8 +53,8 @@ Formula.prototype.analyze = function(f) {
                 var _sf1 = f.slice(0, i);
                 var _sf2 = f.slice(i+1);
                 this.con = c;
-                this.sf1 = new Formula(_sf1); 
-                this.sf2 = new Formula(_sf2); 
+                this.sf1 = new this.constructor(_sf1); 
+                this.sf2 = new this.constructor(_sf2); 
                 if (!this.sf1.validateSub(_sf1) || !this.sf2.validateSub(_sf2)) {
                     throw new Error(generr);
                 }
@@ -75,7 +77,7 @@ Formula.prototype.analyze = function(f) {
             throw new Error(generr);
         } 
         this.con = NEG;
-        this.sf1 = new Formula(sf);
+        this.sf1 = new this.constructor(sf);
         return;
     }
     throw new Error(generr);
@@ -152,11 +154,49 @@ Formula.prototype.toString = function() {
 }
 
 // ==========================
+// predicate formula 
+// ==========================
+
+// predicate formula constructor
+function PredicateFormula(f) { // @@export
+    this.quantifier = null;
+    this.quantified = null;
+    Formula.call(this, f);
+}
+
+PredicateFormula.prototype = Object.create(Formula.prototype);
+PredicateFormula.prototype.constructor = PredicateFormula;
+
+PredicateFormula.prototype.analyze = function(f) {
+    if (isQuantifier(this.lit.charAt(0)) && quantifierRange(this.lit) == this.lit.slice(2)) {
+        if (this.lit.length < 4) throw new Error('טווח כמת קטן מדי');
+        this.quantifier = this.lit.charAt(0);
+        this.quantified = this.lit.charAt(1);
+        if (!isLower(this.quantified)) throw new Error('משתנה כמת לא תקין');
+        this.sf1 = new PredicateFormula(this.lit.slice(2));
+    } else {
+        Formula.prototype.analyze.call(this, f);
+    }
+}
+
+PredicateFormula.prototype.isAtomic = function() {
+    return isPredicateAtomic(this.lit);
+}
+
+// ==========================
 // formula utils
 // ==========================
 
 function isAlpha(a) {
     return a.toLowerCase() != a.toUpperCase();
+}
+
+function isLower(a) {
+    return isAlpha(a) && a == a.toLowerCase();
+}
+
+function isUpper(a) {
+    return isAlpha(a) && a == a.toUpperCase();
 }
 
 function isBinary(c) {
@@ -165,6 +205,54 @@ function isBinary(c) {
 
 function isCommutative(c) {
     return c == CON || c == DIS || c == EQV;
+}
+
+function isQuantifier(q) {
+    return q == ALL || q == EXS;
+}
+
+// get the quantifier range of a quantified formula string
+function quantifierRange(f) { // @@export
+    if (f.length > 3 && isQuantifier(f.charAt(0))) {
+        var start = f.charAt(2);
+        var remaining = f.slice(2);
+        if (start == '(') {
+            var qrange = '';
+            var stack = [];
+            for (var i = 0; i < remaining.length; i++) {
+                var c = remaining.charAt(i);
+                qrange += c;
+                if (c == '(') stack.push(c);
+                else if (c == ')') stack.pop();
+            if (stack.length == 0) return qrange;
+            } 
+        } else if (start == NEG) {
+            return start + quantifierRange(f.replace('~',''));
+        } else if (isQuantifier(start)) {
+            var remainingRange = quantifierRange(remaining);
+            if (!remainingRange) throw new Error('כימות לא תקין');
+            return remaining.slice(0,2) + remainingRange;
+        } else {
+            var qrange = '';
+            for (var i = 0; i < f.length - 3; i++) {
+                var cur = remaining.slice(0,i+2);
+                if (isPredicateAtomic(cur)) {
+                    qrange = cur;
+                } else break;
+            }
+            return qrange;
+        }
+    }
+}
+
+function isPredicateAtomic(s) {
+    if (s.length > 1 && isUpper(s.charAt(0))) {
+        for (var i = 1; i < s.length; i++) {
+            if (!isLower(s.charAt(i))) return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 // strip brackets and remove spaces from a formula string
