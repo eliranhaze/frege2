@@ -869,6 +869,9 @@ class PredicateFormulaTests(TestCase):
     def test_invalid2(self):
         self.assertRaises(ValueError, self._form, 'Fx@x')
         self.assertRaises(ValueError, self._form, 'xF')
+        self.assertRaises(ValueError, self._form, 'FF')
+        self.assertRaises(ValueError, self._form, 'FX')
+        self.assertRaises(ValueError, self._form, '@xFX')
         self.assertRaises(ValueError, self._form, '@@xFx')
         self.assertRaises(ValueError, self._form, '@xFx@y')
         self.assertRaises(ValueError, self._form, 'Fx#yFy')

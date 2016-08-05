@@ -331,7 +331,7 @@ class PredicateFormula(Formula):
                 if not remaining_range:
                     raise ValueError('illegal quantified expression: %s' % string)
                 return remaining[:2] + remaining_range
-            # case 4: quantified expression is atomic
+            # case 4: quantified expression is atomic - find its end
             else:
                 i = 0
                 qrange = ''
