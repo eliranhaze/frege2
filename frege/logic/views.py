@@ -81,7 +81,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         chapters = Chapter.objects.all()
-        logger.debug('%d chapters in queryset', len(chapters))
+        logger.debug('%s: %d chapters', self.request.user, len(chapters))
         return chapters
 
 class AboutView(LoginRequiredMixin, generic.DetailView):
@@ -96,13 +96,16 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
 
     def dispatch(self, request, chnum):
         chapter = get_object_or_404(Chapter, number=chnum)
+        logger.debug('%s: chapter %s', self.request.user, chapter)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
 
 class UserView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/user.html'
 
     def get_queryset(self):
-        return ChapterSubmission.objects.filter(user=self.request.user,time__isnull=False)
+        submissions = ChapterSubmission.objects.filter(user=self.request.user,time__isnull=False)
+        logger.debug('%s: user view %d submissions', self.request.user, len(submissions))
+        return submissions
 
 #    def get_context_data(self, **kwargs):
 #        context = super(UserView, self).get_context_data(**kwargs)
@@ -141,8 +144,9 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ChapterSummaryView, self).get_context_data(**kwargs)
         chapter = self.object
+        logger.debug('%s: chapter %s summary', self.request.user, chapter)
         submission = ChapterSubmission.objects.filter(chapter=chapter, user=self.request.user).first()
-        logger.debug('fetched submission %s for context', submission)
+        logger.debug('%s: fetched submission %s for context', self.request.user, submission)
         if submission and not submission.ongoing and submission.is_complete():
             answer_data, num_correct, pct = submission.correctness_data()
             sorted_answer_data = [(qnum, followup, correct) for (qnum, followup), correct in answer_data.iteritems()]
@@ -151,29 +155,30 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['num_correct'] = num_correct
             context['pct'] = pct
             context['remaining'] = submission.max_attempts - submission.attempt
-            logger.debug('serving chapter %s summary for %s, context=%s', chapter.number, self.request.user, context)
+            logger.debug('%s: serving chapter %s summary, context=%r', self.request.user, chapter.number, context)
         else:
-            logger.debug('not serving chapter %s summary for %s', chapter.number, self.request.user)
+            logger.debug('%s: not serving chapter %s summary', self.request.user, chapter.number)
         return context
 
     def post(self, request, chnum):
-        logger.info('%s submitting chapter %s', request.user, chnum)
+        logger.info('%s: submitting chapter %s', request.user, chnum)
         chapter = Chapter.objects.get(number=chnum)
         submission = ChapterSubmission.objects.get(
             user=request.user,
             chapter=chapter,
         )
+        logger.debug('%s: fetched submission %s for update', request.user, submission)
         response = {}
         if submission.is_complete() and submission.can_try_again() and submission.ongoing:
             submission.time = timezone.localtime(timezone.now())
             submission.attempt += 1
             submission.ongoing = False
             submission.save()
-            logger.info('saved submission: %s', submission)
+            logger.info('%s: saved submission: %s', self.request.user, submission)
             response['next'] = reverse('logic:chapter-summary', args=(chapter.number,))
         else:
-            logger.info('submission not allowed: %s', submission)
-        logger.debug('submission post response: %s', response)
+            logger.info('%s: submission not allowed: %s', self.request.user, submission)
+        logger.debug('%s: submission post response: %s', self.request.user, response)
         return JsonResponse(response)
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
@@ -199,12 +204,13 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def get_object(self):
         question = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
-        logger.debug('get_object: question is %s', question)
+        logger.debug('%s: question %s', self.request.user, question._str)
         return question
 
     def get_context_data(self, **kwargs):
         context = super(QuestionView, self).get_context_data(**kwargs)
         question = self.object
+        logger.debug('%s: question %s', self.request.user, question._str)
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
 
@@ -230,18 +236,18 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context.update(
             self.context_handlers[type(question)](question, answer)
         )
-        logger.debug('serving question %s/%s for %s, context=%s', question.chapter.number, question.number, self.request.user, context)
+        logger.debug('%s: serving question %s/%s, context=%s', self.request.user, question.chapter.number, question.number, context)
         return context
 
     def post(self, request, chnum, qnum):
-        logger.info('%s answering question %s/%s', request.user, chnum, qnum)
+        logger.info('%s: answering question %s/%s', request.user, chnum, qnum)
 
         chapter = Chapter.objects.get(number=chnum)
         question = Question._get(chapter__number=chnum, number=qnum)
         ext_data = None
 
         # handl user submission
-        submission, _ = ChapterSubmission.objects.get_or_create(
+        submission, created = ChapterSubmission.objects.get_or_create(
             user=request.user,
             chapter=chapter,
             defaults={
@@ -249,11 +255,13 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 'ongoing':True,
             },
         )
+        logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
 
         if not submission.can_try_again():
             return JsonResponse({})
 
         if not submission.ongoing:
+            logger.debug('%s: submission is now ongoing', request.user)
             submission.ongoing = True
             submission.save()
 
@@ -270,25 +278,27 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             defaults={
                 'correct': correct,
                 'answer': answer,
+                'time': timezone.localtime(timezone.now()),
             },
         )
 
         # save user answer
-        user_ans.correct = correct
-        user_ans.answer = answer
-        user_ans.time = timezone.localtime(timezone.now())
-        user_ans.save()
+        if not created:
+            user_ans.correct = correct
+            user_ans.answer = answer
+            user_ans.time = timezone.localtime(timezone.now())
+            user_ans.save()
 
-        logger.info('saved answer: user %s question %s/%s, correct=%s', request.user, chnum, qnum, correct)
+        logger.info('%s: %s answer %s/%s, correct=%s', request.user, 'saved new' if created else 'updated', chnum, qnum, correct)
 
         # make a response
         response = {
             'complete': submission.is_complete(),
-            'next': 'location.href="%s";' % self._next_url(self.request, question),
+            'next': 'location.href="%s";' % self._next_url(request, question),
         }
         if ext_data:
             response.update(ext_data)
-        logger.debug('question post response: %s', response)
+        logger.debug('%s: question post response: %s', request.user, response)
         return JsonResponse(response)
 
     def _next_url(self, request, question):
@@ -310,6 +320,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def _handle_choice_post(self, request, *args):
         choice = request.POST['choice']
+        logger.debug('%s: checking choice %s', request.user, choice)
         return Choice.objects.get(id=choice).is_correct, None, str(choice)
 
     def _handle_formulation_context(self, question, answer):
@@ -325,6 +336,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def _handle_formulation_post(self, request, question):
         is_correct = False
         answer = request.POST['formulation']
+        logger.debug('%s: checking formulation %s', request.user, answer)
         formalized = formalize(answer)
         for correct_ans in FormulationAnswer.objects.filter(question=question):
             if formalize(correct_ans.formula) == formalized:
@@ -362,6 +374,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 break
             answers.append(l)
         boolean_answers = [[v == 'T' for v in values] for values in answers]
+        logger.debug('%s: checking truth table answers %s', request.user, boolean_answers)
  
         if question.is_formula:
             formulas = [Formula(question.formula)]
@@ -376,6 +389,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         truth_table = MultiTruthTable(formulas)
         tt_corrects = [answer_values == result_values for answer_values, result_values in zip(boolean_answers, truth_table.result)]
         user_option = int(request.POST['option'])
+        logger.debug('%s: checking truth table option %s', request.user, user_option)
         option_correct = user_option == correct_option.num
 
         answer = '%s#%s' % (str(answers), user_option)
@@ -394,7 +408,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def _handle_deduction_post(self, request, question):
         argument = Argument(question.formula)
-        return Formula(request.POST['conclusion']) == argument.conclusion, None, request.POST['obj']
+        conclusion = request.POST['conclusion']
+        logger.debug('%s: checking deduction conclusion %s', request.user, conclusion)
+        return Formula(conclusion) == argument.conclusion, None, request.POST['obj']
 
 class FollowupQuestionView(QuestionView):
 
@@ -426,7 +442,7 @@ class FollowupQuestionView(QuestionView):
         if type(followup) == TruthTableQuestion:
             followup._set_table_type()
 
-        logger.debug('get_object: followup question is %s', followup)
+        logger.debug('%s: followup question is %s', self.request.user, followup)
         return followup
 
     def get_context_data(self, **kwargs):
