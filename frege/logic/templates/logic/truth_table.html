@@ -15,7 +15,7 @@
           <th class="text-center" style="width: 6%;">{{var}}</th>
         {% endfor %}
         {% for formula in formulas %}
-          <th class="text-center" ondblclick="unselectall({{forloop.counter}})">{% if formula == formulas.conclusion %}∴ {% endif %}{{formula}}</th>
+          <th class="text-center" ondblclick="unselectall({{forloop.counter}})">{% if formula == formulas.conclusion %}∴ {% endif %}{{formula.literal}}</th>
         {% endfor %}
         </tr>
       </thead>
