@@ -290,15 +290,16 @@ function stripBrackets(f) {
 // ==========================
 
 // argument constructor
-function Argument(str) { // @@export
+function Argument(str, cls) { // @@export
     try {
+        if (!cls) cls = Formula;
         var splits = str.split(THF);
-        this.conclusion = new Formula(splits[1]);
+        this.conclusion = new cls(splits[1]);
         this.premises = [];
         var prmSplits = splits[0].split(',');
         if (prmSplits.length > 1 || prmSplits[0] != '') {
             for (var i = 0; i < prmSplits.length; i++) {
-                this.premises.push(new Formula(prmSplits[i]));
+                this.premises.push(new cls(prmSplits[i]));
             }
         }
     }
@@ -310,10 +311,12 @@ function Argument(str) { // @@export
 function formalize(str, expectedType) {
     if (str.indexOf(THF) >= 0) {
         if (expectedType != 'Argument') throw new Error('ההצרנה צריכה להיות טענה');
-        return new Argument(str);
+        try { return new Argument(str); }
+        catch (e) { return new Argument(str, PredicateFormula); }
     }
     else {
         if (expectedType != 'Formula') throw new Error('ההצרנה צריכה להיות טיעון');
-        return new Formula(str);
+        try { return new Formula(str); }
+        catch (e) { return new PredicateFormula(str); }
     }
 }
