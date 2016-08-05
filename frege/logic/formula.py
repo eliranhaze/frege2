@@ -310,6 +310,7 @@ class PredicateFormula(Formula):
         if len(string) > 3 and string[0] in QUANTIFIERS:
             start = string[2]
             remaining = string[2:]
+            # case 1: quantified expression is in brackets
             if start == '(':
                 qrange = ''
                 stack = []
@@ -321,13 +322,16 @@ class PredicateFormula(Formula):
                         stack.pop()
                 if len(stack) == 0:
                     return qrange
+            # case 2: quantified expression is a negation
             elif start == NEG:
                 return start + self._quantifier_range(string.replace('~','',1))
+            # case 3: quantified expression starts with a quantifier
             elif start in QUANTIFIERS:
                 remaining_range = self._quantifier_range(remaining)
                 if not remaining_range:
                     raise ValueError('illegal quantified expression: %s' % string)
                 return remaining[:2] + remaining_range
+            # case 4: quantified expression is atomic
             else:
                 i = 0
                 qrange = ''
