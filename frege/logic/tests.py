@@ -836,6 +836,7 @@ class PredicateFormulaTests(TestCase):
        self.assertEquals(self.__form('#xPxy'), f._quantifier_range(self.__form('@y#xPxy>#y#xPxy')))
        self.assertEquals(self.__form('#x(Pxy>#y#xPxy)'), f._quantifier_range(self.__form('@y#x(Pxy>#y#xPxy)')))
        self.assertEquals(self.__form('(#xPxy>#y#xPxy)'), f._quantifier_range(self.__form('@y(#xPxy>#y#xPxy)')))
+       self.assertEquals(self.__form('Px'), f._quantifier_range(self.__form('@xPx>Pa')))
 
     def test_valid(self):
         self.assertIsNotNone(self._form('@x@y@zRxyz'))
