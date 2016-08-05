@@ -308,10 +308,12 @@ class PredicateFormula(Formula):
 
     def _quantifier_range(self, string):
         if len(string) > 3 and string[0] in QUANTIFIERS:
-            if string[2] == '(':
+            start = string[2]
+            remaining = string[2:]
+            if start == '(':
                 qrange = ''
                 stack = []
-                for s in string[2:]:
+                for s in remaining:
                     qrange += s
                     if s == '(':
                         stack.append(s)
@@ -319,10 +321,10 @@ class PredicateFormula(Formula):
                         stack.pop()
                 if len(stack) == 0:
                     return qrange
-            elif string[2] == NEG:
-                return string[2] + self._quantifier_range(string.replace('~','',1))
-            elif string[2] in QUANTIFIERS:
-                remaining_range = self._quantifier_range(string[2:])
+            elif start == NEG:
+                return start + self._quantifier_range(string.replace('~','',1))
+            elif start in QUANTIFIERS:
+                remaining_range = self._quantifier_range(remaining)
                 if not remaining_range:
                     raise ValueError('illegal quantified expression: %s' % string)
                 return string[2:4] + remaining_range
