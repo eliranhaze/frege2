@@ -280,12 +280,15 @@ class Formula(object):
         return hash(self.literal)
 
     def __unicode__(self):
-        return self.literal
+        return self.literal.encode('utf-8')
+
+    def __str__(self):
+        return self.literal.encode('utf-8')
 
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+        return '<%s: %s>' % (self.__class__.__name__, self)
 
-    __str__ = __unicode__
+    #__str__ = __unicode__
 
 class PredicateFormula(Formula):
 
@@ -419,11 +422,12 @@ class FormulaSet(object):
 
     SEP = ','
 
-    def __init__(self, string = None, formulas = None):
+    def __init__(self, string = None, formulas = None, formula_cls = Formula):
+        self.formula_cls = formula_cls
         if not string and not formulas:
             raise ValueError('formula set cannot be empty')
         if string:
-            self.formulas = [Formula(p) for p in string.split(self.SEP)]
+            self.formulas = [self.formula_cls(p) for p in string.split(self.SEP)]
         else:
             self.formulas = formulas
         self.formulas = self._uniqify(self.formulas)
@@ -443,12 +447,16 @@ class FormulaSet(object):
 
     @property
     def correct_option(self):
+        if not self.formula_cls == Formula:
+            raise NotImplementedError()
         if Formula.from_set(self).is_contradiction:
             return Inconsistent
         return Consistent
 
     @property
     def is_consistent(self):
+        if not self.formula_cls == Formula:
+            raise NotImplementedError()
         return self.correct_option == Consistent
 
     def __iter__(self):
@@ -467,10 +475,10 @@ class FormulaSet(object):
         return not self == other
 
     def __unicode__(self):
-        return self.literal
+        return self.literal.encode('utf-8')
 
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+        return '<%s: %s>' % (self.__class__.__name__, self)
 
     __str__ = __unicode__
 
@@ -478,19 +486,20 @@ class Argument(object):
 
     THEREFORE = u'∴'
 
-    def __init__(self, string = None, conclusion = None, premises = None):
+    def __init__(self, string = None, conclusion = None, premises = None, formula_cls = Formula):
+        self.formula_cls = formula_cls
         if string:
             self._analyze(string)
         else:
             self.conclusion = conclusion
-            self.premises = FormulaSet(formulas=premises)
+            self.premises = FormulaSet(formulas=premises, formula_cls=self.formula_cls)
 
     def _analyze(self, string):
         try:
             premises, conclusion = string.split(self.THEREFORE)
-            self.conclusion = Formula(conclusion)
+            self.conclusion = self.formula_cls(conclusion)
             if premises:
-                self.premises = FormulaSet(string=premises)
+                self.premises = FormulaSet(string=premises, formula_cls=self.formula_cls)
                 premises_literal = self.premises.literal 
             else:
                 self.premises = []
@@ -509,12 +518,16 @@ class Argument(object):
 
     @property
     def correct_option(self):
+        if not self.formula_cls == Formula:
+            raise NotImplementedError()
         if Formula.from_argument(self).is_tautology:
             return Valid
         return Invalid
         
     @property
     def is_valid(self):
+        if not self.formula_cls == Formula:
+            raise NotImplementedError()
         return self.correct_option == Valid
 
     def __iter__(self):
@@ -530,10 +543,10 @@ class Argument(object):
         return not self == other
 
     def __unicode__(self):
-        return self.literal
+        return self.literal.encode('utf-8')
 
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, unicode(self))
+        return '<%s: %s>' % (self.__class__.__name__, self)
 
     __str__ = __unicode__
 
