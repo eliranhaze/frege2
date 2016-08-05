@@ -331,6 +331,9 @@ class PredicateFormula(Formula):
                     i += 1
                 return qrange
                 
+    def _is_valid_first_letter(self, letter):
+        return super(PredicateFormula, self)._is_valid_first_letter(letter) or letter in QUANTIFIERS
+
     def _is_valid_atomic(self, literal):
         if len(literal) > 1 and literal[0].isupper():
             for lit in literal[1:]:

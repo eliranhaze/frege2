@@ -837,6 +837,15 @@ class PredicateFormulaTests(TestCase):
        self.assertEquals(self.__form('#x(Pxy>#y#xPxy)'), f._quantifier_range(self.__form('@y#x(Pxy>#y#xPxy)')))
        self.assertEquals(self.__form('(#xPxy>#y#xPxy)'), f._quantifier_range(self.__form('@y(#xPxy>#y#xPxy)')))
 
+    def test_valid(self):
+        self.assertIsNotNone(self._form('@x@y@zRxyz'))
+        self.assertIsNotNone(self._form('@x(@y@zRxyz)'))
+        self.assertIsNotNone(self._form('@x(#yRxy)'))
+        self.assertIsNotNone(self._form('@x(Fx>#yRxy)'))
+        self.assertIsNotNone(self._form('(@xFx>#yFy)'))
+        self.assertIsNotNone(self._form('(@xFx>#yFy)-Fa'))
+        self.assertIsNotNone(self._form('(@xFx>#yFy)>~@x~#y~Rxy'))
+
 class TruthTableTests(TestCase):
 
     def test_values1(self):
