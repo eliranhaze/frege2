@@ -130,6 +130,10 @@ class Question(models.Model):
             all_obj.extend(getattr(c.objects, func_name)(**kwargs))
         return all_obj
 
+    @property
+    def _str(self):
+        return '%s/%s' % (self.chapter.number, self.number)
+
     class Meta:
         abstract = True
         ordering = ['number']
@@ -158,7 +162,7 @@ class TextualQuestion(Question):
         return shorten_text(self.text)
  
     def __unicode__(self):
-        return '%s. %s' % (self.number, self.short_text)
+        return '%s/%s. %s' % (self.chapter.number, self.number, self.short_text)
 
     class Meta(Question.Meta):
         abstract = True
@@ -166,7 +170,7 @@ class TextualQuestion(Question):
 class FormalQuestion(Question):
 
     def __unicode__(self):
-        return '%s. %s' % (self.number, self.formula)
+        return '%s/%s. %s' % (self.chapter.number, self.number, self.formula)
 
     class Meta(Question.Meta):
         abstract = True
@@ -404,7 +408,7 @@ class ChapterSubmission(models.Model):
     chapter_number.short_description = 'פרק'
 
     def __unicode__(self):
-        return '%s/%s%s complete=%s, ongoing=%s, attempts=%d, retry=%s, pct=%.1f' % (
+        return '%s/%s%s complete=%s, ongoing=%s, attempts=%d, can-retry=%s, pct=%.1f' % (
             self.user,
             self.chapter.number,
             ' [%s]' % self.time if self.time else '',
