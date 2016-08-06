@@ -26,6 +26,7 @@ from .formula import (
     Tautology,
     Contingency,
     Contradiction,
+    quantifier_range,
 )
 
 from .models import (
@@ -240,7 +241,7 @@ class QuestionViewTests(TestCase):
         q1, choices1 = self._create_choice_question(number=1, num_choices=3)
         q2, answers2 = self._create_formulation_question(number=2, ans=[u'p∴p',u'q∴q'], followup=True)
         q3, answers3 = self._create_formulation_question(number=3, ans=[u'~(p%sq)∴~q' % DIS,u'~q%s~p∴~p' % CON], followup=True)
-        q4, answers4 = self._create_formulation_question(number=4, ans=['~p','~q'], followup=False)
+        q4, answers4 = self._create_formulation_question(number=4, ans=['~Ra','~Sa'], followup=False)
 
         # post answers
         self._post_choice(q1, choices1[1]) # correct
@@ -255,7 +256,7 @@ class QuestionViewTests(TestCase):
         self._post_formulation(q3, u'~p%s~q∴~p' % CON) # correct, followup skipped
         self._get_submission(allowed=False)
         self._post_submission(allowed=False)
-        self._post_formulation(q4, u'p') # incorrect
+        self._post_formulation(q4, u'Ra') # incorrect
         self._post_submission(allowed=False)
         self._post_followup(q3, u'~p') # correct (followup)
         self._post_submission(allowed=True)
@@ -274,7 +275,7 @@ class QuestionViewTests(TestCase):
         self._get_submission(allowed=False)
         self._post_followup(q2, u'~p') # incorrect (followup)
         self._get_submission(allowed=False)
-        self._post_formulation(q4, u'p') # incorrect
+        self._post_formulation(q4, u'~Rb') # incorrect
         self._get_submission(allowed=False)
         self._post_submission(allowed=True)
         self._post_submission(allowed=False)
@@ -292,7 +293,7 @@ class QuestionViewTests(TestCase):
         self._get_submission(allowed=False)
         self._post_followup(q2, u'p') # correct (followup)
         self._get_submission(allowed=False)
-        self._post_formulation(q4, u'~p') # correct
+        self._post_formulation(q4, u'~Sa') # correct
         self._get_submission(allowed=False)
         self._post_submission(allowed=True)
         self._post_submission(allowed=False)
@@ -829,14 +830,14 @@ class PredicateFormulaTests(TestCase):
 
     def test_range(self):
        f = self._form('@xPx') # dummy
-       self.assertEquals(self.__form('Px'), f._quantifier_range(self.__form('@xPx')))
-       self.assertEquals(self.__form('@xPx'), f._quantifier_range(self.__form('@y@xPx')))
-       self.assertEquals(self.__form('~Px'), f._quantifier_range(self.__form('@x~Px')))
-       self.assertEquals(self.__form('~@y~Px'), f._quantifier_range(self.__form('@x~@y~Px')))
-       self.assertEquals(self.__form('#xPxy'), f._quantifier_range(self.__form('@y#xPxy>#y#xPxy')))
-       self.assertEquals(self.__form('#x(Pxy>#y#xPxy)'), f._quantifier_range(self.__form('@y#x(Pxy>#y#xPxy)')))
-       self.assertEquals(self.__form('(#xPxy>#y#xPxy)'), f._quantifier_range(self.__form('@y(#xPxy>#y#xPxy)')))
-       self.assertEquals(self.__form('Px'), f._quantifier_range(self.__form('@xPx>Pa')))
+       self.assertEquals(self.__form('Px'), quantifier_range(self.__form('@xPx')))
+       self.assertEquals(self.__form('@xPx'), quantifier_range(self.__form('@y@xPx')))
+       self.assertEquals(self.__form('~Px'), quantifier_range(self.__form('@x~Px')))
+       self.assertEquals(self.__form('~@y~Px'), quantifier_range(self.__form('@x~@y~Px')))
+       self.assertEquals(self.__form('#xPxy'), quantifier_range(self.__form('@y#xPxy>#y#xPxy')))
+       self.assertEquals(self.__form('#x(Pxy>#y#xPxy)'), quantifier_range(self.__form('@y#x(Pxy>#y#xPxy)')))
+       self.assertEquals(self.__form('(#xPxy>#y#xPxy)'), quantifier_range(self.__form('@y(#xPxy>#y#xPxy)')))
+       self.assertEquals(self.__form('Px'), quantifier_range(self.__form('@xPx>Pa')))
 
     def test_valid(self):
         self.assertIsNotNone(self._form('@x@y@zRxyz'))
@@ -881,6 +882,32 @@ class PredicateFormulaTests(TestCase):
         self.assertRaises(ValueError, self._form, '@xFx~x')
         self.assertRaises(ValueError, self._form, '@xFxFy')
         self.assertRaises(ValueError, self._form, '@x#y@Fxy')
+
+    def test_equal(self):
+        self.assertTrue(self._form('@xFx') == self._form('@xFx'))
+        self.assertTrue(self._form('Ra') == self._form('Ra'))
+        self.assertTrue(self._form('@xFx-@xGx') == self._form('@xGx-@xFx'))
+        self.assertTrue(self._form('@xFx-@xGx') == self._form('@yGy-@xFx'))
+        self.assertTrue(self._form('@yFy') == self._form('@xFx'))
+        self.assertTrue(self._form('@y@xRyx') == self._form('@x@yRxy'))
+        self.assertTrue(self._form('@y@xRyx') == self._form('@u@vRuv'))
+        self.assertTrue(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz>#yFy'))
+        self.assertTrue(self._form('@x#yLxy-#xFx') == self._form('#yFy-@w#zLwz'))
+
+    def test_not_equal(self):
+        self.assertFalse(self._form('@xFx') == self._form('@xFy'))
+        self.assertFalse(self._form('@xFx') == self._form('#xFx'))
+        self.assertFalse(self._form('Ra') == self._form('Rb'))
+        self.assertFalse(self._form('Rx') == self._form('Ry'))
+        self.assertFalse(self._form('Rx') == self._form('#xRx'))
+        self.assertFalse(self._form('Rxy') == self._form('Ryx'))
+        self.assertFalse(self._form('@xFx-@xGy') == self._form('@xGx-@xFx'))
+        self.assertFalse(self._form('@xFx-@xGx') == self._form('@yGx-@xFx'))
+        self.assertFalse(self._form('@yFy') == self._form('@xFy'))
+        self.assertFalse(self._form('@y@xRyx') == self._form('@x#yRxy'))
+        self.assertFalse(self._form('#y#xRyx') == self._form('@u@vRuv'))
+        self.assertFalse(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz-#yFy'))
+        self.assertFalse(self._form('@x#yLxy-#xFx') == self._form('@w#zLxz-#xFx'))
 
 class TruthTableTests(TestCase):
 

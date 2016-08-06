@@ -3,6 +3,7 @@
 Code for handling classical propositional logic formulas.
 """
 
+from string import ascii_lowercase
 import re
 
 # Connectives
@@ -154,7 +155,7 @@ class Formula(object):
             assert not self.sf1 and not self.sf2
             if len(self.literal) == 0:
                 raise ValueError('empty formula')
-            if not self._is_valid_atomic(self.literal):
+            if not self._is_valid_atomic():
                 raise ValueError('%s is not a valid atomic formula' % self.literal)
         else:
             assert len(self.literal) > 1
@@ -166,8 +167,8 @@ class Formula(object):
     def _is_valid_first_letter(self, letter):
         return letter.islower() or letter.isupper() or letter == NEG or letter == '('
 
-    def _is_valid_atomic(self, literal):
-        return len(literal) == 1 and (literal.islower() or literal.isupper())
+    def _is_valid_atomic(self):
+        return len(self.literal) == 1 and (self.literal.islower() or self.literal.isupper())
 
     @classmethod
     def from_set(cls, formula_set):
@@ -295,7 +296,7 @@ class PredicateFormula(Formula):
     def _deep_analyze(self):
         self.quantifier = None
         self.quantified = None
-        if self.literal[0] in QUANTIFIERS and self._quantifier_range(self.literal) == self.literal[2:]:
+        if self.literal[0] in QUANTIFIERS and self._quantifier_range() == self.literal[2:]:
             if len(self.literal) < 4: # quantifier + var + atomic
                 raise ValueError('formula too short: %s' % self.literal)
             self.quantifier = self.literal[0]
@@ -306,50 +307,14 @@ class PredicateFormula(Formula):
         else:
             super(PredicateFormula, self)._deep_analyze()
 
-    def _quantifier_range(self, string):
-        if len(string) > 3 and string[0] in QUANTIFIERS:
-            start = string[2]
-            remaining = string[2:]
-            # case 1: quantified expression is in brackets
-            if start == '(':
-                qrange = ''
-                stack = []
-                for s in remaining:
-                    qrange += s
-                    if s == '(':
-                        stack.append(s)
-                    elif s == ')':
-                        stack.pop()
-                if len(stack) == 0:
-                    return qrange
-            # case 2: quantified expression is a negation
-            elif start == NEG:
-                return start + self._quantifier_range(string.replace('~','',1))
-            # case 3: quantified expression starts with a quantifier
-            elif start in QUANTIFIERS:
-                remaining_range = self._quantifier_range(remaining)
-                if not remaining_range:
-                    raise ValueError('illegal quantified expression: %s' % string)
-                return remaining[:2] + remaining_range
-            # case 4: quantified expression is atomic - find its end
-            else:
-                i = 0
-                qrange = ''
-                while self._is_valid_atomic(remaining[:i+2]) and i < len(string) - 3:
-                    qrange = remaining[:i+2]
-                    i += 1
-                return qrange
+    def _quantifier_range(self):
+        return quantifier_range(self.literal)
                 
     def _is_valid_first_letter(self, letter):
         return super(PredicateFormula, self)._is_valid_first_letter(letter) or letter in QUANTIFIERS
 
-    def _is_valid_atomic(self, literal):
-        if len(literal) > 1 and literal[0].isupper():
-            for lit in literal[1:]:
-                if not lit.islower():
-                    return False
-            return True
-        return False
+    def _is_valid_atomic(self):
+        return is_valid_atomic(self.literal)
 
     @property
     def is_atomic(self):
@@ -379,6 +344,78 @@ class PredicateFormula(Formula):
     @property
     def is_contradiction(self):
         raise NotImplementedError()
+
+    def __eq__(self, other):
+        if super(PredicateFormula, self).__eq__(other):
+            return True
+        if not isinstance(other, PredicateFormula):
+            return False
+        if self.literal == other.literal:
+            return True
+        if self.quantifier and self.quantifier == other.quantifier and len(self.literal) == len(other.literal):
+            if self.quantified != other.quantified:
+                new_var = get_new_var([self, other])
+                other_inner_range = other._quantifier_range().replace(other.quantified, new_var)
+                self_inner_range = self._quantifier_range().replace(self.quantified, new_var)
+            else:
+                other_inner_range = other._quantifier_range()
+                self_inner_range = self._quantifier_range()
+            other_inner = PredicateFormula(other_inner_range)
+            self_inner = PredicateFormula(self_inner_range)
+            return self_inner == other_inner
+        return False
+
+##########################################################################
+# Predicate formula utils
+
+def quantifier_range(string):
+    if len(string) > 3 and string[0] in QUANTIFIERS:
+        start = string[2]
+        remaining = string[2:]
+        # case 1: quantified expression is in brackets
+        if start == '(':
+            qrange = ''
+            stack = []
+            for s in remaining:
+                qrange += s
+                if s == '(':
+                    stack.append(s)
+                elif s == ')':
+                    stack.pop()
+            if len(stack) == 0:
+                return qrange
+        # case 2: quantified expression is a negation
+        elif start == NEG:
+            return start + quantifier_range(string.replace('~','',1))
+        # case 3: quantified expression starts with a quantifier
+        elif start in QUANTIFIERS:
+            remaining_range = quantifier_range(remaining)
+            if not remaining_range:
+                raise ValueError('illegal quantified expression: %s' % string)
+            return remaining[:2] + remaining_range
+        # case 4: quantified expression is atomic - find its end
+        else:
+            i = 0
+            qrange = ''
+            while is_valid_atomic(remaining[:i+2]) and i < len(string) - 3:
+                qrange = remaining[:i+2]
+                i += 1
+            return qrange
+                
+def is_valid_atomic(string):
+    if len(string) > 1 and string[0].isupper():
+        for c in string[1:]:
+            if not c.islower():
+                return False
+        return True
+    return False
+
+def get_new_var(formulas):
+    for c in ascii_lowercase:
+        if all (c not in f.literal for f in formulas):
+            return c
+
+##########################################################################
 
 class TruthTable(object):
 
