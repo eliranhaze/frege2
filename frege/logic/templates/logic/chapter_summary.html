@@ -11,6 +11,8 @@
         </p>
     {% if num_correct < answer_data|length and remaining > 0 %}
         <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
+    {% else %}
+        <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>חזרה לשאלות</a></p>
     {% endif %}
         <table class="table table-condensed">
           {% for qnum, followup, correct in answer_data %}
