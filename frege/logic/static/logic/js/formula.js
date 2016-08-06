@@ -315,7 +315,7 @@ function formalize(str, expectedType) {
         catch (e) { return new Argument(str, PredicateFormula); }
     }
     else {
-        if (expectedType != 'Formula') throw new Error('ההצרנה צריכה להיות טיעון');
+        if (expectedType == 'Argument') throw new Error('ההצרנה צריכה להיות טיעון');
         try { return new Formula(str); }
         catch (e) { return new PredicateFormula(str); }
     }
