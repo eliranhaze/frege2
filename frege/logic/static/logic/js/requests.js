@@ -158,6 +158,12 @@ $(document).ready(function() {
     $("#eqv").click(function() {
         insert('≡');
     });
+    $("#all").click(function() {
+        insert('∀');
+    });
+    $("#exs").click(function() {
+        insert('∃');
+    });
     $("#thf").click(function() {
         insert('∴');
     });
