@@ -885,12 +885,15 @@ class PredicateFormulaTests(TestCase):
 
     def test_equal(self):
         self.assertTrue(self._form('@xFx') == self._form('@xFx'))
+        self.assertTrue(self._form('@xFxx') == self._form('@xFxx'))
         self.assertTrue(self._form('Ra') == self._form('Ra'))
         self.assertTrue(self._form('@xFx-@xGx') == self._form('@xGx-@xFx'))
         self.assertTrue(self._form('@xFx-@xGx') == self._form('@yGy-@xFx'))
         self.assertTrue(self._form('@yFy') == self._form('@xFx'))
+        self.assertTrue(self._form('@yFyy') == self._form('@xFxx'))
         self.assertTrue(self._form('@y@xRyx') == self._form('@x@yRxy'))
         self.assertTrue(self._form('@y@xRyx') == self._form('@u@vRuv'))
+        self.assertTrue(self._form('@y@xRyx>#yLyy') == self._form('@u@vRuv>#xLxx'))
         self.assertTrue(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz>#yFy'))
         self.assertTrue(self._form('@x#yLxy-#xFx') == self._form('#yFy-@w#zLwz'))
 
@@ -898,6 +901,8 @@ class PredicateFormulaTests(TestCase):
         self.assertFalse(self._form('@xFx') == self._form('@xFy'))
         self.assertFalse(self._form('@xFx') == self._form('#xFx'))
         self.assertFalse(self._form('Ra') == self._form('Rb'))
+        self.assertFalse(self._form('@xRax') == self._form('@xRbx'))
+        self.assertFalse(self._form('@xRxx') == self._form('@xRyx'))
         self.assertFalse(self._form('Rx') == self._form('Ry'))
         self.assertFalse(self._form('Rx') == self._form('#xRx'))
         self.assertFalse(self._form('Rxy') == self._form('Ryx'))
