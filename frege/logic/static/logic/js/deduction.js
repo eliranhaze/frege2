@@ -310,7 +310,7 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
     if (withText) {
         var text = getText();
         if (!text) return errmsg("יש להזין נוסחה");
-        try { var formula = new Formula(text); }
+        try { var formula = get_formula(text); }
         catch (e) { return errmsg(e.message); }
         args.push(formula);
     }

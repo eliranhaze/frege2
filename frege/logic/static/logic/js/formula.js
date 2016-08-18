@@ -118,7 +118,7 @@ Formula.prototype.equals = function(other) {
 // returns a new formula
 Formula.prototype.combine = function(other, c) {
     if (isBinary(c)) {
-        f = new Formula('p'); // this is a bit of a hack    
+        f = get_formula('p'); // this is a bit of a hack    
         f.con = c;
         f.sf1 = this;
         f.sf2 = other;
@@ -129,7 +129,7 @@ Formula.prototype.combine = function(other, c) {
 
 // return a negation of this formula
 Formula.prototype.negate = function() {
-    f = new Formula('p');    
+    f = get_formula('p');    
     f.con = NEG;
     f.sf1 = this;
     f.lit = NEG + this.wrap();
@@ -308,6 +308,14 @@ function Argument(str, cls) { // @@export
     } 
 }
 
+function get_formula(str) {
+    try {
+        return new Formula(str);
+    } catch (e) {
+        return new PredicateFormula(str);
+    }
+}
+
 function formalize(str, expectedType) {
     if (str.indexOf(THF) >= 0) {
         if (expectedType != 'Argument') throw new Error('ההצרנה צריכה להיות טענה');
@@ -316,7 +324,6 @@ function formalize(str, expectedType) {
     }
     else {
         if (expectedType == 'Argument') throw new Error('ההצרנה צריכה להיות טיעון');
-        try { return new Formula(str); }
-        catch (e) { return new PredicateFormula(str); }
+        return get_formula(str);
     }
 }
