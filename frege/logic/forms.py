@@ -44,3 +44,4 @@ class FormulationAnswerFormSet(forms.BaseInlineFormSet):
             for answer in all_answers:
                 if not Argument(answer).is_valid:
                    raise ValidationError(u'הטיעון %s אינו ניתן להוכחה' % answer)
+

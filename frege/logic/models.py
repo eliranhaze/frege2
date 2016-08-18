@@ -13,6 +13,7 @@ from .formula import (
     FormulaSet,
     Argument,
     formal_type,
+    get_argument,
 )
 
 import logging
@@ -223,10 +224,10 @@ def validate_argument(arg):
 
 def validate_deduction_argument(arg):
     try:
-        a = Argument(arg)
+        a = get_argument(arg)
     except:
         raise ValidationError({'formula':'הטיעון שהוזן אינו תקין'})
-    if not a.is_valid:
+    if a.formula_cls == Formula and not a.is_valid:
         raise ValidationError({'formula':'הטיעון שהוזן אינו ניתן להוכחה'})
     return a.literal
 
@@ -309,7 +310,7 @@ class DeductionQuestion(FormalQuestion):
         self.formula = validate_deduction_argument(self.formula)
 
     def display(self):
-        return Argument(self.formula).display
+        return get_argument(self.formula).display
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת דדוקציה'
@@ -322,6 +323,7 @@ class FormulationAnswer(models.Model):
 
     def clean(self):
         super(FormulationAnswer, self).clean()
+        #TODO: is  this code needed? there are validtions already in forms.py and this doesn't seem to handle predicates
         ftype = formal_type(self.formula)
         if ftype == Formula:
             self.formula = validate_formula(self.formula)
@@ -329,7 +331,6 @@ class FormulationAnswer(models.Model):
             self.formula = validate_formula_set(self.formula)
         elif ftype == Argument:
             self.formula = validate_argument(self.formula)
-        # TODO: if formula is FOL, followup must not be truth table
 
     def __unicode__(self):
         return self.formula

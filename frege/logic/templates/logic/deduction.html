@@ -55,8 +55,8 @@
   }
 {% else %}
   {% for premise in premises %}
-  dd.push(new Formula('{{premise}}'), 'prem');
-  addRow('{{premise}}', 'prem', {{forloop.counter}});
+  dd.push(formalize('{{premise.literal}}', 'Formula'), 'prem');
+  addRow('{{premise.literal}}', 'prem', {{forloop.counter}});
   {% endfor %}
 {% endif %}
   function isEmpty() {

@@ -17,6 +17,7 @@ from .formula import (
     MultiTruthTable,
     formalize,
     formal_type,
+    get_argument,
 )
 from .models import (
     Chapter,
@@ -397,7 +398,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def _handle_deduction_context(self, question, answer):
         self.template_name = 'logic/deduction.html'
-        argument = Argument(question.formula)
+        argument = get_argument(question.formula)
         context = {
             'argument': argument,
             'premises': argument.premises,
@@ -407,10 +408,10 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def _handle_deduction_post(self, request, question):
-        argument = Argument(question.formula)
+        argument = get_argument(question.formula)
         conclusion = request.POST['conclusion']
         logger.debug('%s: checking deduction conclusion %s', request.user, conclusion)
-        return Formula(conclusion) == argument.conclusion, None, request.POST['obj']
+        return formalize(conclusion) == argument.conclusion, None, request.POST['obj']
 
 class FollowupQuestionView(QuestionView):
 

@@ -622,3 +622,9 @@ def formalize(string):
         except:
             pass
     return ftype(string)
+
+def get_argument(string):
+    a = formalize(string)
+    assert type(a) == Argument
+    return a
+
