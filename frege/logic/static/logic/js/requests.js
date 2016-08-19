@@ -110,7 +110,7 @@ $(document).ready(function() {
 
 
 // function for inserting text at cursor position
-jQuery.fn.extend({
+$.fn.extend({
     insertAtCaret: function(myValue){
         return this.each(function(i) {
             if (document.selection) {

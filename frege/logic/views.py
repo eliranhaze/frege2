@@ -11,6 +11,7 @@ from itertools import groupby
 
 from .formula import (
     Formula,
+    PredicateFormula,
     FormulaSet,
     Argument,
     TruthTable,
@@ -402,6 +403,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context = {
             'argument': argument,
             'premises': argument.premises,
+            'is_predicate': argument.formula_cls == PredicateFormula,
         }
         if answer:
             context['answer'] = answer

@@ -15,7 +15,22 @@ function Deduction(obj) { // @@export
     this.reverseStack = [];
     if (obj) {
         // init values from passed object
-        for (var prop in obj) this[prop] = obj[prop];
+        for (var prop in obj) {
+            if (prop == 'formulas') {
+                var formulas = obj[prop];
+                for (var i = 0; i < formulas.length; i++) {
+                    if (formulas[i]) {
+                        if (isArbConst(formulas[i])) {
+                            this.formulas.push(formulas[i]);
+                        } else {
+                            this.formulas.push(get_formula(formulas[i].lit));
+                        }
+                    }
+                }
+            } else {
+                this[prop] = obj[prop];
+            }
+        }
     }
 }
 
@@ -185,6 +200,39 @@ Deduction.prototype.negE = function(i) {
     }
 }
 
+// universal elimination
+// ∀xPx => Pa 
+Deduction.prototype.allE = function(i, c) {
+    if (!this.isOnCurrentLevel(i)) return;
+    var f = this.get(i);
+    if (f && f.quantifier == ALL) {
+        var result = f.subst(c);
+        this.push(result, 'E ' + ALL + ' ' + i);
+        return result;
+    }
+}
+
+// existential elimination
+// ∃xPx, Pa ... H => H
+Deduction.prototype.exsE = function(i) {
+    if (this.nesting() > 0) {
+        var fExs = this.get(i);
+        var f1 = this.get(this.openIndex());
+        var f2 = this.get(this.idx());
+        if (f1 && f2 && f1.contains && f2.contains) {
+            var c = f1.getConstantInstanceOf(fExs);
+            if (c) {
+                if (f2.contains(c)) {
+                    throw Error('לא ניתן להוציא את הקבוע השרירותי מתת ההוכחה');
+                }
+                var result = f2;
+                this.push(result, 'E ' + EXS + ' ' + i + ',' + this.openIndex() + '-' + this.idx(), false, true);
+                return result;
+            }
+        }
+    }
+}
+
 // conjunction introduction
 // A,B => A·B
 Deduction.prototype.conI = function(i1, i2) {
@@ -230,7 +278,7 @@ Deduction.prototype.impI = function() {
     if (this.nesting() > 0) {
         var f1 = this.get(this.openIndex());
         var f2 = this.get(this.idx());
-        if (f1 && f2) {
+        if (f1 && f2 && !isArbConst(f1)) {
             var result = f1.combine(f2, IMP);
             this.push(result, 'I ' + IMP + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
@@ -244,7 +292,7 @@ Deduction.prototype.negI = function() { // @@export
     if (this.nesting() > 0) {
         var f1 = this.get(this.openIndex());
         var f2 = this.get(this.idx());
-        if (f1 && f2 && f2.isContradiction()) {
+        if (f1 && f2 && f2.isContradiction() && !isArbConst(f1)) {
             var result = f1.negate();
             this.push(result, 'I ' + NEG + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
@@ -252,9 +300,51 @@ Deduction.prototype.negI = function() { // @@export
     }
 }
 
+// universal introduction
+// a ... Pa => ∀xPx
+Deduction.prototype.allI = function() { // @@export
+    if (this.nesting() > 0) {
+        var c = this.get(this.openIndex());
+        var f1 = this.get(this.idx());
+        if (c && f1 && f1.contains && f1.contains(c)) {
+            var result = f1.quantify(ALL, c);
+            this.push(result, 'I ' + ALL + ' ' + this.openIndex() + '-' + this.idx(), false, true);
+            return result;
+        }
+    }
+}
+
+// existential introduction
+// Pa => ∃xPx
+Deduction.prototype.exsI = function(i, c) {
+    if (!this.isOnCurrentLevel(i)) return;
+    var f = this.get(i);
+    if (f && f.contains) {
+        if (!f.contains(c)) {
+            throw Error('הנוסחה לא מכילה את הקבוע שהוזן');
+        }
+        var result = f.quantify(EXS, c);
+        this.push(result, 'I ' + EXS + ' ' + i);
+        return result;
+    }
+}
+
 // hypothesis
 Deduction.prototype.hyp = function(f) {
     this.push(f, 'hyp', true);
+    return f;
+}
+ 
+// arbitrary constant
+Deduction.prototype.arb = function(c) {
+    // check if const already appeared
+    for (var i = 0; i < this.formulas.length; i++) {
+        var f = this.formulas[i];
+        if (f && ((isArbConst(f) && f == c) || (f.contains && f.contains(c)))) {
+            return;    
+        }
+    }
+    this.push(c, 'arb const', true);
     return f;
 }
  
@@ -272,31 +362,25 @@ Deduction.prototype.rep = function(i) {
     return f;
 }
 
+function isArbConst(x) {
+    return typeof x == 'string' && x.length == 1;
+}
+
 // ==========================
 // user interaction
 // ==========================
 
 var dd = new Deduction();
-var lastBtn = null;
-var okTxt = 'OK';
 
 // perform handling before applying rule
-function doApply(btn, func, num, withText, isRep) {
-    lastBtn = null;
-    if (withText) {
-        if (btn.text() == okTxt) {
-            if (applyRule(func, num, withText)) {
-                hideText(btn);
-            }
-        } else {
-            hideText(btn);
-            if (validateSelection(num)) {
-                showText(btn);
-                lastBtn = btn;
-            }
+function doApply(btn, func, num, txtKW, isRep) {
+    if (txtKW) {
+        if (validateSelection(num)) {
+            showText(btn, func, num, txtKW);
         }
     } else {
-        applyRule(func, num, withText, isRep);
+        hideText();
+        applyRule(func, num, false, isRep);
     }
     btn.blur();
 }
@@ -400,7 +484,7 @@ function addNesting(content, row, level) {
     return '<div class="dd-hyp" id="nst'+row+''+level+'">'+content+'</div>';
 }
 
-// add a end of nesting indication
+// add an end of nesting indication
 function endNestingLine(index, nesting) {
     $("#nst"+index+""+nesting).toggleClass("dd-hyp-end");
 }
@@ -411,36 +495,32 @@ function getChecked() {
         return this.name;
     }).get();
 }
-function showText(btn) {
-    $("#extra").css("opacity","1");
+function showText(btn, func, num, txtKW) {
+    $("#extra").show();
+    $("#ftxtLbl").html(txtKW.label);
     setTimeout(function(){ // trick to not miss the focus
         $("#ftxt").focus();
     }, 5);
-    $("#ftxt").on("input", function() {
-        if (!btn.data("symbol")) {
-            // save button symbol before replacing
-            btn.data("symbol", btn.text());
-        }
-        btn.removeClass("btn-default");
-        btn.addClass("btn-primary");
-        btn.text(okTxt);
-    });
-    $(document).keypress(function(e) {
-        if (e.which == 13) { // Enter 
-            btn.click();
-        }
-    });
+    $("#txtOk").data('btn', btn);
+    $("#txtOk").data('func', func);
+    $("#txtOk").data('num', num);
 }
-function hideText(btn) {
-    $("#extra").css("opacity","0");
+function hideText() {
+    $("#extra").hide();
     $("#ftxt").val("");
     $("#ftxt").off("input");
-    $(document).off("keypress");
+    $("#txtOk").data('btn', null);
+    $("#txtOk").data('func', null);
+    $("#txtOk").data('num', null);
+}
+function textOk() {
+    btn = $("#txtOk").data('btn');
     if (btn) {
-        // restore button defaults
-        btn.addClass("btn-default");
-        btn.removeClass("btn-primary");
-        btn.text(btn.data("symbol"));
+        func = $("#txtOk").data('func');
+        num = $("#txtOk").data('num');
+        if (applyRule(func, num, true)) {
+            hideText();
+        }
     }
 }
 function getText() {
@@ -449,7 +529,7 @@ function getText() {
 
 // checkbox click handler
 function oncheck() {
-    hideText(lastBtn);
+    hideText();
 }
 
 // @@skipstart
@@ -470,6 +550,12 @@ $(document).ready(function() {
     $("#neg-e").click(function() {
         doApply($(this), dd.negE, 1);
     });
+    $("#all-e").click(function() {
+        doApply($(this), dd.allE, 1);
+    });
+    $("#exs-e").click(function() {
+        doApply($(this), dd.exsE, 1);
+    });
     $("#imp-i").click(function() {
         doApply($(this), dd.impI, 0);
     });
@@ -477,7 +563,7 @@ $(document).ready(function() {
         doApply($(this), dd.conI, 2);
     });
     $("#dis-i").click(function() {
-        doApply($(this), dd.disI, 1, true);
+        doApply($(this), dd.disI, 1, {label: 'נוסחה'});
     });
     $("#eqv-i").click(function() {
         doApply($(this), dd.eqvI, 2);
@@ -485,15 +571,35 @@ $(document).ready(function() {
     $("#neg-i").click(function() {
         doApply($(this), dd.negI, 0);
     });
+    $("#all-i").click(function() {
+        doApply($(this), dd.allI, 0, {label: 'קבוע שרירותי'});
+    });
+    $("#exs-i").click(function() {
+        doApply($(this), dd.exsI, 1);
+    });
     $("#hyp").click(function() {
-        doApply($(this), dd.hyp, 0, true);
+        doApply($(this), dd.hyp, 0, {label: 'היפותזה'});
+    });
+    $("#arb").click(function() {
+        doApply($(this), dd.arb, 0, {label: 'קבוע שרירותי'});
     });
     $("#rep").click(function() {
-        doApply($(this), dd.rep, 1, false, true);
+        doApply($(this), dd.rep, 1, null, true);
     });
     $("#rem").click(function() {
         removeRow();
         $(this).blur();
+    });
+    $("#txtOk").click(function() {
+        textOk();
+    });
+    $("#txtCnl").click(function() {
+        hideText();
+    });
+    $(document).keypress(function(e) {
+        if (e.which == 13) { // Enter 
+            $("#txtOk").click();
+        }
     });
 });
 // @@skipend

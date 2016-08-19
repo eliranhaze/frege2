@@ -20,6 +20,10 @@
     <button class="btn btn-default dd-btn" id="dis-e">E ∨</button>
     <button class="btn btn-default dd-btn" id="imp-e">E ⊃</button>
     <button class="btn btn-default dd-btn" id="eqv-e">E ≡</button>
+    {% if is_predicate %}
+    <button class="btn btn-default dd-btn" id="all-e">E ∀</button>
+    <button class="btn btn-default dd-btn" id="exs-e">E ∃</button>
+    {% endif %}
   </div>
   <div class="noselect">
     <button class="btn btn-default dd-btn" id="neg-i">I ~</button>
@@ -27,21 +31,36 @@
     <button class="btn btn-default dd-btn" id="dis-i">I ∨</button>
     <button class="btn btn-default dd-btn" id="imp-i">I ⊃</button>
     <button class="btn btn-default dd-btn" id="eqv-i">I ≡</button>
+    {% if is_predicate %}
+    <button class="btn btn-default dd-btn" id="all-i">I ∀</button>
+    <button class="btn btn-default dd-btn" id="exs-i">I ∃</button>
+    {% endif %}
   </div>
   <div class="noselect">
     <button class="btn btn-default dd-btn" id="hyp">hyp</button>
+    {% if is_predicate %}
+    <button class="btn btn-default dd-btn" id="arb">arb</button>
+    {% endif %}
     <button class="btn btn-default dd-btn" id="rep">rep</button>
     <button class="btn btn-default dd-btn" id="rem"><span class="glyphicon glyphicon-trash" style="margin-top: 6px;"></span></button>
   </div>
-  <div class="noselect" id="extra" style="opacity: 0;">
-    <input type="text" id="ftxt" style="margin-top: 10px; padding-left: 3px;" size="28" maxlength="30" autocorrect="off" autocapitalize="none">
-    <label for="ftxt" style="margin-left: 10px;">נוסחה</label>
+  <div class="noselect text-center" id="extra" style="display: none; margin-top: 20px;">
+    <div>
+      <button class="btn btn-default" id="txtCnl"><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-primary" id="txtOk"><span class="glyphicon glyphicon-ok"></span></button>
+      <input type="text" id="ftxt" style="padding-left: 3px;" size="32" maxlength="30" autocorrect="off" autocapitalize="none">
+      <label for="ftxt" id="ftxtLbl" style="margin-left: 8px;">נוסחה</label>
+    </div>
     <div>
       <input type="button" class="btn sym-btn" id="neg" value="~"/>
       <input type="button" class="btn sym-btn" id="con" value="·"/>
       <input type="button" class="btn sym-btn" id="dis" value="∨"/>
       <input type="button" class="btn sym-btn" id="imp" value="⊃"/>
       <input type="button" class="btn sym-btn" id="eqv" value="≡"/>
+      {% if is_predicate %}
+      <input type="button" class="btn sym-btn" id="all" value="∀"/>
+      <input type="button" class="btn sym-btn" id="exs" value="∃"/>
+      {% endif %}
     </div>
   </div>
 </div>

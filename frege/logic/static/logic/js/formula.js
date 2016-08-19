@@ -43,7 +43,7 @@ Formula.prototype.analyze = function(f) {
             // validate next char
             if (i+1 < f.length) {
                 var next = f.charAt(i+1);
-                if (!(isAlpha(next) || next == NEG || next == '(')) {
+                if (!(isAlpha(next) || next == NEG || next == '(' || isQuantifier(next))) {
                     throw new Error(generr);
                 }
             }
@@ -179,8 +179,71 @@ PredicateFormula.prototype.analyze = function(f) {
     }
 }
 
+// substitute a constant for the first quantified variable of this formula, returns a formula
+PredicateFormula.prototype.subst = function(c) {
+    if (this.quantifier) {
+        return new PredicateFormula(this.sf1.substFree(c, this.quantified));
+    }
+}
+
+// substitute a constant for an given unbound variable, returns a string
+PredicateFormula.prototype.substFree = function(c, v) {
+    if (this.quantifier) {
+        if (this.quantified == v) {
+            return this.lit;
+        } else {
+            return this.quantifier + this.quantified + '(' + this.sf1.substFree(c, v) + ')';
+        }
+    } else if (isBinary(this.con)) {
+        return '(' + this.sf1.substFree(c, v) + ')' + this.con + '(' + this.sf2.substFree(c, v) + ')';
+    } else if (this.con == NEG) {
+        return this.con + '(' + this.sf1.substFree(c, v) + ')';
+    } else if (this.isAtomic()) {
+        return this.lit.replace(new RegExp(v, 'g'), c);
+    }
+}
+
+// if this instantiantes the given quantified formula, returns the constant that
+// substitutes the quantified variable
+// e.g.: Pa.getConstantInstanceOf(∃xPx) = a
+PredicateFormula.prototype.getConstantInstanceOf = function(f) {
+    if (f.quantifier) {
+        for (var i = 0; i < this.lit.length; i++) {
+            var c = this.lit.charAt(i);
+            if (isLower(c) && f.subst(c).equals(this)) {
+                return c;
+            }
+        }
+    }
+}
+
+// quantify over a variable in place of a given constant
+var _variables = ['x', 'y', 'z', 'w', 'u' ,'v', 't', 's', 'r'];
+PredicateFormula.prototype.quantify = function(quantifier, c) {
+    if (this.contains(c)) {
+        for (var i = 0; i < _variables.length; i++) {
+            if (!this.contains(_variables[i])) {
+                var v = _variables[i];
+                break;
+            }
+        }
+        if (v) {
+            var openFormula = new PredicateFormula(
+                this.lit.replace(new RegExp(c, 'g'), v)
+            );
+            return new PredicateFormula(
+                quantifier + v + openFormula.wrap()
+            );
+        }
+    }
+}
+
 PredicateFormula.prototype.isAtomic = function() {
     return isPredicateAtomic(this.lit);
+}
+
+PredicateFormula.prototype.contains = function(c) {
+    return this.lit.indexOf(c) > -1;
 }
 
 // ==========================
