@@ -118,7 +118,7 @@ Formula.prototype.equals = function(other) {
 // returns a new formula
 Formula.prototype.combine = function(other, c) {
     if (isBinary(c)) {
-        f = get_formula('p'); // this is a bit of a hack    
+        f = get_formula(this.lit); // this is a bit of a hack    
         f.con = c;
         f.sf1 = this;
         f.sf2 = other;
@@ -129,7 +129,7 @@ Formula.prototype.combine = function(other, c) {
 
 // return a negation of this formula
 Formula.prototype.negate = function() {
-    f = get_formula('p');    
+    f = get_formula(this.lit);    
     f.con = NEG;
     f.sf1 = this;
     f.lit = NEG + this.wrap();
@@ -192,12 +192,13 @@ PredicateFormula.prototype.substFree = function(c, v) {
         if (this.quantified == v) {
             return this.lit;
         } else {
-            return this.quantifier + this.quantified + '(' + this.sf1.substFree(c, v) + ')';
+            return this.quantifier + this.quantified + new PredicateFormula(this.sf1.substFree(c, v)).wrap();
         }
     } else if (isBinary(this.con)) {
-        return '(' + this.sf1.substFree(c, v) + ')' + this.con + '(' + this.sf2.substFree(c, v) + ')';
+        return new PredicateFormula(this.sf1.substFree(c, v))
+                   .combine(new PredicateFormula(this.sf2.substFree(c, v)), this.con).lit;
     } else if (this.con == NEG) {
-        return this.con + '(' + this.sf1.substFree(c, v) + ')';
+        return new PredicateFormula(this.sf1.substFree(c, v)).negate().lit;
     } else if (this.isAtomic()) {
         return this.lit.replace(new RegExp(v, 'g'), c);
     }
