@@ -68,7 +68,7 @@
 <script src="{% static 'logic/js/deduction.js'%}"></script>
 <script>
 {% if answer %}
-  dd = new Deduction({{answer|safe}});
+  var dd = new Deduction({{answer|safe}});
   for (var i = 1; i < dd.formulas.length; i++) {
       addRow(dd.formulas[i].lit, dd.symbols[i], i);
   }
