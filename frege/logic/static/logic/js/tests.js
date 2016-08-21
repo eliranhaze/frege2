@@ -997,8 +997,8 @@ try {
     assertEquals(1, d.nestingLevels[3]);
 
     var d = deduction('Pa', 'Pb');
-    assertUndefined(d.arb('a'));
-    assertUndefined(d.arb('b'));
+    assertError(d, d.arb, ['a'], 'הופיע');
+    assertError(d, d.arb, ['b'], 'הופיע');
     d.arb('c');
     assertEquals('c', d.get(3));
     assertEquals(1, d.nesting());
@@ -1007,12 +1007,12 @@ try {
     d.arb('a');
     assertEquals('a', d.get(2));
     assertEquals(1, d.nesting());
-    assertUndefined(d.arb('a'));
+    assertError(d, d.arb, ['a'], 'הופיע');
     d.arb('b');
     assertEquals('b', d.get(3));
     assertEquals(2, d.nesting());
-    assertUndefined(d.arb('a'));
-    assertUndefined(d.arb('b'));
+    assertError(d, d.arb, ['a'], 'הופיע');
+    assertError(d, d.arb, ['b'], 'הופיע');
 
     // ----------------
     // rep tests 

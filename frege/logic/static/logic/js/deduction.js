@@ -363,7 +363,7 @@ Deduction.prototype.rep = function(i) {
 }
 
 function isArbConst(x) {
-    return typeof x == 'string' && x.length == 1;
+    return typeof x == 'string' && x.length == 1 && isLower(x);
 }
 
 // ==========================
