@@ -341,11 +341,11 @@ Deduction.prototype.arb = function(c) {
     for (var i = 0; i < this.formulas.length; i++) {
         var f = this.formulas[i];
         if (f && ((isArbConst(f) && f == c) || (f.contains && f.contains(c)))) {
-            return;    
+            throw Error('קבוע זה כבר הופיע בהוכחה');
         }
     }
     this.push(c, 'arb const', true);
-    return f;
+    return c;
 }
  
 // repetition
@@ -373,30 +373,32 @@ function isArbConst(x) {
 var dd = new Deduction();
 
 // perform handling before applying rule
-function doApply(btn, func, num, txtKW, isRep) {
+function doApply(btn, func, num, txtKW, allowOffLevel) {
     if (txtKW) {
         if (validateSelection(num)) {
             showText(btn, func, num, txtKW);
         }
     } else {
         hideText();
-        applyRule(func, num, false, isRep);
+        applyRule(func, num, false, allowOffLevel);
     }
     btn.blur();
 }
 
 // general function for applying a rule, gets rule-specific parameters and callbacks
-function applyRule(ruleFunc, numRows, withText, isRep) {
-    if (!validateSelection(numRows, isRep)) {
+function applyRule(ruleFunc, numRows, inputHandler, allowOffLevel) {
+    if (!validateSelection(numRows, allowOffLevel)) {
         return;
     }
     var args = getChecked();
-    if (withText) {
-        var text = getText();
-        if (!text) return errmsg("יש להזין נוסחה");
-        try { var formula = get_formula(text); }
-        catch (e) { return errmsg(e.message); }
-        args.push(formula);
+    if (inputHandler) {
+        var input = getText();
+        if (!input) return errmsg("יש להזין ערך");
+        try {
+            inputHandler(input, args);
+        } catch (e) {
+            return errmsg(e.message);
+        }
     }
     // apply the rule
     try {var consq = ruleFunc.apply(dd, args);}
@@ -405,7 +407,9 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
         // add the new row(s) to the deduction
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
-            addRow(consq[i].lit, dd.symbols[dd.symbols.length-1], (dd.idx() - consq.length + i + 1));
+            var formula = consq[i];
+            if (!isArbConst(consq[i])) var formula = formula.lit
+            addRow(formula, dd.symbols[dd.symbols.length-1], (dd.idx() - consq.length + i + 1));
         }
         removeSelection();
         $.notifyClose();
@@ -418,12 +422,29 @@ function applyRule(ruleFunc, numRows, withText, isRep) {
     }
 }
 
+
+// ======================================================
+// rules input handlers
+// ======================================================
+
+function formulaInputHandler(input, ruleArgs) {
+    var formula = get_formula(input);
+    ruleArgs.push(formula);
+}
+
+function arbInputHandler(input, ruleArgs) {
+    if (!isArbConst(input)) throw Error('קבוע לא תקין');
+    ruleArgs.push(input);
+}
+
+// ======================================================
+
 function removeSelection() {
     $("input[type=checkbox]").prop("checked", false);
 }
 
 // return true if user selection is ok, otherwise print error and return false
-function validateSelection(numRows, isRep) {
+function validateSelection(numRows, allowOffLevel) {
     if (numRows > 0) {
         var checked = getChecked();
         if (checked.length != numRows) {
@@ -431,7 +452,7 @@ function validateSelection(numRows, isRep) {
             errmsg("יש לבחור "+words[numRows]+" בדיוק על מנת להשתמש בכלל זה");
             return false;
         }
-        if (isRep) return true;
+        if (allowOffLevel) return true;
         for (var i = 0; i < checked.length; i++) {
             if (!dd.isOnCurrentLevel(checked[i])) {
                 errmsg("שורה " + checked[i] + " מחוץ לרמה הנוכחית");
@@ -501,24 +522,22 @@ function showText(btn, func, num, txtKW) {
     setTimeout(function(){ // trick to not miss the focus
         $("#ftxt").focus();
     }, 5);
-    $("#txtOk").data('btn', btn);
-    $("#txtOk").data('func', func);
-    $("#txtOk").data('num', num);
+    $("#txtOk").data('btnData', {
+        func: func,
+        num: num,
+        handler: txtKW.handler, 
+    });
 }
 function hideText() {
     $("#extra").hide();
     $("#ftxt").val("");
     $("#ftxt").off("input");
-    $("#txtOk").data('btn', null);
-    $("#txtOk").data('func', null);
-    $("#txtOk").data('num', null);
+    $("#txtOk").data('btnData', null);
 }
 function textOk() {
-    btn = $("#txtOk").data('btn');
-    if (btn) {
-        func = $("#txtOk").data('func');
-        num = $("#txtOk").data('num');
-        if (applyRule(func, num, true)) {
+    btnData = $("#txtOk").data('btnData');
+    if (btnData) {
+        if (applyRule(btnData.func, btnData.num, btnData.handler)) {
             hideText();
         }
     }
@@ -551,10 +570,13 @@ $(document).ready(function() {
         doApply($(this), dd.negE, 1);
     });
     $("#all-e").click(function() {
-        doApply($(this), dd.allE, 1);
+        doApply($(this), dd.allE, 1, {
+            label: 'קבוע',
+            handler: arbInputHandler
+        });
     });
     $("#exs-e").click(function() {
-        doApply($(this), dd.exsE, 1);
+        doApply($(this), dd.exsE, 1, null, true);
     });
     $("#imp-i").click(function() {
         doApply($(this), dd.impI, 0);
@@ -563,7 +585,10 @@ $(document).ready(function() {
         doApply($(this), dd.conI, 2);
     });
     $("#dis-i").click(function() {
-        doApply($(this), dd.disI, 1, {label: 'נוסחה'});
+        doApply($(this), dd.disI, 1, {
+            label: 'נוסחה',
+            handler: formulaInputHandler
+        });
     });
     $("#eqv-i").click(function() {
         doApply($(this), dd.eqvI, 2);
@@ -572,16 +597,25 @@ $(document).ready(function() {
         doApply($(this), dd.negI, 0);
     });
     $("#all-i").click(function() {
-        doApply($(this), dd.allI, 0, {label: 'קבוע שרירותי'});
+        doApply($(this), dd.allI, 0);
     });
     $("#exs-i").click(function() {
-        doApply($(this), dd.exsI, 1);
+        doApply($(this), dd.exsI, 1, {
+            label: 'קבוע',
+            handler: arbInputHandler
+        });
     });
     $("#hyp").click(function() {
-        doApply($(this), dd.hyp, 0, {label: 'היפותזה'});
+        doApply($(this), dd.hyp, 0, {
+            label: 'היפותזה',
+            handler: formulaInputHandler
+        });
     });
     $("#arb").click(function() {
-        doApply($(this), dd.arb, 0, {label: 'קבוע שרירותי'});
+        doApply($(this), dd.arb, 0, {
+            label: 'קבוע שרירותי',
+            handler: arbInputHandler
+        });
     });
     $("#rep").click(function() {
         doApply($(this), dd.rep, 1, null, true);
