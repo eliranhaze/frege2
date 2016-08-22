@@ -74,8 +74,8 @@ class Question(models.Model):
 
     DEFAULT_NUM = 0
 
-    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
-    number = models.PositiveIntegerField(default=DEFAULT_NUM, verbose_name='מספר')
+    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE, null=True)
+    number = models.PositiveIntegerField(default=DEFAULT_NUM, verbose_name='מספר', null=True)
 
     def user_answers(self):
         return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
@@ -235,7 +235,7 @@ def validate_deduction_argument(arg):
 def validate_truth_table(x):
     pass
 
-class TruthTableQuestion(FormalQuestion):
+class SemanticsQuestion(FormalQuestion):
     FORMULA = 'F'
     SET = 'S'
     ARGUMENT = 'A'
@@ -244,19 +244,8 @@ class TruthTableQuestion(FormalQuestion):
         (SET,'קבוצה'),
         (ARGUMENT, 'טיעון'),
     )
-    table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES)
-    formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60)
-
-    _formula_cls = Formula
-
-    @property
-    def options(self):
-        if self.is_formula:
-            return FORMULA_OPTIONS
-        elif self.is_set:
-            return SET_OPTIONS
-        elif self.is_argument:
-            return ARGUMENT_OPTIONS
+    table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES, null=True)
+    formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60, null=True)
 
     @property
     def is_formula(self):
@@ -271,7 +260,7 @@ class TruthTableQuestion(FormalQuestion):
         return self.table_type == self.ARGUMENT
  
     def clean(self):
-        super(TruthTableQuestion, self).clean()
+        super(SemanticsQuestion, self).clean()
         self._set_table_type()
         if self.is_formula:
             self.formula = validate_formula(self.formula, self._formula_cls)
@@ -282,7 +271,7 @@ class TruthTableQuestion(FormalQuestion):
 
     def save(self, *args, **kwargs):
         self._set_table_type()
-        super(TruthTableQuestion, self).save(*args, **kwargs)
+        super(SemanticsQuestion, self).save(*args, **kwargs)
 
     def display(self):
         if self.is_formula:
@@ -300,18 +289,34 @@ class TruthTableQuestion(FormalQuestion):
                 Argument: self.ARGUMENT
             }[formal_type(self.formula)]
         except KeyError:
-            raise ValidationError('ערך זה לא תקין עבור טלבאות אמת')
+            raise ValidationError({'formula':'ערך לא תקין'})
 
     class Meta(FormalQuestion.Meta):
-        verbose_name = 'שאלת טבלת אמת'
-        verbose_name_plural = 'שאלות טבלת אמת'
+        abstract = True
         unique_together = ('chapter', 'formula')
 
-class ModelQuestion(TruthTableQuestion):
+class TruthTableQuestion(SemanticsQuestion):
+
+    _formula_cls = Formula
+
+    @property
+    def options(self):
+        if self.is_formula:
+            return FORMULA_OPTIONS
+        elif self.is_set:
+            return SET_OPTIONS
+        elif self.is_argument:
+            return ARGUMENT_OPTIONS
+
+    class Meta(SemanticsQuestion.Meta):
+        verbose_name = 'שאלת טבלת אמת'
+        verbose_name_plural = 'שאלות טבלת אמת'
+
+class ModelQuestion(SemanticsQuestion):
 
     _formula_cls = PredicateFormula
 
-    class Meta(FormalQuestion.Meta):
+    class Meta(SemanticsQuestion.Meta):
         verbose_name = 'שאלת פשר'
         verbose_name_plural = 'שאלות פשר'
 

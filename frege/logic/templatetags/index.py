@@ -4,3 +4,7 @@ register = template.Library()
 @register.filter
 def index(List, i):
     return List[int(i)]
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

@@ -178,12 +178,12 @@ class Formula(object):
                 f_str = f.literal
             else:
                 f_str = '(%s)%s(%s)' % (f_str, CON, f.literal)
-        return Formula(f_str)
+        return cls(f_str)
 
     @classmethod
     def from_argument(cls, argument):
         if argument.premises:
-            return Formula('(%s)%s(%s)' % (cls.from_set(argument.premises).literal, IMP, argument.conclusion.literal))
+            return cls('(%s)%s(%s)' % (cls.from_set(argument.premises).literal, IMP, argument.conclusion.literal))
         return argument.conclusion
 
     @property
@@ -324,6 +324,27 @@ class PredicateFormula(Formula):
     def variables(self):
         raise NotImplementedError()
 
+    @property
+    def predicates(self):
+        if self.is_atomic:
+            return [self.literal[0]]
+        if self.quantifier or self.con == NEG:
+            return self.sf1.predicates
+        return list(set(self.sf1.predicates + self.sf2.predicates))
+ 
+    @property
+    def constants(self):
+        return self._constants()
+
+    def _constants(self, other_than=[]):
+        if self.is_atomic:
+            return [c for c in self.literal[1:] if c not in other_than]
+        if self.quantifier:
+            return self.sf1._constants(other_than=other_than+[self.quantified])
+        if self.con == NEG:
+            return self.sf1._constants(other_than=other_than)
+        return list(set(self.sf1._constants(other_than=other_than) + self.sf2._constants(other_than=other_than)))
+ 
     def _var_list(self):
         raise NotImplementedError()
 

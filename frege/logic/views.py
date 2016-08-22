@@ -28,6 +28,7 @@ from .models import (
     FormulationQuestion,
     FormulationAnswer,
     TruthTableQuestion,
+    ModelQuestion,
     DeductionQuestion,
     UserAnswer,
     ChapterSubmission,
@@ -195,12 +196,14 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             ChoiceQuestion: self._handle_choice_context,
             FormulationQuestion: self._handle_formulation_context,
             TruthTableQuestion: self._handle_truth_table_context,
+            ModelQuestion: self._handle_model_context,
             DeductionQuestion: self._handle_deduction_context,
         }
         self.post_handlers = {
             ChoiceQuestion: self._handle_choice_post,
             FormulationQuestion: self._handle_formulation_post,
             TruthTableQuestion: self._handle_truth_table_post,
+            ModelQuestion: self._handle_model_post,
             DeductionQuestion: self._handle_deduction_post,
         }
 
@@ -212,7 +215,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(QuestionView, self).get_context_data(**kwargs)
         question = self.object
-        logger.debug('%s: question %s', self.request.user, question._str)
+        logger.debug('%s: question %s %s', self.request.user, question._str, type(question))
         context['chapter'] = question.chapter
         context['chap_questions'] = chapter_questions_user_data(question.chapter, self.request.user)
 
@@ -243,6 +246,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def post(self, request, chnum, qnum):
         logger.info('%s: answering question %s/%s', request.user, chnum, qnum)
+        logger.debug('%s: post data %s', request.user, request.POST)
 
         chapter = Chapter.objects.get(number=chnum)
         question = Question._get(chapter__number=chnum, number=qnum)
@@ -396,6 +400,49 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         answer = '%s#%s' % (str(answers), user_option)
         return (option_correct and all(tt_corrects)), {'tt_corrects':tt_corrects}, answer
+
+    def _handle_model_context(self, question, answer):
+        self.template_name = 'logic/model.html'
+        context = {}
+        if question.is_formula:
+            formulas = [PredicateFormula(question.formula)]
+        elif question.is_set:
+            formulas = FormulaSet(question.formula, formula_cls=PredicateFormula)
+        elif question.is_argument:
+            formulas = Argument(question.formula, formula_cls=PredicateFormula)
+
+        context['formulas'] = formulas
+        context['predicates'] = set(p for f in formulas for p in f.predicates)
+        context['constants'] = set(c for f in formulas for c in f.constants)
+        if answer:
+            ctx_ans = ast.literal_eval(answer)
+            for k, v in ctx_ans.iteritems():
+                ctx_ans[k] = ','.join(v)
+            context['answer'] = ctx_ans
+        return context
+
+    def _handle_model_post(self, request, question):
+        assignment = {
+            'domain': request.POST['domain'].split(',')
+        }
+
+        if question.is_formula:
+            formula = PredicateFormula(question.formula)
+        elif question.is_set:
+            formula = PredicateFormula.from_set(FormulaSet(question.formula, formula_cls=PredicateFormula))
+        elif question.is_argument:
+            formula = PredicateFormula.from_argument(Argument(question.formula, formula_cls=PredicateFormula))
+
+        assignment.update({
+            p: request.POST[p].split(',') for p in formula.predicates
+        })
+        assignment.update({
+            c: request.POST[c] for c in formula.constants
+        })
+
+        logger.debug('%s: checking model assignment %s', request.user, assignment)
+        correct = formula.assign(assignment.copy()) == False
+        return correct, {}, assignment
 
     def _handle_deduction_context(self, question, answer):
         self.template_name = 'logic/deduction.html'

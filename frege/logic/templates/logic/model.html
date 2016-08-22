@@ -1,0 +1,54 @@
+{% extends "logic/question_base.html" %}
+{% load index %}
+
+{% block question_text %}{% if question.is_formula %}נתונה הנוסחה:{% elif question.is_set %}נתונה הקבוצה:{% else %}נתון הטיעון:{% endif %}<p class="text-center formal formal-dsp">{{question.display}}</p>
+<p>יש להראות פשר נגדי.</p>
+{% endblock %}
+{% block question_instruction %}פשר{% endblock %}
+
+{% block question_content %}
+
+<div>
+  <p class="small text-muted">יש להזין ערכים מופרדים בפסיק, ערך בודד, או להשאיר את השדה ריק עבור קבוצה ריקה (<a href="" target="_blank">מידע נוסף</a>).</p>
+</div>
+<table class="table table-hover">
+    <tr>
+      <td style="width: 20%;">תחום דיון</td>
+      <td>
+        <input type="text" id="inp-d" style="padding-right: 3px;" size="32" maxlength="30" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:'domain'}}{% endif %}">
+      </td>
+    </tr>
+  {% for predicate in predicates %}
+    <tr>
+      <td style="width: 20%;">פרדיקט {{predicate}}</td>
+      <td>
+        <input type="text" id="inp-p-{{forloop.counter}}" style="padding-right: 3px;" size="32" maxlength="30" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:predicate}}{% endif %}">
+      </td>
+    </tr>
+  {% endfor %}
+  {% for constant in constants %}
+    <tr>
+      <td style="width: 20%;">קבוע {{constant}}</td>
+      <td>
+      <input type="text" id="inp-c-{{forloop.counter}}" style="padding-right: 3px;" size="10" maxlength="10" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:constant}}{% endif %}">
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+
+<script>
+  function isEmpty() {
+  }
+  function getPostData() {
+      return {
+        'domain': $('#inp-d').val(),
+        {% for predicate in predicates %}
+        '{{predicate}}': $('#inp-p-{{forloop.counter}}').val(),
+        {% endfor %}
+        {% for constant in constants %}
+        '{{constant}}': $('#inp-c-{{forloop.counter}}').val(),
+        {% endfor %}
+      };
+  }
+</script>
+{% endblock question_content %} 

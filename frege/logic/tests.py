@@ -1214,6 +1214,22 @@ class PredicateFormulaTests(TestCase):
             'R': {},
         }))
 
+    def test_predicates(self):
+        self.assertEquals({'P'}, set(self._form('Pa').predicates))
+        self.assertEquals({'P'}, set(self._form('@xPx').predicates))
+        self.assertEquals({'P'}, set(self._form('~@xPx').predicates))
+        self.assertEquals({'P'}, set(self._form('@x~(~Px-Px)').predicates))
+        self.assertEquals({'P','Q','R'}, set(self._form('((Pa-Qb)>Rab)').predicates))
+        self.assertEquals({'P','Q','R'}, set(self._form('@x((Px-Qx)>~#yRxy)').predicates))
+
+    def test_constants(self):
+        self.assertEquals({'a'}, set(self._form('Pa').constants))
+        self.assertEquals({'a'}, set(self._form('~(Pa-~Pa)').constants))
+        self.assertEquals(set(), set(self._form('@xPx').constants))
+        self.assertEquals(set(), set(self._form('~@xPx').constants))
+        self.assertEquals({'a','b'}, set(self._form('((Pa-Qb)>Rab)').constants))
+        self.assertEquals({'a','b','c'}, set(self._form('@x((Rbx-Sxc)>~#yRxa)').constants))
+
 class TruthTableTests(TestCase):
 
     def test_values1(self):
