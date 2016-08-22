@@ -519,6 +519,7 @@ function getChecked() {
 function showText(btn, func, num, txtKW) {
     $("#extra").show();
     $("#ftxtLbl").html(txtKW.label);
+    $("#ftxtHint").html(txtKW.hint);
     setTimeout(function(){ // trick to not miss the focus
         $("#ftxt").focus();
     }, 5);
@@ -572,6 +573,7 @@ $(document).ready(function() {
     $("#all-e").click(function() {
         doApply($(this), dd.allE, 1, {
             label: 'קבוע',
+            hint: 'יש להזין קבוע עבור הוצאת כמת כולל',
             handler: arbInputHandler
         });
     });
@@ -587,6 +589,7 @@ $(document).ready(function() {
     $("#dis-i").click(function() {
         doApply($(this), dd.disI, 1, {
             label: 'נוסחה',
+            hint: 'יש להזין נוסחה עבור הכנסת דיסיונקציה',
             handler: formulaInputHandler
         });
     });
@@ -602,18 +605,21 @@ $(document).ready(function() {
     $("#exs-i").click(function() {
         doApply($(this), dd.exsI, 1, {
             label: 'קבוע',
+            hint: 'יש לבחור קבוע עבור הכנסת כמת ישי',
             handler: arbInputHandler
         });
     });
     $("#hyp").click(function() {
         doApply($(this), dd.hyp, 0, {
             label: 'היפותזה',
+            hint: 'יש להזין נוסחה שתשמש כהיפותזה',
             handler: formulaInputHandler
         });
     });
     $("#arb").click(function() {
         doApply($(this), dd.arb, 0, {
-            label: 'קבוע שרירותי',
+            label: 'קבוע',
+            hint: 'יש להזין קבוע שרירותי',
             handler: arbInputHandler
         });
     });
