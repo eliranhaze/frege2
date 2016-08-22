@@ -15,14 +15,14 @@
     <tr>
       <td style="width: 20%;">תחום דיון</td>
       <td>
-        <input type="text" id="inp-d" style="padding-right: 3px;" size="32" maxlength="30" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:'domain'}}{% endif %}">
+        <input type="text" id="inp-d" class="txtIn" size="50" maxlength="50" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:'domain'}}{% endif %}">
       </td>
     </tr>
   {% for predicate in predicates %}
     <tr>
       <td style="width: 20%;">פרדיקט {{predicate}}</td>
       <td>
-        <input type="text" id="inp-p-{{forloop.counter}}" style="padding-right: 3px;" size="32" maxlength="30" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:predicate}}{% endif %}">
+        <input type="text" id="inp-p-{{forloop.counter}}" class="txtIn" size="50" maxlength="50" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:predicate}}{% endif %}">
       </td>
     </tr>
   {% endfor %}
@@ -30,7 +30,7 @@
     <tr>
       <td style="width: 20%;">קבוע {{constant}}</td>
       <td>
-      <input type="text" id="inp-c-{{forloop.counter}}" style="padding-right: 3px;" size="10" maxlength="10" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:constant}}{% endif %}">
+      <input type="text" id="inp-c-{{forloop.counter}}" class="txtIn" size="10" maxlength="10" autocorrect="off" autocapitalize="none" value="{% if answer %}{{answer|get_item:constant}}{% endif %}">
       </td>
     </tr>
   {% endfor %}
@@ -38,6 +38,52 @@
 
 <script>
   function isEmpty() {
+      try {
+          validate();
+      } catch (e) {
+          return e;
+      }
+  }
+  function validate() {
+      var domain = $('#inp-d').val();
+      if (domain.indexOf('(') > -1 || domain.indexOf(')') > -1) {
+          throw 'ערך לא חוקי בתחום דיון';
+      }
+      if (domain.length == 0) {
+          throw 'תחום דיום לא יכול להיות ריק';
+      }
+      _validate(domain);
+      domain = domain.split(',');
+      {% for predicate in predicates %}
+      var prd = $('#inp-p-{{forloop.counter}}').val();
+      _validate(prd);
+      prd = prd.replace(/[()]+/g, '').split(',');
+      for (var i = 0; i < prd.length; i++) {
+          _validateIn(prd[i], domain);
+      }
+      {% endfor %}
+      {% for constant in constants %}
+      var cons = $('#inp-c-{{forloop.counter}}').val();
+      _validate(cons);
+      if (!cons) {
+          throw 'קבועים לא יכולים להיות ריקים'
+      }
+      if (cons.indexOf(',') > -1) {
+          throw 'קבועים חייבים להכיל ערך בודד'
+      }
+      _validateIn(cons, domain);
+      {% endfor %}
+  }
+  function _validate(x) {
+      if (/[^ ()a-zA-Z0-9, ]/.test(x) || x.indexOf(')(') > -1 || x.indexOf('()') > -1 || x.indexOf('((') > -1 || x.indexOf('))') > -1 ||
+         (x.match(/\(/g) || []).length != (x.match(/\)/g) || []).length) {
+          throw 'ערך לא חוקי: ' + x;
+      }
+  }
+  function _validateIn(x, domain) {
+      if (x && domain.indexOf(x) < 0) {
+          throw 'הערך ' + x + ' לא נמצא בתחום הדיון';
+      }
   }
   function getPostData() {
       return {

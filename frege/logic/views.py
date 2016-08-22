@@ -1,4 +1,5 @@
 import ast
+import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
@@ -417,13 +418,20 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if answer:
             ctx_ans = ast.literal_eval(answer)
             for k, v in ctx_ans.iteritems():
-                ctx_ans[k] = ','.join(v)
+                to_str = lambda x: '(%s)' % ','.join(x) if type(x) == tuple else str(x)
+                ctx_ans[k] = ','.join([to_str(i) for i in v] if hasattr(v, '__iter__') else to_str(v))
             context['answer'] = ctx_ans
         return context
 
     def _handle_model_post(self, request, question):
+
+        def split(x):
+            if '(' in x:
+                return [split(y) for y in re.findall('\((\S+?)\)', x)]
+            return tuple(s for s in x.split(',') if s)
+
         assignment = {
-            'domain': request.POST['domain'].split(',')
+            'domain': split(request.POST['domain'])
         }
 
         if question.is_formula:
@@ -434,14 +442,20 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             formula = PredicateFormula.from_argument(Argument(question.formula, formula_cls=PredicateFormula))
 
         assignment.update({
-            p: request.POST[p].split(',') for p in formula.predicates
+            p: split(request.POST[p]) for p in formula.predicates
         })
         assignment.update({
-            c: request.POST[c] for c in formula.constants
+            c: split(request.POST[c]) for c in formula.constants
         })
 
         logger.debug('%s: checking model assignment %s', request.user, assignment)
-        correct = formula.assign(assignment.copy()) == False
+
+        try:
+            correct = formula.assign(assignment.copy()) == False
+        except AssertionError, e:
+            logger.debug('%s: answer presumed incorrect because of assertion error: %s', request.user, e)
+            correct = False
+
         return correct, {}, assignment
 
     def _handle_deduction_context(self, question, answer):
