@@ -914,6 +914,306 @@ class PredicateFormulaTests(TestCase):
         self.assertFalse(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz-#yFy'))
         self.assertFalse(self._form('@x#yLxy-#xFx') == self._form('@w#zLxz-#xFx'))
 
+    def test_assign_atomic(self):
+        self.assertTrue(self._form('Pa').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'a': 2,
+        }))
+        self.assertTrue(self._form('Rab').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3)},
+            'a': 1,
+            'b': 2,
+        }))
+        self.assertTrue(self._form('Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 1,
+            'b': 2,
+            'c': 3,
+        }))
+        self.assertTrue(self._form('Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 2,
+            'b': 2,
+            'c': 2,
+        }))
+
+        self.assertFalse(self._form('Pa').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'a': 1,
+        }))
+        self.assertFalse(self._form('Rab').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3)},
+            'a': 2,
+            'b': 2,
+        }))
+        self.assertFalse(self._form('Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 3,
+            'b': 2,
+            'c': 3,
+        }))
+
+        self.assertFalse(self._form('Pa').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'a': 4,
+        }))
+        self.assertFalse(self._form('Rab').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3)},
+            'a': 7,
+            'b': 2,
+        }))
+        self.assertFalse(self._form('Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 9,
+            'b': 2,
+            'c': 3,
+        }))
+
+        self.assertRaises(KeyError, self._form('Rabc').assign, {
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 9,
+            'c': 3,
+        })
+
+    def test_assign_propositional(self):
+        self.assertTrue(self._form('Pa-Qb').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'Q': {1, 3},
+            'a': 2,
+            'b': 1,
+        }))
+        self.assertTrue(self._form('Rab - Rba').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3), (2,1)},
+            'a': 2,
+            'b': 1,
+        }))
+        self.assertTrue(self._form('(Rab-Rbc)>Rac').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3)},
+            'a': 1,
+            'b': 2,
+            'c': 3,
+        }))
+        self.assertTrue(self._form('~~~Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 3,
+            'b': 2,
+            'c': 1,
+        }))
+        self.assertTrue(self._form('(Rabc>~Pa)-(~Pa>Rabc)').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'P': {1, 3},
+            'a': 2,
+            'b': 2,
+            'c': 2,
+        }))
+
+        self.assertFalse(self._form('Pa-Qb').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'Q': {1, 3},
+            'a': 2,
+            'b': 2,
+        }))
+        self.assertFalse(self._form('Rab - Rba').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,3), (2,1)},
+            'a': 1,
+            'b': 3,
+        }))
+        self.assertFalse(self._form('(Rab-Rbc)>Rac').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (1,1)},
+            'a': 1,
+            'b': 2,
+            'c': 3,
+        }))
+        self.assertFalse(self._form('~~~Rabc').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'a': 2,
+            'b': 2,
+            'c': 2,
+        }))
+        self.assertFalse(self._form('(Rabc>~Pa)-(~Pa>Rabc)').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1,1), (2,2,2), (3,3,3), (1,2,3)},
+            'P': {2, 3},
+            'a': 2,
+            'b': 2,
+            'c': 2,
+        }))
+
+    def test_assign_simple_quantified(self):
+        self.assertTrue(self._form('@xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {1, 2, 3},
+        }))
+        self.assertTrue(self._form('@xPx').assign({
+            'domain': {},
+            'P': {},
+        }))
+        self.assertTrue(self._form('#xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {2},
+        }))
+        self.assertTrue(self._form('@x@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (1,2), (2,1), (2,2), (1,3), (2,3), (3,1), (3,2), (3,3)},
+        }))
+        self.assertTrue(self._form('@x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (2,2), (2,3), (3,1), (3,2)},
+        }))
+        self.assertTrue(self._form('#x@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (1,2), (2,3), (1,3)},
+        }))
+        self.assertTrue(self._form('#x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(3,1)},
+        }))
+        self.assertTrue(self._form('#x#y#zRxyz').assign({
+            'domain': {1, 2, 3},
+            'R': {(3,1,2)},
+        }))
+
+        self.assertFalse(self._form('@xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {1, 2},
+        }))
+        self.assertFalse(self._form('@xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {},
+        }))
+        self.assertFalse(self._form('#xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {},
+        }))
+        self.assertFalse(self._form('#xPx').assign({
+            'domain': {1, 2, 3},
+            'P': {4},
+        }))
+        self.assertFalse(self._form('@x@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(2,1), (2,2), (1,3), (2,3), (3,1), (3,2), (3,3)},
+        }))
+        self.assertFalse(self._form('@x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (3,1), (3,2)},
+        }))
+        self.assertFalse(self._form('#x@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (2,3), (1,3)},
+        }))
+        self.assertFalse(self._form('#x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {},
+        }))
+        self.assertFalse(self._form('#x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(2,5)},
+        }))
+
+    def test_assign_complex_quantified(self):
+        self.assertTrue(self._form('@x(Px>Sx)').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'S': {1, 2, 3},
+        }))
+        self.assertTrue(self._form('@x(Px>Sx)').assign({
+            'domain': {1, 2, 3},
+            'P': {},
+            'S': {3},
+        }))
+        self.assertTrue(self._form('@x(Px>#y(Sy-Ryx))').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'S': {1, 2},
+            'R': {(1,1),(1,2),(1,3),(2,2),(2,3),(3,3)},
+        }))
+        self.assertTrue(self._form('#x(Px-@y(Rxy))').assign({
+            'domain': {1, 2, 3},
+            'P': {2},
+            'R': {(2,1),(2,3),(2,2)},
+        }))
+        self.assertTrue(self._form('@x@y((Rxy>Ryx)-(Ryx>Rxy))').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,1), (2,2), (1,3), (2,3), (3,1), (3,2)},
+        }))
+        self.assertTrue(self._form('@x@y@z((Rxy-Ryz)>Rxz)').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,2), (1,3), (2,3)},
+        }))
+        self.assertTrue(self._form('~@x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(2,2), (2,3), (3,1), (3,2)},
+        }))
+        self.assertTrue(self._form('#x~@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (1,2), (2,3), (1,3)},
+        }))
+        self.assertTrue(self._form('#x#y(Rxy-Ryx)').assign({
+            'domain': {1, 2, 3},
+            'R': {(3,1), (1,2), (2,1)},
+        }))
+
+        self.assertFalse(self._form('@x(Px>Sx)').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'S': {3},
+        }))
+        self.assertFalse(self._form('@x(Px>#y(Sy-Ryx))').assign({
+            'domain': {1, 2, 3},
+            'P': {2, 3},
+            'S': {1},
+            'R': {(1,1),(1,3),(2,2),(2,3),(3,3)},
+        }))
+        self.assertFalse(self._form('#x(Px-@y(Rxy))').assign({
+            'domain': {1, 2, 3},
+            'P': {2},
+            'R': {(2,1),(2,3)},
+        }))
+        self.assertFalse(self._form('@x@y((Rxy>Ryx)-(Ryx>Rxy))').assign({
+            'domain': {1, 2, 3},
+            'R': {(2,1), (2,2), (1,3), (2,3), (3,1), (3,2)},
+        }))
+        self.assertFalse(self._form('@x@y@z((Rxy-Ryz)>Rxz)').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,2), (2,3)},
+        }))
+        self.assertFalse(self._form('~@x#yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,2), (2,3), (3,1), (3,2)},
+        }))
+        self.assertFalse(self._form('#x~@yRxy').assign({
+            'domain': {1, 2, 3},
+            'R': {(1,1), (1,2), (2,3), (1,3), (2,2), (2,1), (3,3), (3,1), (3,2)},
+        }))
+        self.assertFalse(self._form('#x#y(Rxy-Ryx)').assign({
+            'domain': {1, 2, 3},
+            'R': {(3,1), (1,2)},
+        }))
+        self.assertFalse(self._form('#x#y(Rxy-Ryx)').assign({
+            'domain': {1, 2, 3},
+            'R': {},
+        }))
+
 class TruthTableTests(TestCase):
 
     def test_values1(self):

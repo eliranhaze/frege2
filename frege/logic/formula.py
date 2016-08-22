@@ -328,8 +328,38 @@ class PredicateFormula(Formula):
         raise NotImplementedError()
 
     def assign(self, assignment):
-        raise NotImplementedError()
+        """ assignment should contain domain, every predicate and every constant in the formula """
 
+        if self.is_atomic:
+            predicate = self.literal[0]
+            terms = self.literal[1:]
+            term_values = tuple(assignment[t] for t in terms) if len(terms) > 1 else assignment[terms[0]]
+            return term_values in assignment[predicate]
+
+        if self.quantifier:
+            for d in assignment['domain']:
+                assignment[self.quantified] = d
+                result = self.sf1.assign(assignment)
+                if self.quantifier == ALL and not result:
+                    # falsifies all
+                    return False
+                if self.quantifier == EXS and result:
+                    # verifies exs
+                    return True
+            # no falsification of all or verification of exs was found
+            return self.quantifier == ALL 
+
+        if self.con == NEG: 
+            return not self.sf1.assign(assignment)
+        elif self.con == CON:
+            return self.sf1.assign(assignment) and self.sf2.assign(assignment)
+        elif self.con == DIS:
+           return  self.sf1.assign(assignment) or self.sf2.assign(assignment)
+        elif self.con == IMP:
+           return  not self.sf1.assign(assignment) or self.sf2.assign(assignment)
+        elif self.con == EQV:
+           return  self.sf1.assign(assignment) == self.sf2.assign(assignment)
+ 
     def options(self):
         raise NotImplementedError()
 
