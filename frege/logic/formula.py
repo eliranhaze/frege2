@@ -355,6 +355,15 @@ class PredicateFormula(Formula):
             predicate = self.literal[0]
             terms = self.literal[1:]
             term_values = tuple(assignment[t] for t in terms) if len(terms) > 1 else assignment[terms[0]]
+
+            # check that the predicate assignment is legal
+            if type(term_values) == tuple:
+                assert all(type(v) == tuple and len(v) == len(term_values) for v in assignment[predicate]),\
+                    'assignment does not match predicate %s' % predicate
+            else: 
+                assert all(type(v) in (str,int) for v in assignment[predicate]),\
+                    'assignment does not match predicate %s' % predicate
+
             return term_values in assignment[predicate]
 
         if self.quantifier:
