@@ -10,6 +10,7 @@ from django.dispatch import receiver
 
 from .formula import (
     Formula,
+    PredicateFormula,
     FormulaSet,
     Argument,
     formal_type,
@@ -203,21 +204,21 @@ class ChoiceQuestion(TextualQuestion):
         verbose_name = 'שאלת בחירה'
         verbose_name_plural = 'שאלות בחירה'
 
-def validate_formula(formula):
+def validate_formula(formula, formula_cls=Formula):
     try:
-        return Formula(formula).literal
+        return formula_cls(formula).literal
     except:
         raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
 
-def validate_formula_set(fset):
+def validate_formula_set(fset, formula_cls=Formula):
     try:
-        return FormulaSet(fset).literal
+        return FormulaSet(fset, formula_cls=formula_cls).literal
     except:
         raise ValidationError({'formula':'הקבוצה שהוזנה אינה תקינה'})
 
-def validate_argument(arg):
+def validate_argument(arg, formula_cls=Formula):
     try:
-        return Argument(arg).literal
+        return Argument(arg, formula_cls=formula_cls).literal
     except:
         msg = 'הטיעון שהוזן אינו תקין'
         raise ValidationError({'formula':msg})
@@ -246,6 +247,8 @@ class TruthTableQuestion(FormalQuestion):
     table_type = models.CharField(verbose_name='סוג',max_length=1,choices=TABLE_CHOICES)
     formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60)
 
+    _formula_cls = Formula
+
     @property
     def options(self):
         if self.is_formula:
@@ -271,11 +274,11 @@ class TruthTableQuestion(FormalQuestion):
         super(TruthTableQuestion, self).clean()
         self._set_table_type()
         if self.is_formula:
-            self.formula = validate_formula(self.formula)
+            self.formula = validate_formula(self.formula, self._formula_cls)
         elif self.is_set:
-            self.formula = validate_formula_set(self.formula)
+            self.formula = validate_formula_set(self.formula, self._formula_cls)
         elif self.is_argument:
-            self.formula = validate_argument(self.formula)
+            self.formula = validate_argument(self.formula, self._formula_cls)
 
     def save(self, *args, **kwargs):
         self._set_table_type()
@@ -285,22 +288,32 @@ class TruthTableQuestion(FormalQuestion):
         if self.is_formula:
             return self.formula
         if self.is_set:
-            return FormulaSet(self.formula).display
+            return FormulaSet(self.formula, self._formula_cls).display
         if self.is_argument:
-            return Argument(self.formula).display
+            return Argument(self.formula, self._formula_cls).display
 
     def _set_table_type(self):
-        if not self.table_type:
+        try:
             self.table_type = {
-                Formula: self.FORMULA,
+                self._formula_cls: self.FORMULA,
                 FormulaSet: self.SET,
                 Argument: self.ARGUMENT
             }[formal_type(self.formula)]
+        except KeyError:
+            raise ValidationError('ערך זה לא תקין עבור טלבאות אמת')
 
     class Meta(FormalQuestion.Meta):
         verbose_name = 'שאלת טבלת אמת'
         verbose_name_plural = 'שאלות טבלת אמת'
         unique_together = ('chapter', 'formula')
+
+class ModelQuestion(TruthTableQuestion):
+
+    _formula_cls = PredicateFormula
+
+    class Meta(FormalQuestion.Meta):
+        verbose_name = 'שאלת פשר'
+        verbose_name_plural = 'שאלות פשר'
 
 class DeductionQuestion(FormalQuestion):
     formula = models.CharField(verbose_name='טיעון', max_length=60)

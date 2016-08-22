@@ -17,6 +17,7 @@ from .models import (
     ChoiceQuestion,
     Choice,
     TruthTableQuestion,
+    ModelQuestion,
     DeductionQuestion,
     UserAnswer,
     ChapterSubmission,
@@ -64,6 +65,9 @@ class FormalQuestionInline(QuestionInline):
 class TruthTableQuestionInline(FormalQuestionInline):
     model = TruthTableQuestion
 
+class ModelQuestionInline(FormalQuestionInline):
+    model = ModelQuestion
+
 class DeductionQuestionInline(FormalQuestionInline):
     model = DeductionQuestion
 
@@ -105,6 +109,9 @@ class TruthTableQuestionAdmin(FormalQuestionAdmin):
     list_filter = QuestionAdmin.list_filter + ['table_type']
     form = TruthTableQuestionForm
 
+class ModelQuestionAdmin(TruthTableQuestionAdmin):
+    pass
+
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time']
     ordering = ['user', 'chapter', 'question_number']
@@ -140,6 +147,7 @@ class ChapterAdmin(admin.ModelAdmin):
         FormulationQuestionInline,
         ChoiceQuestionInline,
         TruthTableQuestionInline,
+        ModelQuestionInline,
         DeductionQuestionInline,
     ]
 
@@ -148,6 +156,7 @@ admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
+admin.site.register(ModelQuestion, ModelQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)
