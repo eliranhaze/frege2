@@ -33,8 +33,10 @@ function ans(url, csrf) {
         reg();
         btn.html("אישור");
         if (data['complete']) {
-            $("#next").hide();
             $("#sum").show();
+            if (!data['has_followup']) {
+                $("#next").hide();
+            }
         }
         else {
             $("#next").attr("onclick", data['next']);

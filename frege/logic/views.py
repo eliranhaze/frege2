@@ -314,6 +314,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         response = {
             'complete': submission.is_complete(),
             'next': 'location.href="%s";' % self._next_url(request, question),
+            'has_followup': question.has_followup(),
         }
         if ext_data:
             response.update(ext_data)
