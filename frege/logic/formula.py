@@ -355,6 +355,7 @@ class PredicateFormula(Formula):
             predicate = self.literal[0]
             terms = self.literal[1:]
             term_values = tuple(assignment[t] for t in terms) if len(terms) > 1 else assignment[terms[0]]
+            term_values = term_values[0] if type(term_values) == tuple and len(term_values) == 1 else term_values
 
             # check that the predicate assignment is legal
             if type(term_values) == tuple:
