@@ -9,7 +9,7 @@
 {% block question_content %}
 
 <div>
-  <p class="small text-muted">יש להזין ערכים מופרדים בפסיק, ערך בודד, או להשאיר את השדה ריק עבור קבוצה ריקה (<a href="" target="_blank">מידע נוסף</a>).</p>
+  <p class="small text-muted">יש להזין ערכים מופרדים בפסיק, ערך בודד, או להשאיר את השדה ריק עבור קבוצה ריקה (<a href="{% url 'logic:topic-help' 1 %}" target="_blank">מידע נוסף</a>).</p>
 </div>
 <table class="table table-hover">
     <tr>
@@ -45,7 +45,7 @@
       }
   }
   function validate() {
-      var domain = $('#inp-d').val();
+      var domain = $.trim($('#inp-d').val());
       if (domain.indexOf('(') > -1 || domain.indexOf(')') > -1) {
           throw 'ערך לא חוקי בתחום דיון';
       }
@@ -55,7 +55,7 @@
       _validate(domain);
       domain = domain.split(',');
       {% for predicate in predicates %}
-      var prd = $('#inp-p-{{forloop.counter}}').val();
+      var prd = $.trim($('#inp-p-{{forloop.counter}}').val());
       _validate(prd);
       prd = prd.replace(/[()]+/g, '').split(',');
       for (var i = 0; i < prd.length; i++) {
@@ -63,7 +63,7 @@
       }
       {% endfor %}
       {% for constant in constants %}
-      var cons = $('#inp-c-{{forloop.counter}}').val();
+      var cons = $.trim($('#inp-c-{{forloop.counter}}').val());
       _validate(cons);
       if (!cons) {
           throw 'קבועים לא יכולים להיות ריקים'
@@ -87,12 +87,12 @@
   }
   function getPostData() {
       return {
-        'domain': $('#inp-d').val(),
+        'domain': $.trim($('#inp-d').val()),
         {% for predicate in predicates %}
-        '{{predicate}}': $('#inp-p-{{forloop.counter}}').val(),
+        '{{predicate}}': $.trim($('#inp-p-{{forloop.counter}}').val()),
         {% endfor %}
         {% for constant in constants %}
-        '{{constant}}': $('#inp-c-{{forloop.counter}}').val(),
+        '{{constant}}': $.trim($('#inp-c-{{forloop.counter}}').val()),
         {% endfor %}
       };
   }

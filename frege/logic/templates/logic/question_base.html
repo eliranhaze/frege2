@@ -1,6 +1,7 @@
 {% extends "logic/chapter_base.html" %}
 {% block title %}שאלה {{question.number }} פרק {{ chapter.number }}{% endblock %}
 {% block topic_header %}שאלה {{ question.number }}{% if followup %}: המשך{% endif %}{% endblock %}
+{% block help_url %}{% url 'logic:topic-help' 1 %}{% endblock help_url%}
 
 {% block chapter_content %}
 <div class="panel panel-default">

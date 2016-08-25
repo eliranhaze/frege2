@@ -93,6 +93,16 @@ class AboutView(LoginRequiredMixin, generic.DetailView):
     def get_object(self):
         return None
 
+class HelpView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'logic/help.html'
+    def get_object(self):
+        return None
+
+class TopicHelpView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'logic/topic_help.html'
+    def get_object(self):
+        return None
+
 class ChapterView(LoginRequiredMixin, generic.DetailView):
 
     def get_object(self):
