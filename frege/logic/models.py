@@ -14,6 +14,7 @@ from .formula import (
     FormulaSet,
     Argument,
     formal_type,
+    formalize,
     get_argument,
 )
 
@@ -181,10 +182,12 @@ class FormulationQuestion(TextualQuestion):
     NONE = 'N'
     TRUTH_TABLE = 'T'
     DEDUCTION = 'D'
+    MODEL = 'M'
     FOLLOWUP_CHOICES = (
         (NONE, 'ללא'),
         (TRUTH_TABLE,'טבלת אמת'),
         (DEDUCTION, 'דדוקציה'),
+        (MODEL, 'פשר'),
     )
     followup = models.CharField(verbose_name='שאלת המשך',max_length=1,choices=FOLLOWUP_CHOICES,default=NONE)
 
@@ -336,20 +339,16 @@ class DeductionQuestion(FormalQuestion):
         unique_together = ('chapter', 'formula')
 
 class FormulationAnswer(models.Model):
-    formula = models.CharField(verbose_name='נוסחה', max_length=60)
+    formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60)
     question = models.ForeignKey(FormulationQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
 
     def clean(self):
         super(FormulationAnswer, self).clean()
-        #TODO: is  this code needed? there are validtions already in forms.py and this doesn't seem to handle predicates
-        ftype = formal_type(self.formula)
-        if ftype == Formula:
-            self.formula = validate_formula(self.formula)
-        elif ftype == FormulaSet:
-            self.formula = validate_formula_set(self.formula)
-        elif ftype == Argument:
-            self.formula = validate_argument(self.formula)
-
+        try:
+            formalize(self.formula)
+        except:
+            raise ValidationError('קלט לא תקין')
+        
     def __unicode__(self):
         return self.formula
 

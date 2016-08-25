@@ -508,12 +508,14 @@ class FollowupQuestionView(QuestionView):
             followup = TruthTableQuestion()
         elif original.followup == FormulationQuestion.DEDUCTION:
             followup = DeductionQuestion()
+        elif original.followup == FormulationQuestion.MODEL:
+            followup = ModelQuestion()
         else:
             raise ValueError('invalid followup type %r in question %s' % (original.followup, original)) 
         followup.chapter = original.chapter
         followup.number = original.number
         followup.formula = self._get_answer(original).answer
-        if type(followup) == TruthTableQuestion:
+        if type(followup) == TruthTableQuestion or type(followup) == ModelQuestion:
             followup._set_table_type()
 
         logger.debug('%s: followup question is %s %s', self.request.user, type(followup).__name__, followup)
@@ -532,6 +534,8 @@ class FollowupQuestionView(QuestionView):
             handler = self._handle_truth_table_post
         elif question.followup == FormulationQuestion.DEDUCTION:
             handler = self._handle_deduction_post
+        elif question.followup == FormulationQuestion.MODEL:
+            handler = self._handle_model_post
         else:
             raise ValueError('invalid followup type %r in question %s' % (question.followup, question)) 
         return handler(request, self.get_object())
