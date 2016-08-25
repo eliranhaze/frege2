@@ -361,7 +361,7 @@ class PredicateFormula(Formula):
                 assert all(type(v) == tuple and len(v) == len(term_values) for v in assignment[predicate]),\
                     'assignment does not match predicate %s' % predicate
             else: 
-                assert all(type(v) in (str,int) for v in assignment[predicate]),\
+                assert all(type(v) in (unicode,str,int) for v in assignment[predicate]),\
                     'assignment does not match predicate %s' % predicate
 
             return term_values in assignment[predicate]
