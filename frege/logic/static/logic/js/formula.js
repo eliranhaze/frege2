@@ -380,14 +380,60 @@ function get_formula(str) {
     }
 }
 
+function get_argument(str) {
+    try {
+        return new Argument(str);
+    } catch (e) {
+        return new Argument(str, PredicateFormula);
+    }
+}
+
+function has_argument_form(str) {
+    return str.indexOf(THF) > -1;
+}
+
+function has_predicate_form(obj) {
+    if (obj instanceof Argument) {
+        return has_predicate_form(obj.conclusion);
+    }
+    return obj instanceof PredicateFormula;
+}
+
+function is_formula_type(typeName) {
+    return typeName.indexOf('Formula') > -1;
+}
+
+function is_argument_type(typeName) {
+    return typeName.indexOf('Argument') > -1;
+}
+
+function is_predicate_type(typeName) {
+    return typeName.indexOf('Predicate') > -1;
+}
+
 function formalize(str, expectedType) {
-    if (str.indexOf(THF) >= 0) {
-        if (expectedType != 'Argument') throw new Error('ההצרנה צריכה להיות טענה');
-        try { return new Argument(str); }
-        catch (e) { return new Argument(str, PredicateFormula); }
+
+    if (is_formula_type(expectedType)) {
+        if (has_argument_form(str)) {
+            throw new Error('ההצרנה צריכה להיות טענה');
+        }
+        var obj = get_formula(str);
+    } else { // argument type
+        if (!has_argument_form(str)) {
+            throw new Error('ההצרנה צריכה להיות טיעון');
+        }
+       var obj = get_argument(str);
     }
-    else {
-        if (expectedType == 'Argument') throw new Error('ההצרנה צריכה להיות טיעון');
-        return get_formula(str);
+
+    if (is_predicate_type(expectedType)) {
+        if (!has_predicate_form(obj)) {
+            throw new Error('ההצרנה צריכה להיות בתחשיב הפרדיקטים');
+        }
+    } else {
+        if (has_predicate_form(obj)) {
+            throw new Error('ההצרנה צריכה להיות בתחשיב הפסוקים');
+        }
     }
+
+    return obj;
 }
