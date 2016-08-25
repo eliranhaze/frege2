@@ -358,7 +358,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: checking formulation %s', request.user, answer)
         formalized = formalize(answer)
         for correct_ans in FormulationAnswer.objects.filter(question=question):
-            if formalize(correct_ans.formula) == formalized:
+            correct_formalized = formalize(correct_ans.formula)
+            if type(correct_formalized) == type(formalized) and correct_formalized == formalized:
                 is_correct = True
                 break
         return is_correct, None, answer
