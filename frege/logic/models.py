@@ -12,7 +12,9 @@ from .formula import (
     Formula,
     PredicateFormula,
     FormulaSet,
+    PredicateFormulaSet,
     Argument,
+    PredicateArgument,
     formal_type,
     formalize,
     get_argument,
@@ -213,15 +215,15 @@ def validate_formula(formula, formula_cls=Formula):
     except:
         raise ValidationError({'formula':'הנוסחה שהוזנה אינה תקינה'})
 
-def validate_formula_set(fset, formula_cls=Formula):
+def validate_formula_set(fset, formula_set_cls=FormulaSet):
     try:
-        return FormulaSet(fset, formula_cls=formula_cls).literal
+        return formula_set_cls(fset).literal
     except:
         raise ValidationError({'formula':'הקבוצה שהוזנה אינה תקינה'})
 
-def validate_argument(arg, formula_cls=Formula):
+def validate_argument(arg, argument_cls=Argument):
     try:
-        return Argument(arg, formula_cls=formula_cls).literal
+        return argument_cls(arg).literal
     except:
         msg = 'הטיעון שהוזן אינו תקין'
         raise ValidationError({'formula':msg})
@@ -268,9 +270,9 @@ class SemanticsQuestion(FormalQuestion):
         if self.is_formula:
             self.formula = validate_formula(self.formula, self._formula_cls)
         elif self.is_set:
-            self.formula = validate_formula_set(self.formula, self._formula_cls)
+            self.formula = validate_formula_set(self.formula, self._formula_set_cls)
         elif self.is_argument:
-            self.formula = validate_argument(self.formula, self._formula_cls)
+            self.formula = validate_argument(self.formula, self._argument_cls)
 
     def save(self, *args, **kwargs):
         self._set_table_type()
@@ -280,16 +282,16 @@ class SemanticsQuestion(FormalQuestion):
         if self.is_formula:
             return self.formula
         if self.is_set:
-            return FormulaSet(self.formula, self._formula_cls).display
+            return self._formula_set_cls(self.formula).display
         if self.is_argument:
-            return Argument(self.formula, self._formula_cls).display
+            return self._argument_cls(self.formula).display
 
     def _set_table_type(self):
         try:
             self.table_type = {
                 self._formula_cls: self.FORMULA,
-                FormulaSet: self.SET,
-                Argument: self.ARGUMENT
+                self._formula_set_cls: self.SET,
+                self._argument_cls: self.ARGUMENT
             }[formal_type(self.formula)]
         except KeyError:
             raise ValidationError({'formula':'ערך לא תקין'})
@@ -301,6 +303,8 @@ class SemanticsQuestion(FormalQuestion):
 class TruthTableQuestion(SemanticsQuestion):
 
     _formula_cls = Formula
+    _formula_set_cls = FormulaSet
+    _argument_cls = Argument
 
     @property
     def options(self):
@@ -318,6 +322,8 @@ class TruthTableQuestion(SemanticsQuestion):
 class ModelQuestion(SemanticsQuestion):
 
     _formula_cls = PredicateFormula
+    _formula_set_cls = PredicateFormulaSet
+    _argument_cls = PredicateArgument
 
     class Meta(SemanticsQuestion.Meta):
         verbose_name = 'שאלת פשר'

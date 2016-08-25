@@ -14,7 +14,9 @@ from .formula import (
     Formula,
     PredicateFormula,
     FormulaSet,
+    PredicateFormulaSet,
     Argument,
+    PredicateArgument,
     TruthTable,
     MultiTruthTable,
     formalize,
@@ -418,9 +420,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if question.is_formula:
             formulas = [PredicateFormula(question.formula)]
         elif question.is_set:
-            formulas = FormulaSet(question.formula, formula_cls=PredicateFormula)
+            formulas = PredicateFormulaSet(question.formula)
         elif question.is_argument:
-            formulas = Argument(question.formula, formula_cls=PredicateFormula)
+            formulas = PredicateArgument(question.formula)
 
         context['formulas'] = formulas
         context['predicates'] = set(p for f in formulas for p in f.predicates)
@@ -447,9 +449,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if question.is_formula:
             formula = PredicateFormula(question.formula)
         elif question.is_set:
-            formula = PredicateFormula.from_set(FormulaSet(question.formula, formula_cls=PredicateFormula))
+            formula = PredicateFormula.from_set(PredicateFormulaSet(question.formula))
         elif question.is_argument:
-            formula = PredicateFormula.from_argument(Argument(question.formula, formula_cls=PredicateFormula))
+            formula = PredicateFormula.from_argument(PredicateArgument(question.formula))
 
         assignment.update({
             p: split(request.POST[p]) for p in formula.predicates
@@ -474,7 +476,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context = {
             'argument': argument,
             'premises': argument.premises,
-            'is_predicate': argument.formula_cls == PredicateFormula,
+            'is_predicate': type(argument) == PredicateArgument,
         }
         if answer:
             context['answer'] = answer

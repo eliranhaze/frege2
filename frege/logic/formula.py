@@ -532,8 +532,9 @@ class FormulaSet(object):
 
     SEP = ','
 
-    def __init__(self, string = None, formulas = None, formula_cls = Formula):
-        self.formula_cls = formula_cls
+    formula_cls = Formula
+
+    def __init__(self, string = None, formulas = None):
         if not string and not formulas:
             raise ValueError('formula set cannot be empty')
         if string:
@@ -592,24 +593,30 @@ class FormulaSet(object):
 
     __str__ = __unicode__
 
+class PredicateFormulaSet(FormulaSet):
+
+    formula_cls = PredicateFormula
+
 class Argument(object):
 
     THEREFORE = u'∴'
 
-    def __init__(self, string = None, conclusion = None, premises = None, formula_cls = Formula):
-        self.formula_cls = formula_cls
+    formula_cls = Formula
+    formula_set_cls = FormulaSet
+
+    def __init__(self, string = None, conclusion = None, premises = None):
         if string:
             self._analyze(string)
         else:
             self.conclusion = conclusion
-            self.premises = FormulaSet(formulas=premises, formula_cls=self.formula_cls)
+            self.premises = self.formula_set_cls(formulas=premises)
 
     def _analyze(self, string):
         try:
             premises, conclusion = string.split(self.THEREFORE)
             self.conclusion = self.formula_cls(conclusion)
             if premises:
-                self.premises = FormulaSet(string=premises, formula_cls=self.formula_cls)
+                self.premises = self.formula_set_cls(string=premises)
                 premises_literal = self.premises.literal 
             else:
                 self.premises = []
@@ -660,29 +667,34 @@ class Argument(object):
 
     __str__ = __unicode__
 
+class PredicateArgument(Argument):
+
+    formula_cls = PredicateFormula
+    formula_set_cls = PredicateFormulaSet
+
 def formal_type(string):
-    if Argument.THEREFORE in string:
-        return Argument
-    elif FormulaSet.SEP in string:
-        return FormulaSet
-    try:
-        PredicateFormula(string)
-        return PredicateFormula
-    except:
-        return Formula
+    return type(formalize(string))
 
 def formalize(string):
     """
     takes a string representing a formula, a formula set, or an argument
     and returns the appropriate object
     """
-    ftype = formal_type(string)
-    if ftype in [Argument, FormulaSet]:
-        try: 
-            return ftype(string, formula_cls=PredicateFormula)
+    if Argument.THEREFORE in string:
+        try:
+            return PredicateArgument(string)
         except:
-            pass
-    return ftype(string)
+            return Argument(string)
+    elif FormulaSet.SEP in string:
+        try:
+            return PredicateFormulaSet(string)  
+        except:
+            return FormulaSet(string)
+    else:
+        try:
+            return PredicateFormula(string)
+        except:
+            return Formula(string)
 
 def get_argument(string):
     a = formalize(string)

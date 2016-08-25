@@ -6,9 +6,9 @@ from .formula import (
     Formula,
     PredicateFormula,
     Argument,
+    PredicateArgument,
     FormulaSet,
     formal_type,
-    formalize,
 )
 from .models import (
     Question,
@@ -42,29 +42,23 @@ class FormulationAnswerFormSet(forms.BaseInlineFormSet):
         if len(types) == 0:
             raise ValidationError('יש להזין לפחות תשובה אחת')
         if len(types) > 1:
-            raise ValidationError('כל התשובות צריכות להיות מאותו סוג (נוסחה/טיעון)')
+            raise ValidationError('כל התשובות צריכות להיות מאותו סוג')
         if FormulaSet in types:
             raise ValidationError('לא ניתן להזין קבוצת נוסחאות - רק נוסחה בודדת או טיעון')
-        if Argument in types:
-            arguments = [formalize(a) for a in all_answers]
-            if len(set(a.formula_cls for a in arguments)) > 1:
-                raise ValidationError('לא ניתן להזין טיעונים מתחשיבים שונים')
-        else:
-            arguments = []
 
         followup = self.instance.followup
         if followup == FormulationQuestion.DEDUCTION:
-            if types.pop() != Argument:
-                raise ValidationError('עבור שאלת המשך מסוג דדוקציה התשובות חייבות להיות טיעונים')
-            for argument in arguments:
-                if argument.formula_cls == Formula and not argument.is_valid:
-                   raise ValidationError(u'הטיעון %s אינו ניתן להוכחה' % answer)
-        elif followup == FormulationQuestion.TRUTH_TABLE:
             answer_type = types.pop()
-            if answer_type == PredicateFormula or any(a.formula_cls == PredicateFormula for a in arguments):
+            if not issubclass(answer_type, Argument):
+                raise ValidationError('עבור שאלת המשך מסוג דדוקציה התשובות חייבות להיות טיעונים')
+            if answer_type == Argument:
+                for answer in all_answers:
+                    if not Argument(answer).is_valid:
+                       raise ValidationError(u'הטיעון %s אינו ניתן להוכחה' % answer)
+        elif followup == FormulationQuestion.TRUTH_TABLE:
+            if types.pop() in (PredicateFormula, PredicateArgument):
                 raise ValidationError('עבור שאלת המשך מסוג טבלת אמת התשובות חייבות להיות בשפת תחשיב הפסוקים')
         elif followup == FormulationQuestion.MODEL:
-            answer_type = types.pop()
-            if answer_type == Formula or any(a.formula_cls == Formula for a in arguments):
+            if types.pop() in (Formula, Argument):
                 raise ValidationError('עבור שאלת המשך מסוג פשר התשובות חייבות להיות בשפת תחשיב הפרדיקטים')
 
