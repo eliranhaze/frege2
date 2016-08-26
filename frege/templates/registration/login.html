@@ -5,54 +5,106 @@
 {% block body_content %}
 
 <div class="container" style="max-width: 500px;">
-  <div class="page-header"><h2>כניסה</h2></div>
+  <div class="page-header">
+    <h2>כניסה</h2>
+  </div>
   <div class="panel panel-default">
   <div class="panel-body">
 
-<div id="errors" class="errmsg">
-{% if form.errors and not form.non_field_errors %}
-שגיאה:
-{{form.username.errors}}
-{{form.password.errors}}
-{% endif %}
-{% if form.non_field_errors %}
-שגיאה:
-{% for error in form.non_field_errors %}
-    {{ error }}
-{% endfor %}
-{% endif %}
-{% if user.is_authenticated %}
-<p>כבר מחובר!</p>
-{% endif %}
+    <div id="errors" class="errmsg">
+      {% if form.errors and not form.non_field_errors %}
+      {{form.username.errors}}
+      {{form.password.errors}}
+      {% endif %}
+      {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+      {% endif %}
+      {% if user.is_authenticated %}
+      <p>כבר מחובר!</p>
+      {% endif %}
+    </div>
+
+    <form class="form-signin" method="post" id="login-form">{% csrf_token %}
+      <label for="id_username">מספר ת.ז.</label>
+      <input type="text" id="id_username" value="{{username}}" name="username" class="form-control" autofocus autocorrect="off" autocapitalize="none">
+      <input type="hidden" id="id_password" name="password">
+      <div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
+          התחברות
+        </button>
+      </div>
+      <input type="hidden" name="next" value="{{next}}"/>
+    </form>
+  </div>
+  </div>
 </div>
 
-  <form class="form-signin" method="post" id="login-form">{% csrf_token %}
-    <label for="id_username" class="sr-only">שם משתמש/ת</label>
-    <input type="text" id="id_username" name="username" class="form-control" placeholder="שם משתמש/ת" autofocus autocorrect="off" autocapitalize="none">
-    <label for="id_password" class="sr-only">סיסמה</label>
-    <input type="password" id="id_password" name="password" class="form-control" style="margin-top: 10px;" placeholder="סיסמה" autocorrect="off" autocapitalize="none">
-    <div>
-      <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
-        התחברות
-      </button>
+{% if first_time %}
+<button class="btn btn-primary btn-lg" style="display: none;" id="first-btn" data-toggle="modal" data-target="#first-time"></button>
+<div class="modal fade" style="vertical-align: middle;" id="first-time" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">שלום!</h3>
+      </div>
+      <div class="modal-body" style="font-size: 102%;">
+        <p>זו כניסה ראשונה עבור מספר תעודת הזהות שהוזן. אנא בחרו מספר קבוצה ואשרו על מנת להירשם.</p>
+        <p><b>ת.ז. {{username}}</b></p>
+        <p id="grp-err" class="errmsg"><p>
+        <div class="row" style="">
+        <label for="grp" class="col-xs-3 pull-right">מספר קבוצה</label>
+        <div class="col-xs-3 pull-right">
+        <select class="form-control" id="grp">
+          <option>--</option>
+          {% for group in groups %} 
+          <option>{{group}}</option>
+          {% endfor %}
+        </select>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <form method="post" id="register-form" action="/accounts/register/">{% csrf_token %}
+          <input value="{{username}}" type="hidden" name="username">
+          <input value="{{password}}" type="hidden" name="password1">
+          <input value="{{password}}" type="hidden" name="password2">
+          <input value="" type="hidden" name="group" id="group-inp">
+          <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">ביטול</button>
+          <button type="submit" class="btn btn-primary btn-lg btn-ok">אישור</button>
+        </form>
+      </div>
     </div>
-    <input type="hidden" name="next" value="{{ next }}"/>
-  </form>
-  <button class="btn btn-default btn-block" type="submit" style="margin-top: 20px; font-size: 95%;"
-   onclick="location.href='/accounts/register/'">
-    פעם ראשונה? הירשמ/י כאן
-  </button>
-  </div>
   </div>
 </div>
+<script>
+$(document).ready(function() {
+    $('#first-btn').click();
+    $("#register-form").submit(function(e) {
+        $("#grp-err").empty();
+        var selectedGroup = $("#grp option:selected").text();
+        if (selectedGroup == "--") {
+            $("#grp-err").text("נא לבחור מספר קבוצה.");
+            e.preventDefault();
+        } else {
+            $("#group-inp").val(selectedGroup);
+            $("#first-time").addClass('loading');
+        }
+    });
+});
+</script>
+{% endif %}
 
 <script>
 $(document).ready(function() {
     $("#login-form").submit(function(e) {
         $("#errors").empty();
-        if (!$("#id_username").val() || !$("#id_password").val()) {
-            $("#errors").text("נא להזין שם וסיסמה");
+        if (!$("#id_username").val()) {
+            $("#errors").text("נא להזין מספר ת.ז.");
             e.preventDefault();
+        } else {
+            $("#id_password").val($("#id_username").val());
         }
     });
 });

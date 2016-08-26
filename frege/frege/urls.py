@@ -30,5 +30,4 @@ urlpatterns = [
     # account stuff
     url(r'^accounts/login/$', login, name='login'),
     url(r'^accounts/logout/$', logout, name='logout'),
-    url(r'^accounts/register/$', register),
 ]

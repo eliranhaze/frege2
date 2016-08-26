@@ -5,7 +5,7 @@ from django.contrib.auth.views import login as auth_login
 from django.contrib.auth.views import logout as auth_logout
 from django.core.urlresolvers import reverse
 from django.forms import ValidationError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render_to_response
 from django.template.context_processors import csrf
 
@@ -14,6 +14,12 @@ DEFAULT_REDIRECT = 'logic:index'
 def _get_default_redirect():
     return reverse(DEFAULT_REDIRECT)
 
+def _user_exists(name):
+    return len(User.objects.filter(username=name)) > 0
+
+def _is_valid(name):
+    return len(name) == 9 and all(c.isdigit() for c in name)
+
 def login(request):
     context = {}
     if request.method == 'GET':
@@ -21,8 +27,14 @@ def login(request):
             return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
-    else:
-        print 'LOGIN', request.POST['username']
+    else: # POST
+        username = request.POST['username']
+        context['username'] = username
+        context['password'] = request.POST['password']
+        if not _user_exists(username) and _is_valid(username):
+            context['first_time'] = True
+            context['groups'] = ['%02d' % i for i in range(2,9+1)] # TODO: put this in settings
+
     return auth_login(
         request,
         redirect_field_name = 'next',
@@ -63,6 +75,11 @@ class UserAuthForm(AuthenticationForm):
         super(UserAuthForm, self).__init__(*args, **kwargs)
 
     def clean(self, *args, **kwargs):
-        if not User.objects.filter(username=self.cleaned_data.get('username')):
-            raise ValidationError('שם לא קיים')
+        username = self.cleaned_data.get('username')
+        if not _user_exists(username):
+            if not _is_valid(username):
+                raise ValidationError('יש להזין מספר ת.ז. תקין בן תשע ספרות') 
+            else:
+                # to prompt new user creation without error messages
+                raise ValidationError('')
         super(UserAuthForm, self).clean(*args, **kwargs)
