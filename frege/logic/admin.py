@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from django.db import models
 from django.forms.widgets import TextInput
 
@@ -21,6 +23,7 @@ from .models import (
     DeductionQuestion,
     UserAnswer,
     ChapterSubmission,
+    UserProfile,
 )
 
 formal_text_widget = {'widget': TextInput(attrs={
@@ -150,6 +153,27 @@ class ChapterAdmin(admin.ModelAdmin):
         ModelQuestionInline,
         DeductionQuestionInline,
     ]
+
+#########################################################3
+# User profile
+
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'פרופיל משתמש'
+
+class UserAdmin(BaseUserAdmin):
+    inlines = [UserProfileInline]
+    list_display = BaseUserAdmin.list_display + ('group',)
+    list_filter = BaseUserAdmin.list_filter + ('userprofile__group',)
+
+    def group(self, obj):
+        return obj.userprofile.group
+    group.short_description = 'מספר קבוצה'
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+#########################################################3
 
 admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(OpenQuestion, OpenQuestionAdmin)

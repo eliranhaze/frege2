@@ -471,3 +471,13 @@ class UserAnswer(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     group = models.CharField(max_length=2, verbose_name='מספר קבוצה')
+
+    def __str__(self):
+        return '%s/%s' % (self.user, self.group)
+    __repr__ = __str__
+    __unicode__ = __str__
+
+    class Meta:
+        verbose_name = 'פרופיל'
+        verbose_name_plural = 'פרופילים'
+
