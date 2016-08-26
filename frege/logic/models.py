@@ -467,3 +467,7 @@ class UserAnswer(models.Model):
         verbose_name_plural = '*תשובות משתמשים'
         unique_together = ('chapter', 'user', 'question_number', 'is_followup')
 
+# see: https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#extending-the-existing-user-model
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    group = models.CharField(max_length=2, verbose_name='מספר קבוצה')

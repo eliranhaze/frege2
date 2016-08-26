@@ -9,6 +9,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render_to_response
 from django.template.context_processors import csrf
 
+from logic.models import UserProfile
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -58,13 +60,20 @@ def register(request):
         logger.info('registering new user, data: %s', request.POST)
         if form.is_valid():
             # save the new user
-            form.save()
+            user = form.save()
+            # save user profile
+            UserProfile.objects.create(
+                user=user,
+                group=request.POST['group'],
+            )
             # autologin and redirect home
             post = request.POST.copy()
             post['password'] = request.POST['password1']
             post['next'] = _get_default_redirect()
             request.POST = post
             return auth_login(request, redirect_field_name='next')
+        else:
+            logger.error('form is invalid: %s', form)
     else:
         return HttpResponseRedirect(_get_default_redirect())
 
