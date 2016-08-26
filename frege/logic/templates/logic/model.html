@@ -5,12 +5,13 @@
 <p>יש להראות פשר נגדי.</p>
 {% endblock %}
 {% block question_instruction %}פשר{% endblock %}
+{% block hint %}
+יש להזין ערכים מופרדים בפסיק, ערך בודד, או להשאיר את השדה ריק עבור קבוצה ריקה.
+{% endblock hint %}
+{% block hint_link %}מידע נוסף{% endblock %}
 
 {% block question_content %}
 
-<div>
-  <p class="small text-muted">יש להזין ערכים מופרדים בפסיק, ערך בודד, או להשאיר את השדה ריק עבור קבוצה ריקה (<a href="{% url 'logic:topic-help' 1 %}" target="_blank">מידע נוסף</a>).</p>
-</div>
 <table class="table table-hover">
     <tr>
       <td style="width: 20%;">תחום דיון</td>
