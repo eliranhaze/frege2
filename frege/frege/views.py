@@ -9,6 +9,9 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render_to_response
 from django.template.context_processors import csrf
 
+import logging
+logger = logging.getLogger(__name__)
+
 DEFAULT_REDIRECT = 'logic:index'
 
 def _get_default_redirect():
@@ -24,14 +27,17 @@ def login(request):
     context = {}
     if request.method == 'GET':
         if request.user.is_authenticated():
+            logger.info('already logged in: %s', request.user)
             return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
     else: # POST
         username = request.POST['username']
+        logger.info('login post: username=%s', username)
         context['username'] = username
         context['password'] = request.POST['password']
         if not _user_exists(username) and _is_valid(username):
+            logger.info('login first time: %s', username)
             context['first_time'] = True
             context['groups'] = ['%02d' % i for i in range(2,9+1)] # TODO: put this in settings
 
@@ -43,11 +49,13 @@ def login(request):
     )
 
 def logout(request):
+    logger.info('logout: %s', request.user)
     return auth_logout(request, next_page=_get_default_redirect())
 
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
+        logger.info('registering new user, data: %s', request.POST)
         if form.is_valid():
             # save the new user
             form.save()
@@ -58,16 +66,7 @@ def register(request):
             request.POST = post
             return auth_login(request, redirect_field_name='next')
     else:
-        form = UserCreationForm()
-
-    context = {}
-    context.update(csrf(request))
-    context['form'] = form
-    context['site_header'] = 'רישום משתמש חדש'
-    context['site_title'] = 'רישום'
-    context['title'] = 'לוגיקה'
-
-    return render_to_response('registration/register.html', context)
+        return HttpResponseRedirect(_get_default_redirect())
 
 class UserAuthForm(AuthenticationForm):
 

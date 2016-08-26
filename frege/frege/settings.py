@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '6an*s0-z35iaa-4=j8!3smn%9uhwquf27m4)1a%vqqamdsj($a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'polls.apps.PollsConfig',
     'logic.apps.LogicConfig',
+    'adminsortable2',
+    'django_extensions',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -82,7 +84,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -130,7 +131,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s:%(levelname)s:%(module)s:%(message)s'
+            'format': '%(asctime)s %(levelname)s [%(module)s.%(funcName)s] %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -162,6 +163,11 @@ LOGGING = {
             'propagate': True,
         },
         'logic': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'frege': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
