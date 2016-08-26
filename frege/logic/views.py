@@ -240,7 +240,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         # update submission data
         submission = ChapterSubmission.objects.filter(chapter=question.chapter, user=self.request.user).first()
         if submission:
-            context['complete'] = submission.is_complete()
+            context['can_submit'] = submission.is_complete() and submission.can_try_again() and submission.ongoing
             context['remaining'] = submission.max_attempts - submission.attempt
 
         # update answer data
