@@ -5,17 +5,23 @@
 <p>יש למלא את הטבלה ולבחור את האפשרות הנכונה.</p>
 {% endblock %}
 {% block question_instruction %}טבלת אמת{% endblock %}
+{% block hint %}
+יש למלא את הטבלה על ידי לחיצה על הערכים הנכונים. ניתן לנקות עמודה באמצעות הכפתורים מטה.
+{% endblock hint %}
+{% block hint_link %}מידע נוסף{% endblock %}
 
 {% block question_content %}
   <div class="table-responsive">
-    <table class="table table-bordered table-condensed table-hover noselect formal" style="table-layout: fixed !important;">
+    <table class="table table-bordered table-condensed table-hover noselect formal" style="table-layout: fixed !important; margin-bottom: 0px;">
       <thead>
         <tr style="font-size: 110%;">
         {% for var in truth_table.variables %}
           <th class="text-center" style="width: 6%;">{{var}}</th>
         {% endfor %}
         {% for formula in formulas %}
-          <th class="text-center" ondblclick="unselectall({{forloop.counter}})">{% if formula == formulas.conclusion %}∴ {% endif %}{{formula.literal}}</th>
+          <th class="text-center">
+            {% if formula == formulas.conclusion %}∴ {% endif %}{{formula.literal}}
+          </th>
         {% endfor %}
         </tr>
       </thead>
@@ -37,6 +43,18 @@
         </tr>
       {% endfor %}
       </tbody>
+    </table>
+    <table class="table table-condensed formal" style="margin-top: 0px;">
+      <tr>
+        {% for var in truth_table.variables %}
+          <td class="text-center" style="width: 6%;"></td>
+        {% endfor %}
+        {% for formula in formulas %}
+          <td class="text-center" style="">
+            <button class="btn btn-default dd-btn" onclick="unselectall({{forloop.counter}})"><span class="glyphicon glyphicon-trash"></span></button>
+          </td>
+        {% endfor %}
+      </tr>
     </table>
 
     <script>
@@ -66,8 +84,10 @@
     </script>
   </div>
 
+  <div class="page-header" style="margin-top: 2px; margin-bottom: 2px;">
+  </div>
   <div>
-    <p style="font-weight: bold;">{% if question.is_formula %}הנוסחה היא...{% elif question.is_set %}הקבוצה...{% else %}הטיעון...{% endif %}</p>
+    <p style="font-weight: bold;">{% if question.is_formula %}הנוסחה היא:{% elif question.is_set %}הקבוצה:{% else %}הטיעון:{% endif %}</p>
     <form id=options>
     {% for option in options %}
         <input name="option" value="{{option.num}}" type="radio" {% if answer and option.num == answer_option %}checked{% endif %}> {{option.desc}}<br>
