@@ -105,6 +105,11 @@ class TopicHelpView(LoginRequiredMixin, generic.DetailView):
     def get_object(self):
         return None
 
+class GroupHelpView(generic.DetailView):
+    template_name = 'logic/group_help.html'
+    def get_object(self):
+        return None
+
 class ChapterView(LoginRequiredMixin, generic.DetailView):
 
     def get_object(self):
