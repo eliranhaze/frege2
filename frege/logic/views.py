@@ -242,6 +242,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if submission:
             context['can_submit'] = submission.is_complete() and submission.can_try_again() and submission.ongoing
             context['remaining'] = submission.max_attempts - submission.attempt
+        else:
+            # default
+            context['remaining'] = ChapterSubmission.max_attempts
 
         # update answer data
         answer = None
