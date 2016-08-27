@@ -77,7 +77,7 @@
   }
 {% else %}
   {% for premise in premises %}
-  dd.push(formalize('{{premise.literal}}', 'Formula'), 'prem');
+  dd.push(formalize('{{premise.literal}}', {% if is_predicate %}'PredicateFormula'{% else %}'Formula'{% endif %}), 'prem');
   addRow('{{premise.literal}}', 'prem', {{forloop.counter}});
   {% endfor %}
 {% endif %}
