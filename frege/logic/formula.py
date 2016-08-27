@@ -698,6 +698,6 @@ def formalize(string):
 
 def get_argument(string):
     a = formalize(string)
-    assert type(a) == Argument
+    assert issubclass(type(a), Argument)
     return a
 
