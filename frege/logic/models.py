@@ -398,9 +398,11 @@ class ChapterSubmission(models.Model):
         answered_followups = {a.question_number for a in user_answers if a.is_followup}
         return set(chapter_questions.keys()) == set(answered_questions.keys()) and chapter_followups == answered_followups
 
+    MAX_ATTEMPTS = 3
+
     @property
     def max_attempts(self):
-        return 3
+        return self.MAX_ATTEMPTS
 
     def can_try_again(self):
         return self.attempt < self.max_attempts

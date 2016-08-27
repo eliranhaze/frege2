@@ -244,7 +244,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             context['remaining'] = submission.max_attempts - submission.attempt
         else:
             # default
-            context['remaining'] = ChapterSubmission.max_attempts
+            context['remaining'] = ChapterSubmission.MAX_ATTEMPTS
 
         # update answer data
         answer = None
