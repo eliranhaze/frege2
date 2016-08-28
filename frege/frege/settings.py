@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'frege.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '../data/db.sqlite3'),
     }
 }
 
@@ -112,6 +112,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
+MEDIA_ROOT = os.path.join(BASE_DIR, '../media/')
+
 # Logging
 
 LOGGING = {
@@ -134,7 +136,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/server.log'),
+            'filename': os.path.join(BASE_DIR, '../logs/server.log'),
             'formatter': 'verbose'
         },
         'mail_admins': {
