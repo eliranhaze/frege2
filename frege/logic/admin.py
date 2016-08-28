@@ -118,7 +118,7 @@ class ModelQuestionAdmin(TruthTableQuestionAdmin):
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time']
     ordering = ['user', 'chapter', 'question_number']
-    readonly_fields = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time', 'answer']
+    readonly_fields = ['user', 'chapter', 'question_number', 'correct', 'is_followup', 'time', 'answer', 'submission']
     actions = [export_as_csv_action(fields=['user', 'question_number', 'correct'])]
  
     def has_add_permission(self, request, obj=None):
@@ -136,6 +136,7 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
     })]
  
     def has_add_permission(self, request, obj=None):
+        # TODO: also deny delete permissions!!! both this and user answer
         return False
 
     def get_queryset(self, *args, **kwargs):
