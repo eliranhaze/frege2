@@ -477,7 +477,6 @@ class OpenAnswer(models.Model):
     checked = models.BooleanField(verbose_name='נבדק', default=False)
 
     def save(self, *args, **kwargs):
-        print 'SAVE', self
         try:
             # delete old file if replaced
             this = OpenAnswer.objects.get(id=self.id)
