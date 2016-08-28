@@ -11,6 +11,7 @@
 {% block hint_link %}מידע נוסף{% endblock %}
 
 {% block question_content %}
+
   <div class="table-responsive">
     <table class="table table-bordered table-condensed table-hover noselect formal" style="table-layout: fixed !important; margin-bottom: 0px;">
       <thead>
@@ -33,9 +34,9 @@
         {% endfor %}
         {% for formula in formulas %} 
           <td>
-            <div class="btn-group" role="group" style="font-size: 130%;">
+            <div class="btn-group" role="group" style="font-size: 130%; display: inline;">
               <label class="label label-default" style="opacity: 0.7; margin: -1px; display: {% if answer %}none{% else %}inline{% endif %};" id='t{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('t', '{{forloop.parentloop.counter}}{{forloop.counter}}')">T</label>
-              <label class="label" style="display: {% if answer %}inline{% else %}none{% endif %}; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}', {{forloop.counter}})">{% if answer %}{{answer|index:forloop.counter0|index:forloop.parentloop.counter0}}{% endif %}</label>
+              <label class="label" style="display: {% if answer %}inline{% else %}none{% endif %}; color: black;" id='ans{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="unselect('{{forloop.parentloop.counter}}{{forloop.counter}}')">{% if answer %}{{answer|index:forloop.counter0|index:forloop.parentloop.counter0}}{% endif %}</label>
               <label class="label label-default" style="opacity: 0.7; margin: -1px; display: {% if answer %}none{% else %}inline{% endif %};" id='f{{forloop.parentloop.counter}}{{forloop.counter}}' onclick="select('f', '{{forloop.parentloop.counter}}{{forloop.counter}}')">F</label>
             </div>
           </td>
@@ -71,14 +72,14 @@
         $(a).show();
         $(a).text($(clicked).text());
     }
-    function unselect(i, j) {
+    function unselect(i) {
         $('#t'+i).show();
         $('#f'+i).show();
         $('#ans'+i).hide();
     }
     function unselectall(i) {
         {% for row in truth_table.values %}
-        unselect('{{forloop.counter}}'+i, i);
+        unselect('{{forloop.counter}}'+i);
         {% endfor %}
     }
     </script>
