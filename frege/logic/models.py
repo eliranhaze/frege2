@@ -469,6 +469,39 @@ class UserAnswer(models.Model):
         verbose_name_plural = '*תשובות משתמשים'
         unique_together = ('chapter', 'user', 'question_number', 'is_followup')
 
+class OpenAnswer(models.Model):
+    text = models.TextField(verbose_name='טקסט')
+    question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
+    upload = models.FileField(upload_to='uploads/%Y/%m', null=True, blank=True)
+    user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE)
+    checked = models.BooleanField(verbose_name='נבדק', default=False)
+
+    def save(self, *args, **kwargs):
+        print 'SAVE', self
+        try:
+            # delete old file if replaced
+            this = OpenAnswer.objects.get(id=self.id)
+            if this.upload != self.upload:
+                logger.debug('%s upload updated, deleting previous file', self)
+                this.upload.delete(save=False)
+        except: pass # new file
+        super(OpenAnswer, self).save(*args, **kwargs)
+
+    @property
+    def short_text(self):
+        return shorten_text(self.text)
+ 
+    def __unicode__(self):
+        return '%s file=%s text=%s' % (self.user_answer, self.upload, self.short_text)
+
+# handle open answer deletion
+@receiver(post_delete)   
+def delete_open_answer(instance, sender, **kwargs):
+    if issubclass(sender, OpenAnswer):
+        # delete file
+        logger.debug('post delete %s', instance)
+        instance.upload.delete(save=False)
+
 # see: https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#extending-the-existing-user-model
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

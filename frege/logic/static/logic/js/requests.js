@@ -22,8 +22,27 @@ function ans(url, csrf) {
     var btn = $("#answer");
     btn.html("שולח...");
     var data = getPostData();
-    data['csrfmiddlewaretoken'] = csrf;
-    $.post(url, data, function(data, status) {
+    var ajaxkw = {
+        url: url,
+        type: 'POST',
+        data: data,
+        success: ansDone(btn),
+    };
+    if (data instanceof FormData) {
+        ajaxkw.processData = false;
+        ajaxkw.contentType = false;
+    } else {
+        data['csrfmiddlewaretoken'] = csrf;
+    }
+    $.ajax(ajaxkw).fail(function(response){
+        errhandler(response);
+        btn.html("אישור");
+        reg();
+    });
+}
+
+function ansDone(btn) {
+    return function(data, status) {
         btn.html("אישור");
         if (!data['next']) {
             errmsg('עברת את מספר הנסיונות המירבי לפרק זה');
@@ -42,12 +61,7 @@ function ans(url, csrf) {
             $("#next").attr("onclick", data['next']);
             $("#next").show();
         }
-    })
-    .fail(function(response){
-        errhandler(response);
-        btn.html("אישור");
-        reg();
-    });
+    }
 }
 
 function errhandler(response) {
@@ -106,7 +120,7 @@ $(document).ready(function() {
         offset: {x: 0, y: 200},
         placement: {from: "bottom", align: "center"},
         animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
-        delay: 1500,
+        delay: 2500,
     });
 });
 

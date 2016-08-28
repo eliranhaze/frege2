@@ -1,0 +1,80 @@
+{% extends "logic/question_base.html" %}
+
+{% block question_text %}{{ question.text }}{% endblock %}
+{% block question_instruction %}תשובה{% endblock %}
+
+{% block question_content %}
+
+<script>
+window.resetE = function(e) {
+    console.log('resetting ' + e);
+    e.wrap('<form>').closest('form').get(0).reset();
+    e.unwrap();
+    _updateFile(e.get(0));
+  }
+</script>
+<div>
+
+  <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
+    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 autofocus></textarea>
+    <label class="btn btn-default btn-lg">
+        <span class="glyphicon glyphicon-folder-open"></span>
+        העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
+    </label>
+    <label id="filename" class="text-muted small">לא נבחר</label>
+    <button id="unfile" type="button" class="btn btn-default btn-sm" onclick="resetE($('#file'));" style="display: none;"><span class="glyphicon glyphicon-remove"></span></button>
+  </form>
+
+</div>
+
+<script>
+  function isEmpty() {
+      if (!$.trim($('#anstxt').val())) {
+          return 'יש להזין תשובה לא ריקה';
+      }
+  }
+  function getPostData() {
+      return new FormData($('#ansform')[0]);
+  }
+  function _validateFile(file) {
+      if (!file) return true;
+      var ext = file.name.split('.').pop().toLowerCase();
+      if ($.inArray(ext, ['gif', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'pdf']) < 0) {
+          errmsg('ניתן להעלות רק מסמכים או תמונות');
+          return false;
+      } 
+      if (file.size > {{maxfilesize}}) {
+          errmsg('לא ניתן להעלות קובץ גדול מ-' + humansize({{maxfilesize}}));
+          return false;
+      }
+      return true;
+  }
+  function _updateFile(e) {
+      var file = e.files[0];
+      if (!_validateFile(file)) {
+          return;
+      }
+      if (file) {
+          label = 'שם: ' + file.name + ' גודל: ' + humansize(file.size);
+          $('#unfile').show();
+      } else {
+          label = 'לא נבחר';
+          $('#unfile').hide();
+      }
+      $('#filename').text(label);
+  }
+  $(document).on('change', ':file', function() {
+      _updateFile(this);
+  });
+  function humansize(bytes) {
+      var tmp = bytes;
+      var units = ['', 'k', 'm'];
+      var i = 0;
+      while (tmp > 1024 && i < units.length - 1) {
+          tmp /= 1024;
+          i++;
+      }
+      return parseFloat(tmp.toFixed(1)) + units[i] + 'b';
+  }
+</script>
+{% endblock question_content %} 

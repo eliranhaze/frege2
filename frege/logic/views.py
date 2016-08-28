@@ -33,8 +33,10 @@ from .models import (
     TruthTableQuestion,
     ModelQuestion,
     DeductionQuestion,
+    OpenQuestion,
     UserAnswer,
     ChapterSubmission,
+    OpenAnswer,
 )
 
 import logging
@@ -216,6 +218,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             TruthTableQuestion: self._handle_truth_table_context,
             ModelQuestion: self._handle_model_context,
             DeductionQuestion: self._handle_deduction_context,
+            OpenQuestion: self._handle_open_context,
         }
         self.post_handlers = {
             ChoiceQuestion: self._handle_choice_post,
@@ -223,6 +226,10 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             TruthTableQuestion: self._handle_truth_table_post,
             ModelQuestion: self._handle_model_post,
             DeductionQuestion: self._handle_deduction_post,
+            OpenQuestion: self._handle_open_post,
+        }
+        self.answer_handlers = {
+            OpenQuestion: self._handle_open_answer,
         }
 
     def get_object(self):
@@ -308,6 +315,10 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 'time': timezone.localtime(timezone.now()),
             },
         )
+
+        # handle user answer if needed
+        if type(question) in self.answer_handlers:
+            self.answer_handlers[type(question)](request, question, user_ans)
 
         # save user answer
         if not created:
@@ -498,6 +509,29 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: checking deduction conclusion %s', request.user, conclusion)
         return formalize(conclusion) == argument.conclusion, None, request.POST['obj']
 
+    def _handle_open_context(self, question, answer):
+        self.template_name = 'logic/open.html'
+        context = {
+            'maxfilesize': 1024*1024*2, # 2mb
+        }
+        return context
+
+    def _handle_open_post(self, request, question):
+        return False, None, request.POST['anstxt']
+
+    def _handle_open_answer(self, request, question, user_answer):
+        text = request.POST['anstxt']
+        upload = request.FILES.get('file', None)
+        logger.debug('%s: saving open answer, text=%s, file=%s', request.user, text, upload)
+        open_ans, created = OpenAnswer.objects.update_or_create(
+            question=question,
+            user_answer=user_answer,
+            defaults={
+                'text': text,
+                'upload': upload,
+            },
+        )
+       
 class FollowupQuestionView(QuestionView):
 
     def _get_answer(self, question):
