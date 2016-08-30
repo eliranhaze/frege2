@@ -23,6 +23,7 @@ from .models import (
     DeductionQuestion,
     UserAnswer,
     ChapterSubmission,
+    OpenAnswer,
     UserProfile,
 )
 
@@ -124,6 +125,25 @@ class UserAnswerAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
+class OpenAnswerAdmin(admin.ModelAdmin):
+    list_display = ['user', 'chapter', 'question', 'checked']
+    ordering = ['user_answer__user', 'question__number']
+    readonly_fields = ['user_answer', 'text', 'upload', 'question']
+ 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, *args, **kwargs):
+        return False
+
+    def user(self, obj):
+        return obj.user_answer.user
+    user.short_description = 'משתמש'
+
+    def chapter(self, obj):
+        return obj.question.chapter
+    chapter.short_description = 'פרק'
+
 class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
     list_filter = ['user', 'chapter', 'time']
@@ -185,6 +205,7 @@ admin.site.register(ModelQuestion, ModelQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)
+admin.site.register(OpenAnswer, OpenAnswerAdmin)
 
 # override admin stuff like so
 admin.site.site_title = 'ממשק ניהול'
