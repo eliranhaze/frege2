@@ -542,10 +542,17 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context = {
             'maxfilesize': 1024*1024*2, # 2mb
         }
+        if answer:
+            filename, text = answer.split('/',1)
+            context['answer'] = text
+            context['filename'] = filename
         return context
 
     def _handle_open_post(self, request, question):
-        return False, None, request.POST['anstxt']
+        text = request.POST['anstxt']
+        upload = request.FILES.get('file', None)
+        answer = '%s/%s' % (upload.name if upload else '', text) # / cannot be a filename char, so it is used to separate filename and text
+        return False, None, answer
 
     def _handle_open_answer(self, request, question, user_answer):
         text = request.POST['anstxt']

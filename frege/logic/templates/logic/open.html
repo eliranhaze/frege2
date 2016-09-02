@@ -13,15 +13,28 @@ window.resetE = function(e) {
     _updateFile(e.get(0));
   }
 </script>
+<script>
+{% if answer %}
+$(document).ready(function() {
+    $('#answer').remove();
+    $('#sum').remove();
+    $('#filelbl').remove();
+});
+{% endif %}
+</script>
 <div>
 
   <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
-    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus></textarea>
-    <label class="btn btn-default btn-lg">
+    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if answer %}disabled{% endif %}>{{answer}}</textarea>
+    <label class="btn btn-default btn-lg" id="filelbl">
         <span class="glyphicon glyphicon-folder-open"></span>
         העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
     </label>
-    <label id="filename" class="text-muted small">לא נבחר</label>
+    <label id="filename" class="text-muted small">
+      {% if filename %} קובץ: {{filename}}
+      {% else %} לא נבחר
+      {% endif %}
+    </label>
     <button id="unfile" type="button" class="btn btn-default btn-sm" onclick="resetE($('#file'));" style="display: none;"><span class="glyphicon glyphicon-remove"></span></button>
   </form>
 
