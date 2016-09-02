@@ -8,7 +8,7 @@
 {% block hint %}
 יש למלא את הטבלה על ידי לחיצה על הערכים הנכונים. ניתן לנקות עמודה באמצעות הכפתורים מטה.
 {% endblock hint %}
-{% block hint_link %}מידע נוסף{% endblock %}
+{% block hint_link %}הסבר נוסף{% endblock %}
 
 {% block question_content %}
 
@@ -52,7 +52,7 @@
         {% endfor %}
         {% for formula in formulas %}
           <td class="text-center" style="">
-            <button class="btn btn-default dd-btn" onclick="unselectall({{forloop.counter}})"><span class="glyphicon glyphicon-trash"></span></button>
+            <button class="btn btn-default dd-btn" onclick="unselectall({{forloop.counter}})"><span class="glyphicon glyphicon-trash trash"></span></button>
           </td>
         {% endfor %}
       </tr>
