@@ -388,6 +388,15 @@ function get_argument(str) {
     }
 }
 
+function get_set(str) {
+    var set = [];
+    var splits = str.split(',');
+    for (var i = 0; i < splits.length; i++) {
+        set.push(get_formula(splits[i]));
+    }
+    return set;
+}
+
 function has_argument_form(str) {
     return str.indexOf(THF) > -1;
 }
@@ -436,4 +445,13 @@ function formalize(str, expectedType) {
     }
 
     return obj;
+}
+
+function formalizeAny(str) {
+    var funcs = [get_formula, get_argument, get_set];
+    for (var i = 0; i < funcs.length; i++) {
+        try {
+            return funcs[i](str);
+        } catch (e) {}
+    }
 }

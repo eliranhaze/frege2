@@ -20,6 +20,7 @@ from .models import (
     Choice,
     TruthTableQuestion,
     ModelQuestion,
+    ValuesQuestion,
     DeductionQuestion,
     UserAnswer,
     ChapterSubmission,
@@ -72,6 +73,9 @@ class TruthTableQuestionInline(FormalQuestionInline):
 class ModelQuestionInline(FormalQuestionInline):
     model = ModelQuestion
 
+class ValuesQuestionInline(FormalQuestionInline):
+    model = ValuesQuestion
+
 class DeductionQuestionInline(FormalQuestionInline):
     model = DeductionQuestion
 
@@ -114,6 +118,9 @@ class TruthTableQuestionAdmin(FormalQuestionAdmin):
     form = TruthTableQuestionForm
 
 class ModelQuestionAdmin(TruthTableQuestionAdmin):
+    pass
+
+class ValuesQuestionAdmin(TruthTableQuestionAdmin):
     pass
 
 class UserAnswerAdmin(admin.ModelAdmin):
@@ -172,6 +179,7 @@ class ChapterAdmin(admin.ModelAdmin):
         ChoiceQuestionInline,
         TruthTableQuestionInline,
         ModelQuestionInline,
+        ValuesQuestionInline,
         DeductionQuestionInline,
     ]
 
@@ -202,6 +210,7 @@ admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
 admin.site.register(ChoiceQuestion, ChoiceQuestionAdmin)
 admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(ModelQuestion, ModelQuestionAdmin)
+admin.site.register(ValuesQuestion, ValuesQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
 admin.site.register(UserAnswer, UserAnswerAdmin)

@@ -32,6 +32,7 @@ from .models import (
     FormulationAnswer,
     TruthTableQuestion,
     ModelQuestion,
+    ValuesQuestion,
     DeductionQuestion,
     OpenQuestion,
     UserAnswer,
@@ -217,6 +218,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             FormulationQuestion: self._handle_formulation_context,
             TruthTableQuestion: self._handle_truth_table_context,
             ModelQuestion: self._handle_model_context,
+            ValuesQuestion: self._handle_values_context,
             DeductionQuestion: self._handle_deduction_context,
             OpenQuestion: self._handle_open_context,
         }
@@ -225,6 +227,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             FormulationQuestion: self._handle_formulation_post,
             TruthTableQuestion: self._handle_truth_table_post,
             ModelQuestion: self._handle_model_post,
+            ValuesQuestion: self._handle_values_post,
             DeductionQuestion: self._handle_deduction_post,
             OpenQuestion: self._handle_open_post,
         }
@@ -490,6 +493,31 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             correct = False
 
         return correct, {}, assignment
+
+    def _handle_values_context(self, question, answer):
+        self.template_name = 'logic/values.html'
+        context = {}
+        if question.is_formula:
+            formulas = [Formula(question.formula)]
+            options = formulas[0].options
+        elif question.is_set:
+            formulas = FormulaSet(question.formula)
+            options = formulas.options
+        elif question.is_argument:
+            formulas = Argument(question.formula)
+            options = formulas.options
+
+        context['formulas'] = formulas
+        context['truth_table'] = MultiTruthTable(formulas)
+        context['options'] = options
+        #if answer:
+        #    answer_tt, answer_option = answer.split('#')
+        #    context['answer'] = ast.literal_eval(answer_tt)
+        #    context['answer_option'] = int(answer_option)
+        return context
+
+    def _handle_values_post(self, request, question):
+        return False, None, None
 
     def _handle_deduction_context(self, question, answer):
         self.template_name = 'logic/deduction.html'
