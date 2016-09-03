@@ -476,7 +476,7 @@ class ChapterSubmission(models.Model):
 
     class Meta:
         verbose_name = 'הגשת משתמש'
-        verbose_name_plural = 'הגשות משתמשים'
+        verbose_name_plural = '[הגשות משתמשים]'
         unique_together = ('chapter', 'user')
         ordering = ['chapter']
 
@@ -495,14 +495,14 @@ class UserAnswer(models.Model):
 
     class Meta:
         verbose_name = 'תשובת משתמש'
-        verbose_name_plural = '*תשובות משתמשים'
+        verbose_name_plural = '[תשובות משתמשים]'
         unique_together = ('chapter', 'user', 'question_number', 'is_followup')
 
 class OpenAnswer(models.Model):
     text = models.TextField(verbose_name='טקסט')
     question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
     upload = models.FileField(upload_to='uploads/%Y/%m', null=True, blank=True)
-    user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE)
+    user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE, unique=True)
     checked = models.BooleanField(verbose_name='נבדק', default=False)
 
     def save(self, *args, **kwargs):
@@ -521,6 +521,10 @@ class OpenAnswer(models.Model):
  
     def __unicode__(self):
         return '%s file=%s text=%s' % (self.user_answer, self.upload, self.short_text)
+
+    class Meta:
+        verbose_name = 'תשובה פתוחה'
+        verbose_name_plural = '[תשובות פתוחות]'
 
 # handle open answer deletion
 @receiver(post_delete)   
