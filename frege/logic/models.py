@@ -100,7 +100,7 @@ class Question(models.Model):
             if self.chapter.is_open():
                 if type(self) != OpenQuestion:
                     raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות פתוחות')
-            elif type(self) == OpenQuestion:
+            elif self.chapter.num_questions() > 0 and type(self) == OpenQuestion:
                     raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות לא פתוחות')
 
     def save(self, *args, **kwargs):
