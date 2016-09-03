@@ -178,7 +178,7 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['answer_data'] = sorted_answer_data
             context['num_correct'] = num_correct
             context['pct'] = pct
-            context['remaining'] = (submission.max_attempts - submission.attempt) if submission.can_try_again() else 0
+            context['remaining'] = submission.remaining
             context['ready'] = submission.is_ready()
             logger.debug('%s: serving chapter %s summary, context=%r', self.request.user, chapter.number, context)
         else:
@@ -252,7 +252,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         submission = ChapterSubmission.objects.filter(chapter=question.chapter, user=self.request.user).first()
         if submission:
             context['can_submit'] = submission.is_complete() and submission.can_try_again() and submission.ongoing
-            context['remaining'] = submission.max_attempts - submission.attempt
+            context['remaining'] = submission.remaining
         else:
             # default
             context['remaining'] = ChapterSubmission.MAX_ATTEMPTS
@@ -296,7 +296,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
 
         if not submission.can_try_again():
-            return JsonResponse({})
+            response = {}
+            logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
+            return JsonResponse(response)
 
         if not submission.ongoing:
             logger.debug('%s: submission is now ongoing', request.user)

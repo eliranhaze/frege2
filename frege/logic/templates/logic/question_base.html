@@ -43,7 +43,11 @@
         <h3 class="modal-title" id="modal-title">סיום פרק</h3>
       </div>
       <div class="modal-body" style="font-size: 105%;">
+        {% if chapter.is_open %}
+        <p>זהו פרק פתוח. פעולה זו שולחת את הפרק לבדיקה.</p>
+        {% else %}
         <p>פעולה זו שולחת את הפרק להגשה ומיד לאחריה יהיה ניתן לראות את הציון. נותרו לך <b>{{remaining}} נסיונות</b> הגשה.</p>
+        {% endif %}
         <p>האם ברצונך לסיים את הפרק?</p>
       </div>
       <div class="modal-footer">

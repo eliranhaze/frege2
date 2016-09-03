@@ -431,10 +431,14 @@ class ChapterSubmission(models.Model):
 
     @property
     def max_attempts(self):
-        return self.MAX_ATTEMPTS
-
+        return self.MAX_ATTEMPTS if not self.chapter.is_open() else 1
+ 
     def can_try_again(self):
-        return self.attempt < self.max_attempts and not self.chapter.is_open()
+        return self.attempt < self.max_attempts
+
+    @property
+    def remaining(self):
+        return self.max_attempts - self.attempt
 
     @property
     def percent_correct_f(self):
