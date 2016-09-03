@@ -8,7 +8,12 @@
       <div class="panel-body table-responsive">
     {% if ready %}
         <p>
-          ענית נכון על {{ num_correct }} מתוך {{ answer_data|length }} שאלות ({{pct}}%).
+          {% if chapter.is_open %}
+          קיבלת {{num_correct}} נקודות מתוך {{answer_data|length}}.
+          {% else %}
+          ענית נכון על {{num_correct}} מתוך {{answer_data|length}} שאלות.
+          {% endif %}
+          ציון: {{pct}}.
         </p>
       {% if num_correct < answer_data|length and remaining > 0 %}
         <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
@@ -16,10 +21,14 @@
         <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>חזרה לשאלות</a></p>
       {% endif %}
         <table class="table table-condensed">
-          {% for qnum, followup, correct in answer_data %}
+          {% for qnum, followup, correct_or_grade in answer_data %}
           <tr>
             <td>שאלה {{qnum}}{% if followup %}: המשך{% endif %}</td>
-            <td>{% if correct %}נכון{% else %}לא נכון{% endif %}</td>
+            {% if chapter.is_open %}
+            <td>{{correct_or_grade}}</td>
+            {% else %}
+            <td>{% if correct_or_grade %}נכון{% else %}לא נכון{% endif %}</td>
+            {% endif %}
           <tr>
           {% endfor %}
         </table>

@@ -456,11 +456,20 @@ class ChapterSubmission(models.Model):
     percent_correct.short_description = 'ציון'
 
     def correctness_data(self):
-        answer_data = {
-            (ans.question_number, ans.is_followup): ans.correct 
-            for ans in UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
-        }
-        num_correct = sum(1 for correct in answer_data.itervalues() if correct)
+        if self.chapter.is_open() and self.is_ready():
+            answers = OpenAnswer.objects.filter(user_answer__user=self.user, question__chapter=self.chapter)
+            answer_data = {
+                (ans.question.number, False): float(ans.grade)
+                for ans in answers
+            }
+            num_correct = sum(answer_data.itervalues())
+        else:
+            answer_data = {
+                (ans.question_number, ans.is_followup): ans.correct 
+                for ans in UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
+            }
+            num_correct = sum(1 for correct in answer_data.itervalues() if correct)
+
         pct = int(round(num_correct * 100. / self.chapter.num_questions(followups=True)))
         return answer_data, num_correct, pct
 

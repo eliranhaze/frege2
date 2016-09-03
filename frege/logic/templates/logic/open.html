@@ -30,7 +30,7 @@ $(document).ready(function() {
         העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
     </label>
     <label id="filename" class="text-muted small">
-      {% if filename %} קובץ: {{filename}}
+      {% if answer %}{% if filename %}קובץ: {{filename}}{% endif %}
       {% else %} לא נבחר
       {% endif %}
     </label>
