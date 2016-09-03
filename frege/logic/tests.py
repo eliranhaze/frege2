@@ -327,14 +327,16 @@ class QuestionTests(TestCase):
         
     def test_query_all(self):
         chapter = Chapter.objects.create(title='chap', number=1)
+        chapter_open = Chapter.objects.create(title='chap', number=2)
         qc = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
-        qo = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=2)
+        qo = OpenQuestion.objects.create(chapter=chapter_open, text='hi?', number=2)
         qf = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3)
         qt = TruthTableQuestion.objects.create(chapter=chapter, formula='p%sq'%DIS, number=4)
         qm = ModelQuestion.objects.create(chapter=chapter, formula='Pa', number=5)
         qd = DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=6)
         self.assertItemsEqual(Question._all(), [qc, qo, qf, qt, qm, qd])
-        self.assertItemsEqual(Question._filter(chapter=chapter), [qc, qo, qf, qt, qm, qd])
+        self.assertItemsEqual(Question._filter(chapter=chapter), [qc, qf, qt, qm, qd])
+        self.assertItemsEqual(Question._filter(chapter=chapter_open), [qo])
         self.assertItemsEqual(Question._filter(number=6), [qd])
         self.assertEqual(Question._get(number=6), qd)
         self.assertEqual(Question._count(), 6)
@@ -450,7 +452,7 @@ class ChapterSubmissionTests(TestCase):
         ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
         oa = OpenAnswer.objects.create(text='x', question=q, user_answer=ua)
         self.assertFalse(cs.is_ready())
-        oa.checked = True
+        oa.grade = 1.
         oa.save()
         self.assertTrue(cs.is_ready())
 
@@ -469,7 +471,7 @@ class ChapterSubmissionTests(TestCase):
             return oa
 
         def _check(answer):
-            answer.checked = True
+            answer.grade = 1.
             answer.save()
            
         self.assertFalse(cs.is_ready())
