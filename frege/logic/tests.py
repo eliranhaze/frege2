@@ -38,8 +38,10 @@ from .models import (
     FormulationQuestion,
     FormulationAnswer,
     TruthTableQuestion,
+    ModelQuestion,
     DeductionQuestion,
     UserAnswer,
+    OpenAnswer,
     ChapterSubmission,
 )
 
@@ -329,12 +331,31 @@ class QuestionTests(TestCase):
         qo = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=2)
         qf = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3)
         qt = TruthTableQuestion.objects.create(chapter=chapter, formula='p%sq'%DIS, number=4)
-        qd = DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=5)
-        self.assertItemsEqual(Question._all(), [qc, qo, qf, qt, qd])
-        self.assertItemsEqual(Question._filter(chapter=chapter), [qc, qo, qf, qt, qd])
-        self.assertItemsEqual(Question._filter(number=5), [qd])
-        self.assertEqual(Question._get(number=5), qd)
-        self.assertEqual(Question._count(), 5)
+        qm = ModelQuestion.objects.create(chapter=chapter, formula='Pa', number=5)
+        qd = DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=6)
+        self.assertItemsEqual(Question._all(), [qc, qo, qf, qt, qm, qd])
+        self.assertItemsEqual(Question._filter(chapter=chapter), [qc, qo, qf, qt, qm, qd])
+        self.assertItemsEqual(Question._filter(number=6), [qd])
+        self.assertEqual(Question._get(number=6), qd)
+        self.assertEqual(Question._count(), 6)
+
+class ChapterTests(TestCase):
+
+    def test_is_open_empty(self):
+        chapter = Chapter.objects.create(title='ch', number=1)
+        self.assertFalse(chapter.is_open())
+
+    def test_is_open_yes(self):
+        chapter = Chapter.objects.create(title='ch', number=1)
+        OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        OpenQuestion.objects.create(chapter=chapter, text='hi2?', number=2)
+        self.assertTrue(chapter.is_open())
+
+    def test_is_open_no(self):
+        chapter = Chapter.objects.create(title='ch', number=1)
+        ModelQuestion.objects.create(chapter=chapter, formula='Pa', number=1)
+        DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=2)
+        self.assertFalse(chapter.is_open())
 
 class ChapterSubmissionTests(TestCase):
 
@@ -406,6 +427,66 @@ class ChapterSubmissionTests(TestCase):
         self.assertFalse(cs.is_complete())
         ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=3,correct=False,is_followup=True)
         self.assertTrue(cs.is_complete())
+
+    def test_is_ready_no_open(self):
+        user = User.objects.create(username='u', password='pw')
+        chapter = Chapter.objects.create(title='chap', number=1)
+        cs = self.create_submission(chapter, user)
+
+        # with 1 non-open question
+        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        self.assertFalse(cs.is_ready())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False)
+        self.assertTrue(cs.is_ready())
+
+    def test_is_ready_open(self):
+        user = User.objects.create(username='u', password='pw')
+        chapter = Chapter.objects.create(title='chap', number=1)
+        cs = self.create_submission(chapter, user)
+
+        # with 1 non-open question
+        q = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        self.assertFalse(cs.is_ready())
+        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
+        oa = OpenAnswer.objects.create(text='x', question=q, user_answer=ua)
+        self.assertFalse(cs.is_ready())
+        oa.checked = True
+        oa.save()
+        self.assertTrue(cs.is_ready())
+
+    def test_is_ready_many_open(self):
+        user = User.objects.create(username='u', password='pw')
+        chapter = Chapter.objects.create(title='chap', number=1)
+        cs = self.create_submission(chapter, user)
+
+        q1 = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        q2 = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=2)
+        q3 = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=3)
+ 
+        def _create_answer(question):
+            ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=question.number,correct=False)
+            oa = OpenAnswer.objects.create(text='x', question=question, user_answer=ua)
+            return oa
+
+        def _check(answer):
+            answer.checked = True
+            answer.save()
+           
+        self.assertFalse(cs.is_ready())
+        oa1 = _create_answer(q1)
+        self.assertFalse(cs.is_ready())
+        _check(oa1)
+        self.assertFalse(cs.is_ready())
+
+        oa2 = _create_answer(q2)
+        self.assertFalse(cs.is_ready())
+        _check(oa2)
+        self.assertFalse(cs.is_ready())
+
+        oa3 = _create_answer(q3)
+        self.assertFalse(cs.is_ready())
+        _check(oa3)
+        self.assertTrue(cs.is_ready())
 
 class FormulaTests(TestCase):
 

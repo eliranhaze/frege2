@@ -178,7 +178,8 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['answer_data'] = sorted_answer_data
             context['num_correct'] = num_correct
             context['pct'] = pct
-            context['remaining'] = submission.max_attempts - submission.attempt
+            context['remaining'] = (submission.max_attempts - submission.attempt) if submission.can_try_again() else 0
+            context['ready'] = submission.is_ready()
             logger.debug('%s: serving chapter %s summary, context=%r', self.request.user, chapter.number, context)
         else:
             logger.debug('%s: not serving chapter %s summary', self.request.user, chapter.number)

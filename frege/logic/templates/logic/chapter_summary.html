@@ -6,14 +6,15 @@
   {% if answer_data %}
     <div class="panel panel-default">
       <div class="panel-body table-responsive">
+    {% if ready %}
         <p>
           ענית נכון על {{ num_correct }} מתוך {{ answer_data|length }} שאלות ({{pct}}%).
         </p>
-    {% if num_correct < answer_data|length and remaining > 0 %}
+      {% if num_correct < answer_data|length and remaining > 0 %}
         <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
-    {% else %}
+      {% else %}
         <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>חזרה לשאלות</a></p>
-    {% endif %}
+      {% endif %}
         <table class="table table-condensed">
           {% for qnum, followup, correct in answer_data %}
           <tr>
@@ -22,10 +23,15 @@
           <tr>
           {% endfor %}
         </table>
+    {% else %}
+        <p>
+          הפרק בבדיקה. יהיה ניתן לראות את הציון בדף זה לאחר שייבדק במלואו.
+        </p>
+    {% endif %}
       </div>
     </div>
   {% else %}
-    <p class="pull-right" style="font-size: 110%; margin-top: 20px; margin-bottom: 10px;">איך הגעת לכאן? לא סיימת לענות על כל השאלות!</p>
+    <p class="pull-right" style="font-size: 110%; margin-top: 20px; margin-bottom: 10px;">איך הגעת לכאן? לא הגשת את הפרק!</p>
     <img src='/static/logic/images/russell.jpg' style="height: auto; width: 100%;" title="Russell is not impressed." dir="ltr">
     <script>
       $(document).ready(function(){

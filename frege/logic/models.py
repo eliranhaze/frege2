@@ -65,6 +65,9 @@ class Chapter(models.Model):
     def first_question(self):
         return min(self.questions(), key=lambda q: q.number)
 
+    def is_open(self):
+        return any(type(q) == OpenQuestion for q in self.questions())
+
     def __unicode__(self):
         return '%s. %s' % (self.number, self.title)
 
@@ -417,6 +420,13 @@ class ChapterSubmission(models.Model):
         answered_followups = {a.question_number for a in user_answers if a.is_followup}
         return set(chapter_questions.keys()) == set(answered_questions.keys()) and chapter_followups == answered_followups
 
+    def is_ready(self):
+        if self.chapter.is_open():
+            answers = OpenAnswer.objects.filter(user_answer__user=self.user, question__chapter=self.chapter)
+            if not all(a.checked for a in answers):
+                return False
+        return self.is_complete()
+
     MAX_ATTEMPTS = 3
 
     @property
@@ -424,7 +434,7 @@ class ChapterSubmission(models.Model):
         return self.MAX_ATTEMPTS
 
     def can_try_again(self):
-        return self.attempt < self.max_attempts
+        return self.attempt < self.max_attempts and not self.chapter.is_open()
 
     @property
     def percent_correct_f(self):
