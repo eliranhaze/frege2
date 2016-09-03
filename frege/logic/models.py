@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
 from django.db.models.signals import post_delete 
 from django.dispatch import receiver
 
@@ -511,9 +511,24 @@ class UserAnswer(models.Model):
 class OpenAnswer(models.Model):
     text = models.TextField(verbose_name='טקסט')
     question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
-    upload = models.FileField(upload_to='uploads/%Y/%m', null=True, blank=True)
+    upload = models.FileField(verbose_name='קובץ', upload_to='uploads/%Y/%m', null=True, blank=True)
     user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE, unique=True)
-    checked = models.BooleanField(verbose_name='נבדק', default=False)
+    grade = models.DecimalField(
+        verbose_name='ניקוד',
+        max_digits=2,
+        decimal_places=1,
+        null=True,
+        blank=False,
+        validators = [
+            MaxValueValidator(1.),
+            MinValueValidator(0.),
+        ]
+    )
+    comment = models.TextField(verbose_name='הערות (אופציונלי)', null=True, blank=True)
+
+    @property
+    def checked(self):
+        return self.grade is not None
 
     def save(self, *args, **kwargs):
         try:

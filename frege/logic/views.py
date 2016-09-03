@@ -552,14 +552,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def _handle_open_post(self, request, question):
-        text = request.POST['anstxt']
-        upload = request.FILES.get('file', None)
+        text, upload = self._get_open_answer_input(request)
         answer = '%s/%s' % (upload.name if upload else '', text) # / cannot be a filename char, so it is used to separate filename and text
         return False, None, answer
 
     def _handle_open_answer(self, request, question, user_answer):
-        text = request.POST['anstxt']
-        upload = request.FILES.get('file', None)
+        text, upload = self._get_open_answer_input(request)
         logger.debug('%s: saving open answer, text=%s, file=%s', request.user, text, upload)
         open_ans, created = OpenAnswer.objects.update_or_create(
             question=question,
@@ -569,7 +567,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 'upload': upload,
             },
         )
-       
+    
+    def _get_open_answer_input(self, request):
+        text = request.POST['anstxt'].strip()
+        upload = request.FILES.get('file', None)
+        return text, upload
+
 class FollowupQuestionView(QuestionView):
 
     def _get_answer(self, question):

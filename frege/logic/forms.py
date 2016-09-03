@@ -14,6 +14,7 @@ from .models import (
     Question,
     FormulationQuestion,
     TruthTableQuestion,
+    OpenAnswer,
 )
 
 class QuestionForm(forms.ModelForm):
@@ -27,6 +28,15 @@ class TruthTableQuestionForm(QuestionForm):
     class Meta(QuestionForm.Meta):
         model = TruthTableQuestion
         exclude = QuestionForm.Meta.exclude + ['table_type']
+
+class OpenAnswerForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+       super(OpenAnswerForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = OpenAnswer
+        exclude = ['user_answer', 'question', 'text']
 
 class FormulationAnswerFormSet(forms.BaseInlineFormSet):
 

@@ -10,6 +10,7 @@ from .forms import (
     QuestionForm,
     FormulationAnswerFormSet,
     TruthTableQuestionForm,
+    OpenAnswerForm,
 )
 from .models import (
     Chapter,
@@ -133,9 +134,11 @@ class UserAnswerAdmin(admin.ModelAdmin):
         return False
 
 class OpenAnswerAdmin(admin.ModelAdmin):
-    list_display = ['user', 'chapter', 'question', 'checked']
+    list_display = ['user', 'chapter', 'question', 'grade']
+    list_filter = ['user_answer__user', 'question__chapter', 'question__number', 'grade']
     ordering = ['user_answer__user', 'question__number']
-    readonly_fields = ['user_answer', 'text', 'upload', 'question']
+    readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
+    form = OpenAnswerForm
  
     def has_add_permission(self, request, obj=None):
         return False
@@ -150,6 +153,14 @@ class OpenAnswerAdmin(admin.ModelAdmin):
     def chapter(self, obj):
         return obj.question.chapter
     chapter.short_description = 'פרק'
+
+    def answer_text(self, obj):
+        return '\n\n%s' % (obj.text)
+    answer_text.short_description = 'תשובה'
+
+    def question_text(self, obj):
+        return '\n\n(%d) %s' % (obj.question.number, obj.question.text)
+    question_text.short_description = 'שאלה'
 
 class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
