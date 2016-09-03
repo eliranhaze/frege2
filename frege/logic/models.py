@@ -92,10 +92,16 @@ class Question(models.Model):
     def clean(self):
         # TODO: does this have unit tests? it should
         super(Question, self).clean()
-        if self.chapter_id and self.number > 0: # TODO: probably add condition for followup question with the same number
-            chapter_questions = Question._filter(chapter=self.chapter)
-            if self.number in set([q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]):
-                raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
+        if self.chapter_id:
+            if self.number > self.DEFAULT_NUM: # TODO: probably add condition for followup question with the same number
+                chapter_questions = Question._filter(chapter=self.chapter)
+                if self.number in set([q.number for q in Question._filter(chapter=self.chapter) if q.id != self.id]):
+                    raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
+            if self.chapter.is_open():
+                if type(self) != OpenQuestion:
+                    raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות פתוחות')
+            elif type(self) == OpenQuestion:
+                    raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות לא פתוחות')
 
     def save(self, *args, **kwargs):
         logger.debug('saving %s', self)
