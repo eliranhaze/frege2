@@ -24,9 +24,6 @@ urlpatterns = [
     url(r'^frege/', include('logic.urls')),
     url(r'^$', RedirectView.as_view(url='/frege/', permanent=True)),
 
-    # TODO: to be removed
-    url(r'^polls/', include('polls.urls')),
-
     # account stuff
     url(r'^accounts/login/$', login, name='login'),
     url(r'^accounts/logout/$', logout, name='logout'),
