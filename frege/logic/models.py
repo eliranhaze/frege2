@@ -571,6 +571,9 @@ def delete_open_answer(instance, sender, **kwargs):
         logger.debug('post delete %s', instance)
         instance.upload.delete(save=False)
 
+########################################################################################################
+# Other models
+
 # see: https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#extending-the-existing-user-model
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -585,3 +588,6 @@ class UserProfile(models.Model):
         verbose_name = 'פרופיל'
         verbose_name_plural = 'פרופילים'
 
+class Stat(models.Model):
+    user_answer = models.ForeignKey(UserAnswer, on_delete=models.CASCADE)
+    correct = models.BooleanField()

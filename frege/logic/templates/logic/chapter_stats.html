@@ -1,0 +1,27 @@
+{% extends "logic/chapter_base.html" %}
+{% load index %}
+
+{% block topic_header %}סטטיסטיקה{% endblock %}
+
+{% block chapter_content %}
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h3>כללי</h3>
+        <p>
+          מספר הגשות: {{num_sub}}<br>
+          ממוצע נסיונות להגשה: {{avg_attempts|floatformat:-1}}<br>
+          ציון ממוצע: {{avg_grade|floatformat:-1}}<br>
+          התפלגות ציונים: {{grades}}<br>
+        </p>
+        <h3>שאלות</h3>
+        {% for qnum, pct_correct, final_pct_correct, avg_attempts in q_stats %}
+        <h4>שאלה {{qnum}}</h4>
+        <p>
+          אחוז הצלחה (סופי): {{final_pct_correct|floatformat:-1}}%<br>
+          אחוז הצלחה (כל הנסיונות): {{pct_correct|floatformat:-1}}%<br>
+          ממוצע נסיונות: {{avg_attempts|floatformat:-1}}<br>
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+{% endblock chapter_content %}

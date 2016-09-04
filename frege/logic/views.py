@@ -38,6 +38,7 @@ from .models import (
     UserAnswer,
     ChapterSubmission,
     OpenAnswer,
+    Stat,
 )
 
 import logging
@@ -85,12 +86,24 @@ def chapter_questions_user_data(chapter, user):
                 data[q.number] = 'half'
     return data
 
+def avg(iterable):
+    lst = list(iterable)
+    return sum(lst)/float(len(lst))
+
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
 
     def get_queryset(self):
         chapters = Chapter.objects.all()
         logger.debug('%s: %d chapters', self.request.user, len(chapters))
+        return chapters
+
+class StatsView(LoginRequiredMixin, generic.ListView):
+    template_name = 'logic/stats.html'
+
+    def get_queryset(self):
+        chapters = Chapter.objects.all()
+        logger.debug('%s:stats: %d chapters', self.request.user, len(chapters))
         return chapters
 
 class AboutView(LoginRequiredMixin, generic.DetailView):
@@ -152,6 +165,55 @@ class UserView(LoginRequiredMixin, generic.ListView):
 #        stats = {t: int(round((100.*correct/total))) for t, (total,correct) in stats.iteritems() if total > 0}
 #        context['stats'] = stats
 #        return context
+
+class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'logic/chapter_stats.html'
+
+    def get_object(self):
+        return get_object_or_404(Chapter, number=self.kwargs['chnum'])
+
+    def dispatch(self, request, chnum):
+        chapter = get_object_or_404(Chapter, number=chnum)
+        if chapter.num_questions() == 0:
+            return HttpResponseRedirect(reverse('logic:index'))
+        return super(ChapterStatsView, self).dispatch(request, chnum)
+
+    def get_context_data(self, **kwargs):
+        context = super(ChapterStatsView, self).get_context_data(**kwargs)
+        chapter = self.object
+        logger.debug('%s: chapter %s stats', self.request.user, chapter)
+        submissions = ChapterSubmission.objects.filter(chapter=chapter)
+        stats = Stat.objects.filter(user_answer__chapter=chapter)
+        logger.debug(
+            '%s:chapter %d stats: fetched %d submissions and %d stats',
+            self.request.user, chapter.number, len(submissions), len(stats)
+        )
+        context['num_sub'] = len(submissions)
+        if not submissions:
+            return context
+        context['avg_attempts'] = avg(s.attempt for s in submissions)
+        grades = [s.percent_correct() for s in submissions]
+        context['grades'] = grades
+        context['avg_grade'] = avg(grades)
+        by_question = groupby(stats, lambda s: s.user_answer.question_number)
+        questions_stats = []
+        for qnum, qstats in by_question:
+            stat_list = [s for s in qstats]
+            if stat_list:
+                num_stats = len(stat_list)
+                user_answers = set(s.user_answer for s in stat_list)
+                pct_correct = 100.*sum(1 for s in stat_list if s.correct)/num_stats
+                final_pct_correct = 100.*sum(1 for a in user_answers if a.correct)/len(user_answers)
+                avg_attempts = float(num_stats)/len(user_answers)
+            else:
+                pct_correct = None
+                final_pct_correct = None
+                avg_attempts = None
+            questions_stats.append((qnum, pct_correct, final_pct_correct, avg_attempts))
+           
+        context['q_stats'] = questions_stats
+        logger.debug('%s:chapter %d stats: context=%s', self.request.user, chapter.number, context)
+        return context
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_summary.html'
@@ -310,6 +372,22 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             submission.ongoing = True
             submission.save()
 
+        # handle answer
+        user_ans, ext_data = self._handle_user_answer(request, question, submission)
+
+        # make a response
+        response = {
+            'complete': submission.is_complete(),
+            'next': 'location.href="%s";' % self._next_url(request, question),
+            'has_followup': question.has_followup(),
+            'ans_time': formats.date_format(user_ans.time, 'DATETIME_FORMAT'),
+        }
+        if ext_data:
+            response.update(ext_data)
+        logger.debug('%s: question post response: %s', request.user, response)
+        return JsonResponse(response)
+
+    def _handle_user_answer(self, request, question, submission):
         # handle answer according to question type
         correct, ext_data, answer = self.post_handlers[type(question)](request, question)
 
@@ -338,19 +416,18 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user_ans.time = timezone.localtime(timezone.now())
             user_ans.save()
 
-        logger.info('%s: %s answer %s/%s, correct=%s', request.user, 'saved new' if created else 'updated', chnum, qnum, correct)
+        # create stat for answer
+        Stat.objects.create(
+            user_answer = user_ans,
+            correct = correct,
+        )
 
-        # make a response
-        response = {
-            'complete': submission.is_complete(),
-            'next': 'location.href="%s";' % self._next_url(request, question),
-            'has_followup': question.has_followup(),
-            'ans_time': formats.date_format(user_ans.time, 'DATETIME_FORMAT'),
-        }
-        if ext_data:
-            response.update(ext_data)
-        logger.debug('%s: question post response: %s', request.user, response)
-        return JsonResponse(response)
+        logger.info(
+            '%s: %s answer %s/%s, correct=%s',
+            request.user, 'saved new' if created else 'updated',
+            question.chapter.number, question.number, correct,
+        )
+        return user_ans, ext_data
 
     def _next_url(self, request, question):
         if question.has_followup():

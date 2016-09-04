@@ -4,7 +4,7 @@
 
 {% block content %}
 {% if chapter_list %}
-    <div class="container">
+  <div class="container">
     <div class="page-header">
     </div>
 
@@ -18,7 +18,10 @@
         {% endif %}
     {% endfor %}
     </div>
-    </div>
+    <a class="text-muted" href="{% url 'logic:stats' %}" target="_blank">
+      <span class="glyphicon glyphicon-stats"></span> סטטיסטיקה
+    </a>
+  </div>
 {% else %}
     <p>No chapters are available.</p>
 {% endif %}
