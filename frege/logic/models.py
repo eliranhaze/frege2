@@ -83,8 +83,16 @@ class Question(models.Model):
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE, null=True)
     number = models.PositiveIntegerField(default=DEFAULT_NUM, verbose_name='מספר', null=True)
 
+    def _get_chapter(self):
+        try:
+            return self.chapter
+        except Chapter.DoesNotExist:
+            pass # chapter is deleted
+
     def user_answers(self):
-        return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
+        if self._get_chapter():
+            return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
+        return []
     
     def user_answer(self, user):
         return UserAnswer.objects.filter(user=user, chapter=self.chapter, question_number=self.number)
@@ -163,10 +171,11 @@ def delete_stuff(instance, sender, **kwargs):
             logger.debug('deleting %s of question %s', ua, self)
             ua.delete()
         # re-order other questions
-        for q in Question._filter(chapter=self.chapter, number__gt=self.number):
-            q.number = q.number - 1
-            q.save()
-            logger.debug('reordered %s', q)
+        if self._get_chapter(): # if chapter was not deleted
+            for q in Question._filter(chapter=self.chapter, number__gt=self.number):
+                q.number = q.number - 1
+                q.save()
+                logger.debug('reordered %s', q)
 
 class TextualQuestion(Question):
     text = models.TextField(verbose_name='טקסט')
