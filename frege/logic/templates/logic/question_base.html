@@ -8,7 +8,7 @@
   <div class="panel-body">
     <p class="text-muted hint" id="ans-time">{% if ans_time %}ענית על שאלה זו ב-{{ans_time}}{% endif %}</p>
     <p class="text-muted hint">{% if question.has_followup %}לשאלה זו יש המשך{% endif %}</p>
-    <p style="white-space: pre-wrap; font-size: 110%;">{% block question_text %}{% endblock %}</p>
+    <p style="white-space: pre-wrap; font-size: 106%;">{% block question_text %}{% endblock %}</p>
     <div class="page-header" style="margin-top: -18px;"></div>
     <p class="noselect"><b>{% block question_instruction %}{% endblock %}</b></p>
     <p class="small text-muted">{% block hint %}{% endblock %}<a class="text-muted" href="{% url 'logic:topic-help' 1 %}" target="_blank"><u>{% block hint_link %}{% endblock %}</u></a></p>
