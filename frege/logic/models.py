@@ -456,6 +456,9 @@ class ChapterSubmission(models.Model):
     percent_correct.short_description = 'ציון'
 
     def correctness_data(self):
+        """
+        returns dict of (question number, is followup) -> grade/correct
+        """
         if self.chapter.is_open() and self.is_ready():
             answers = OpenAnswer.objects.filter(user_answer__user=self.user, question__chapter=self.chapter)
             answer_data = {
@@ -533,7 +536,7 @@ class OpenAnswer(models.Model):
             MinValueValidator(0.),
         ]
     )
-    comment = models.TextField(verbose_name='הערות (אופציונלי)', null=True, blank=True)
+    comment = models.TextField(verbose_name='הערות (אופציונלי)', null=True, blank=True, max_length=500)
 
     @property
     def checked(self):

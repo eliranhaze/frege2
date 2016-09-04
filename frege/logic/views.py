@@ -180,6 +180,10 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['pct'] = pct
             context['remaining'] = submission.remaining
             context['ready'] = submission.is_ready()
+            if chapter.is_open():
+                context['comments'] = {
+                    a.question.number: a.comment for a in OpenAnswer.objects.filter(user_answer__submission=submission)
+                }
             logger.debug('%s: serving chapter %s summary, context=%r', self.request.user, chapter.number, context)
         else:
             logger.debug('%s: not serving chapter %s summary', self.request.user, chapter.number)
