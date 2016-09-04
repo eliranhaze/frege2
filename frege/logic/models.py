@@ -338,25 +338,6 @@ class ModelQuestion(SemanticsQuestion):
         verbose_name = 'שאלת פשר'
         verbose_name_plural = 'שאלות פשר'
 
-class ValuesQuestion(SemanticsQuestion):
-
-    _formula_cls = Formula
-    _formula_set_cls = FormulaSet
-    _argument_cls = Argument
-
-    @property
-    def options(self):
-        if self.is_formula:
-            return FORMULA_OPTIONS
-        elif self.is_set:
-            return SET_OPTIONS
-        elif self.is_argument:
-            return ARGUMENT_OPTIONS
-
-    class Meta(SemanticsQuestion.Meta):
-        verbose_name = 'שאלת מתן ערכים'
-        verbose_name_plural = 'שאלות מתן ערכים'
-
 class DeductionQuestion(FormalQuestion):
     formula = models.CharField(verbose_name='טיעון', max_length=60)
 
