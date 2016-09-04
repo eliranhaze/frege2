@@ -180,6 +180,7 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             context['pct'] = pct
             context['remaining'] = submission.remaining
             context['ready'] = submission.is_ready()
+            context['ans_time'] = submission.time
             if chapter.is_open():
                 context['comments'] = {
                     a.question.number: a.comment for a in OpenAnswer.objects.filter(user_answer__submission=submission)

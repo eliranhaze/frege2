@@ -7,6 +7,7 @@
   {% if answer_data %}
     <div class="panel panel-default">
       <div class="panel-body table-responsive">
+        <p class="text-muted hint">{% if ans_time %}הגשת פרק זה ב-{{ans_time}}{% endif %}</p>
     {% if ready %}
         <p>
           {% if chapter.is_open %}
