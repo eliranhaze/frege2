@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
+from django.utils import formats, timezone
 from django.views import generic
 
 from itertools import groupby
@@ -340,6 +340,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             'complete': submission.is_complete(),
             'next': 'location.href="%s";' % self._next_url(request, question),
             'has_followup': question.has_followup(),
+            'ans_time': formats.date_format(user_ans.time, 'DATETIME_FORMAT'),
         }
         if ext_data:
             response.update(ext_data)

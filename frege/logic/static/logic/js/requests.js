@@ -48,6 +48,9 @@ function ansDone(btn) {
             errmsg('עברת את מספר הנסיונות המירבי לפרק זה');
             return;
         }
+        if (data['ans_time']) {
+            $('#ans-time').text('ענית על שאלה זו ב-'+data['ans_time']);
+        }
         okmsg('תשובה נשמרה');
         reg();
         btn.html("אישור");
