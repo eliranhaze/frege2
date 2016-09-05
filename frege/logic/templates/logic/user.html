@@ -26,9 +26,9 @@
         {% for sub in chaptersubmission_list %}
           <tr>
             <td>
-              <a href='{% url 'logic:chapter' sub.chapter.number %}'>פרק {{sub.chapter.number}}</a>
+              <a href='{% url 'logic:chapter' sub.chapter.number %}'>{{sub.chapter}}</a>
             </td>
-            <td>{{sub.percent_correct}}</td>
+            <td>{% if sub.is_ready %}{{sub.percent_correct}}{% else %}בבדיקה...{% endif %}</td>
             <td class="text-muted">{{sub.time}}</td>
           <tr>
         {% endfor %}
