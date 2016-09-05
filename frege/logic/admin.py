@@ -46,36 +46,36 @@ class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 0
 
-class QuestionInline(admin.StackedInline):
-    extra = 0
-
-    def get_formset(self, *args, **kwargs):
-        self.exclude = ['number']
-        return super(QuestionInline, self).get_formset(*args, **kwargs)
-
-class OpenQuestionInline(QuestionInline):
-    model = OpenQuestion
-
-class FormulationQuestionInline(QuestionInline):
-    model = FormulationQuestion
-
-class ChoiceQuestionInline(QuestionInline):
-    model = ChoiceQuestion
-
-class FormalQuestionInline(QuestionInline):
-    formfield_overrides = {
-        models.CharField: formal_text_widget
-    }
-
-class TruthTableQuestionInline(FormalQuestionInline):
-    model = TruthTableQuestion
-
-class ModelQuestionInline(FormalQuestionInline):
-    model = ModelQuestion
-
-class DeductionQuestionInline(FormalQuestionInline):
-    model = DeductionQuestion
-
+#class QuestionInline(admin.StackedInline):
+#    extra = 0
+#
+#    def get_formset(self, *args, **kwargs):
+#        self.exclude = ['number']
+#        return super(QuestionInline, self).get_formset(*args, **kwargs)
+#
+#class OpenQuestionInline(QuestionInline):
+#    model = OpenQuestion
+#
+#class FormulationQuestionInline(QuestionInline):
+#    model = FormulationQuestion
+#
+#class ChoiceQuestionInline(QuestionInline):
+#    model = ChoiceQuestion
+#
+#class FormalQuestionInline(QuestionInline):
+#    formfield_overrides = {
+#        models.CharField: formal_text_widget
+#    }
+#
+#class TruthTableQuestionInline(FormalQuestionInline):
+#    model = TruthTableQuestion
+#
+#class ModelQuestionInline(FormalQuestionInline):
+#    model = ModelQuestion
+#
+#class DeductionQuestionInline(FormalQuestionInline):
+#    model = DeductionQuestion
+#
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'chapter']
     list_filter = ['chapter']
@@ -177,14 +177,14 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']
     search_fields = ['title']
-    inlines = [
-        OpenQuestionInline,
-        FormulationQuestionInline,
-        ChoiceQuestionInline,
-        TruthTableQuestionInline,
-        ModelQuestionInline,
-        DeductionQuestionInline,
-    ]
+#    inlines = [
+#        OpenQuestionInline,
+#        FormulationQuestionInline,
+#        ChoiceQuestionInline,
+#        TruthTableQuestionInline,
+#        ModelQuestionInline,
+#        DeductionQuestionInline,
+#    ]
 
 #########################################################3
 # User profile
