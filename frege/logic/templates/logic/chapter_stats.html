@@ -19,7 +19,7 @@
           ציון ממוצע: {{avg_grade|floatformat:-1}}<br>
         </p>
         התפלגות ציונים:<br>
-        <div id="grades-chart" style="height: 300px; width: 60%; margin: auto;"></div>
+        <div id="grades-chart" class="bar-graph"></div>
         <h3>שאלות</h3>
         {% for qnum, pct_correct, final_pct_correct, attempts, avg_attempts in q_stats %}
           {% if attempts %}

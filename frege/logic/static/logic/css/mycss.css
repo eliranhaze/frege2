@@ -251,15 +251,12 @@ input[type=text]:focus, textarea:focus {
   background: #a8d1ff; /* Gecko Browsers */
 }
 
-/* ********************************* */
-.verticalLine {
-    border-left: 1px solid #aaa;
-    float: left;
-    margin-left: 50%;
-    height: 42px;
+/* Graphs */
+.bar-graph {
+  height: 300px;
+  width: 60%;
+  margin: auto;
 }
-/* ********************************* */
-
 
 /* Sticky footer styles
 -------------------------------------------------- */
