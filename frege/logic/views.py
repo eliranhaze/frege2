@@ -8,8 +8,6 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import formats, timezone
 from django.views import generic
 
-from itertools import groupby
-
 from .formula import (
     Formula,
     PredicateFormula,
@@ -88,6 +86,13 @@ def chapter_questions_user_data(chapter, user):
 def avg(iterable):
     lst = list(iterable)
     return sum(lst)/float(len(lst))
+
+def groupby(data_list, key):
+    groups = {}
+    for item in data_list:
+        group = groups.setdefault(key(item), [])
+        group.append(item)
+    return groups
 
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/index.html'
@@ -192,12 +197,16 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
             return context
         context['avg_attempts'] = avg(s.attempt for s in submissions)
         grades = [s.percent_correct() for s in submissions]
-        context['grades'] = grades
+        grades_dist = {}
+        for grade in grades:
+            grades_dist[grade] = grades_dist.get(grade, 0) + 1
+        grades_dist = [(k, v) for k, v in grades_dist.iteritems()]
+        grades_dist.sort(key=lambda x: x[0])
+        context['grades'] = grades_dist
         context['avg_grade'] = avg(grades)
         by_question = groupby(stats, lambda s: s.user_answer.question_number)
         questions_stats = []
-        for qnum, qstats in by_question:
-            stat_list = [s for s in qstats]
+        for qnum, stat_list in by_question.iteritems():
             if stat_list:
                 num_stats = len(stat_list)
                 user_answers = set(s.user_answer for s in stat_list)
