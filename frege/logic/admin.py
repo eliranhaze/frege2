@@ -128,7 +128,7 @@ class UserAnswerAdmin(admin.ModelAdmin):
 
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
-    list_filter = ['user_answer__user', 'question__chapter', 'question__number', 'grade']
+    list_filter = ['grade', 'user_answer__user', 'question__chapter', 'question__number']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
     form = OpenAnswerForm
