@@ -110,6 +110,27 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         logger.debug('%s:stats: %d chapters', self.request.user, len(chapters))
         return chapters
 
+    def get_context_data(self, **kwargs):
+        context = super(StatsView, self).get_context_data(**kwargs)
+        chapters = self.object_list
+        # general stats
+        subs = [s for s in ChapterSubmission.objects.all() if s.is_ready()]
+        context['num_sub'] = len(subs)
+        context['avg_attempts'] = avg(s.attempt for s in subs)
+        context['avg_grade'] = avg(s.percent_correct() for s in subs)
+        # chapter stats
+        chapter_data = []
+        for chapter in chapters:
+            subs = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
+            if subs:
+                avg_grade = avg(s.percent_correct() for s in subs)
+                num_sub = len(subs)
+                avg_attempts = avg(s.attempt for s in subs)
+                chapter_data.append((chapter.number, avg_grade, num_sub, avg_attempts))
+        context['chapter_data'] = chapter_data
+        logger.debug('%s:stats: context=%s', self.request.user, context)
+        return context
+
 class AboutView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/about.html'
     def get_object(self):

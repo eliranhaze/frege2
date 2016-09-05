@@ -1,16 +1,76 @@
 {% extends "logic/base.html" %}
+{% load staticfiles %}
 
 {% block title %}סטטיסטיקה{% endblock %}
 
 {% block content %}
+<link href="{% static 'logic/morris/morris.css'%}" rel="stylesheet">
+<script src="{% static 'logic/morris/raphael-min.js'%}"></script>
+<script src="{% static 'logic/morris/morris.min.js'%}"></script>
+
 <div class="container">
   <div id="topic" class="page-header noselect">
     <h3>סטטיסטיקה</h3>
   </div>
+
   <div class="panel panel-default">
     <div class="panel-body">
-    todo
+      <h3>כללי</h3>
+      <p>
+        סך כל ההגשות: {{num_sub}}<br>
+        ממוצע נסיונות להגשה: {{avg_attempts|floatformat:-1}}<br>
+        ציון ממוצע: {{avg_grade|floatformat:-1}}<br>
+      </p>
+      ציונים לפי פרק:<br>
+      <div id="grades-chart" class="bar-graph"></div>
+      מספר הגשות לפי פרק:<br>
+      <div id="subs-chart" class="bar-graph"></div>
+      ממוצע נסיונות לפי פרק:<br>
+      <div id="attempts-chart" class="bar-graph"></div>
+      <h3>פרקים</h3>
+      {% for number, grade, subs, attempts in chapter_data %}
+      <a class="" href="{% url 'logic:chapter-stats' number %}" style="margin-right: 3px;">
+        <span class="glyphicon glyphicon-stats"></span> פרק {{number}}
+      </a><br>
+      {% endfor %}
     </div>
   </div>
+
 </div>
+
+<script>
+  new Morris.Bar({
+    element: 'grades-chart',
+    data: [
+      {% for number, grade, subs, attempts in chapter_data %}
+      {num: {{number}}, grade: {{grade}}},
+      {% endfor %}
+    ],
+    xkey: 'num',
+    ykeys: ['grade'],
+    labels: ['ציון ממוצע'],
+  });
+  new Morris.Bar({
+    element: 'subs-chart',
+    data: [
+      {% for number, grade, subs, attempts in chapter_data %}
+      {num: {{number}}, subs: {{subs}}},
+      {% endfor %}
+    ],
+    xkey: 'num',
+    ykeys: ['subs'],
+    labels: ['מספר הגשות'],
+  });
+  new Morris.Bar({
+    element: 'attempts-chart',
+    data: [
+      {% for number, grade, subs, attempts in chapter_data %}
+      {num: {{number}}, attempts: {{attempts|floatformat:-1}}},
+      {% endfor %}
+    ],
+    xkey: 'num',
+    ykeys: ['attempts'],
+    labels: ['ממוצע נסיונות'],
+  });
+</script>
 {% endblock content %}
