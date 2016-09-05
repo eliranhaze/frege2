@@ -126,6 +126,9 @@ class UserAnswerAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def has_delete_permission(self, *args, **kwargs):
+        return False
+
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
     list_filter = ['grade', 'user_answer__user', 'question__chapter', 'question__number']
@@ -159,7 +162,8 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
     list_filter = ['user', 'chapter', 'time']
     ordering = ['chapter', 'user']
-    readonly_fields = ['user', 'chapter', 'ongoing', 'time', 'attempt']
+    readonly_fields = ['user', 'chapter', 'time', 'attempt']
+    exclude = ['ongoing']
     actions = [export_as_csv_action(fields={
         'user': 'user',
         'chapter': 'chapter_number_f',
@@ -171,8 +175,9 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
         return False
 
     def get_queryset(self, *args, **kwargs):
-        # return only submitted submissions
-        return ChapterSubmission.objects.filter(time__isnull=False)
+        # return only ready submissions
+        submission_ids = [s.id for s in ChapterSubmission.objects.all() if s.is_ready()]
+        return ChapterSubmission.objects.filter(id__in=submission_ids)
 
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']
@@ -215,7 +220,7 @@ admin.site.register(TruthTableQuestion, TruthTableQuestionAdmin)
 admin.site.register(ModelQuestion, ModelQuestionAdmin)
 admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
-admin.site.register(UserAnswer, UserAnswerAdmin)
+#admin.site.register(UserAnswer, UserAnswerAdmin)
 admin.site.register(OpenAnswer, OpenAnswerAdmin)
 
 # override admin stuff like so
