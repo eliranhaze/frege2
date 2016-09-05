@@ -19,6 +19,7 @@
           <tr>
             <th style="text-align: right;">פרק</th>
             <th style="text-align: right;">ציון</th>
+            <th style="text-align: right;">זמן הגשה</th>
           </tr>
         </thead>
         <tbody>
@@ -28,6 +29,7 @@
               <a href='{% url 'logic:chapter' sub.chapter.number %}'>פרק {{sub.chapter.number}}</a>
             </td>
             <td>{{sub.percent_correct}}</td>
+            <td class="text-muted">{{sub.time}}</td>
           <tr>
         {% endfor %}
         </tbody>
