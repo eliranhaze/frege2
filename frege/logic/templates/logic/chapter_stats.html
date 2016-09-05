@@ -1,9 +1,15 @@
 {% extends "logic/chapter_base.html" %}
 {% load index %}
+{% load staticfiles %}
 
 {% block topic_header %}סטטיסטיקה{% endblock %}
 
 {% block chapter_content %}
+
+<link href="{% static 'logic/morris/morris.css'%}" rel="stylesheet">
+<script src="{% static 'logic/morris/raphael-min.js'%}"></script>
+<script src="{% static 'logic/morris/morris.min.js'%}"></script>
+
     <div class="panel panel-default">
       <div class="panel-body">
         <h3>כללי</h3>
@@ -11,17 +17,35 @@
           מספר הגשות: {{num_sub}}<br>
           ממוצע נסיונות להגשה: {{avg_attempts|floatformat:-1}}<br>
           ציון ממוצע: {{avg_grade|floatformat:-1}}<br>
-          התפלגות ציונים: {{grades}}<br>
         </p>
+        התפלגות ציונים:<br>
+        <div id="grades-chart" style="height: 300px; width: 60%; margin: auto;"></div>
         <h3>שאלות</h3>
-        {% for qnum, pct_correct, final_pct_correct, avg_attempts in q_stats %}
+        {% for qnum, pct_correct, final_pct_correct, attempts, avg_attempts in q_stats %}
+          {% if attempts %}
         <h4>שאלה {{qnum}}</h4>
         <p>
           אחוז הצלחה (סופי): {{final_pct_correct|floatformat:-1}}%<br>
           אחוז הצלחה (כל הנסיונות): {{pct_correct|floatformat:-1}}%<br>
+          מספר הגשות: {{attempts|floatformat:-1}}<br>
           ממוצע נסיונות: {{avg_attempts|floatformat:-1}}<br>
         </p>
+          {% endif %}
         {% endfor %}
       </div>
     </div>
+
+<script>
+  new Morris.Bar({
+    element: 'grades-chart',
+    data: [
+      {% for grade, count in grades %}
+      {grade: {{grade}}, count: {{count}}},
+      {% endfor %}
+    ],
+    xkey: 'grade',
+    ykeys: ['count'],
+    labels: ['תלמידים'],
+  });
+</script>
 {% endblock chapter_content %}

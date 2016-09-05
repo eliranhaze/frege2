@@ -212,12 +212,14 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
                 user_answers = set(s.user_answer for s in stat_list)
                 pct_correct = 100.*sum(1 for s in stat_list if s.correct)/num_stats
                 final_pct_correct = 100.*sum(1 for a in user_answers if a.correct)/len(user_answers)
+                attempts = num_stats
                 avg_attempts = float(num_stats)/len(user_answers)
             else:
                 pct_correct = None
                 final_pct_correct = None
+                attempts = None
                 avg_attempts = None
-            questions_stats.append((qnum, pct_correct, final_pct_correct, avg_attempts))
+            questions_stats.append((qnum, pct_correct, final_pct_correct, attempts, avg_attempts))
            
         context['q_stats'] = questions_stats
         logger.debug('%s:chapter %d stats: context=%s', self.request.user, chapter.number, context)
