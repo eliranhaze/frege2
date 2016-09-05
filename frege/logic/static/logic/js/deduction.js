@@ -302,12 +302,12 @@ Deduction.prototype.negI = function() { // @@export
 
 // universal introduction
 // a ... Pa => ∀xPx
-Deduction.prototype.allI = function() { // @@export
+Deduction.prototype.allI = function(v) { // @@export
     if (this.nesting() > 0) {
         var c = this.get(this.openIndex());
         var f1 = this.get(this.idx());
         if (c && f1 && f1.contains && f1.contains(c)) {
-            var result = f1.quantify(ALL, c);
+            var result = f1.quantify(ALL, c, v);
             this.push(result, 'I ' + ALL + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
         }
@@ -316,14 +316,14 @@ Deduction.prototype.allI = function() { // @@export
 
 // existential introduction
 // Pa => ∃xPx
-Deduction.prototype.exsI = function(i, c) {
+Deduction.prototype.exsI = function(i, c, v) {
     if (!this.isOnCurrentLevel(i)) return;
     var f = this.get(i);
     if (f && f.contains) {
         if (!f.contains(c)) {
             throw Error('הנוסחה לא מכילה את הקבוע שהוזן');
         }
-        var result = f.quantify(EXS, c);
+        var result = f.quantify(EXS, c, v);
         this.push(result, 'I ' + EXS + ' ' + i);
         return result;
     }
@@ -408,8 +408,9 @@ function applyRule(ruleFunc, numRows, inputHandler, allowOffLevel) {
         if (!(consq instanceof Array)) { consq = [consq];}
         for (var i = 0; i < consq.length; i++) {
             var formula = consq[i];
-            if (!isArbConst(consq[i])) var formula = formula.lit
-            addRow(formula, dd.symbols[dd.symbols.length-1], (dd.idx() - consq.length + i + 1));
+            if (!isArbConst(consq[i])) var formula = formula.lit;
+            isArb = ruleFunc == Deduction.prototype.arb;
+            addRow(formula, dd.symbols[dd.symbols.length-1], (dd.idx() - consq.length + i + 1), isArb);
         }
         removeSelection();
         $.notifyClose();
@@ -433,8 +434,16 @@ function formulaInputHandler(input, ruleArgs) {
 }
 
 function arbInputHandler(input, ruleArgs) {
-    if (!isArbConst(input)) throw Error('קבוע לא תקין');
+    if (!isArbConst(input)) throw Error('קלט לא תקין');
     ruleArgs.push(input);
+}
+
+function arbsInputHandler(input, ruleArgs) {
+    var inputs = input.split(',');
+    if (inputs.length != 2) throw Error('קלט לא תקין');
+    for (var i = 0; i < inputs.length; i++) {
+        arbInputHandler($.trim(inputs[i]), ruleArgs);
+    }
 }
 
 // ======================================================
@@ -467,10 +476,13 @@ function validateSelection(numRows, allowOffLevel) {
 
 // add a new row to the deduction table
 // this changes display only, and not the deduction object; all changes to it have to be done prior
-function addRow(content, symbol, rownum) {
+function addRow(content, symbol, rownum, isArb) {
     var rowId = 'r'+rownum;
     var nesting = dd.nestingLevels[rownum];
     // handle nesting
+    if (isArb) {
+        content = '<div class="dd-arb">'+content+'</div>';
+    }
     for (var i = 0; i < nesting; i++) content = addNesting(content, rownum, nesting - i);
     // add the row
     $('#deduction tr:last').after(
@@ -518,6 +530,11 @@ function getChecked() {
 }
 function showText(btn, func, num, txtKW) {
     $("#extra").show();
+    if (txtKW.hideBtns) {
+        $("#extbtns").hide();
+    } else {
+        $("#extbtns").show();
+    }
     $("#ftxtLbl").html(txtKW.label);
     $("#ftxtHint").html(txtKW.hint);
     setTimeout(function(){ // trick to not miss the focus
@@ -574,7 +591,8 @@ $(document).ready(function() {
         doApply($(this), dd.allE, 1, {
             label: 'קבוע',
             hint: 'יש להזין קבוע עבור הוצאת כמת כולל',
-            handler: arbInputHandler
+            handler: arbInputHandler,
+            hideBtns: true,
         });
     });
     $("#exs-e").click(function() {
@@ -600,13 +618,19 @@ $(document).ready(function() {
         doApply($(this), dd.negI, 0);
     });
     $("#all-i").click(function() {
-        doApply($(this), dd.allI, 0);
+        doApply($(this), dd.allI, 0, {
+            label: 'משתנה',
+            hint: 'יש להזין משתנה עבור הכנסת כמת כולל',
+            handler: arbInputHandler,
+            hideBtns: true,
+        });
     });
     $("#exs-i").click(function() {
         doApply($(this), dd.exsI, 1, {
-            label: 'קבוע',
-            hint: 'יש לבחור קבוע עבור הכנסת כמת ישי',
-            handler: arbInputHandler
+            label: 'קבוע, משתנה',
+            hint: 'יש להזין קבוע ומשתנה מופרדים בפסיק עבור הכנסת כמת ישי',
+            handler: arbsInputHandler,
+            hideBtns: true,
         });
     });
     $("#hyp").click(function() {
@@ -620,7 +644,8 @@ $(document).ready(function() {
         doApply($(this), dd.arb, 0, {
             label: 'קבוע',
             hint: 'יש להזין קבוע שרירותי',
-            handler: arbInputHandler
+            handler: arbInputHandler,
+            hideBtns: true,
         });
     });
     $("#rep").click(function() {

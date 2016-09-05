@@ -219,23 +219,14 @@ PredicateFormula.prototype.getConstantInstanceOf = function(f) {
 }
 
 // quantify over a variable in place of a given constant
-var _variables = ['x', 'y', 'z', 'w', 'u' ,'v', 't', 's', 'r'];
-PredicateFormula.prototype.quantify = function(quantifier, c) {
-    if (this.contains(c)) {
-        for (var i = 0; i < _variables.length; i++) {
-            if (!this.contains(_variables[i])) {
-                var v = _variables[i];
-                break;
-            }
-        }
-        if (v) {
-            var openFormula = new PredicateFormula(
-                this.lit.replace(new RegExp(c, 'g'), v)
-            );
-            return new PredicateFormula(
-                quantifier + v + openFormula.wrap()
-            );
-        }
+PredicateFormula.prototype.quantify = function(quantifier, c, v) {
+    if (this.contains(c) && !this.contains(v)) {
+        var openFormula = new PredicateFormula(
+            this.lit.replace(new RegExp(c, 'g'), v)
+        );
+        return new PredicateFormula(
+            quantifier + v + openFormula.wrap()
+        );
     }
 }
 

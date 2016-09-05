@@ -316,35 +316,35 @@ try {
     // ----------------
     assertFormulasEqual(
         predicateFormula('@xPx'),
-        predicateFormula('Pa').quantify(ALL, 'a')
+        predicateFormula('Pa').quantify(ALL, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('@x~Px'),
-        predicateFormula('~Pa').quantify(ALL, 'a')
+        predicateFormula('~Pa').quantify(ALL, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('@x(~Px>Qx)'),
-        predicateFormula('~Pa>Qa').quantify(ALL, 'a')
+        predicateFormula('~Pa>Qa').quantify(ALL, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('@x#yRyx'),
-        predicateFormula('#yRya').quantify(ALL, 'a')
+        predicateFormula('#yRya').quantify(ALL, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('@x((Px-Qx)>Rxb)'),
-        predicateFormula('(Pa-Qa)>Rab').quantify(ALL, 'a')
+        predicateFormula('(Pa-Qa)>Rab').quantify(ALL, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('#x@y(Px-(Rxy>Lxx))'),
-        predicateFormula('@y(Pa-(Ray>Laa))').quantify(EXS, 'a')
+        predicateFormula('@y(Pa-(Ray>Laa))').quantify(EXS, 'a', 'x')
     );
     assertFormulasEqual(
         predicateFormula('#z@x@y(Rxy>Pz)'),
-        predicateFormula('@x@y(Rxy>Pa)').quantify(EXS, 'a')
+        predicateFormula('@x@y(Rxy>Pa)').quantify(EXS, 'a', 'z')
     );
 
-    assertUndefined(predicateFormula('Pb').quantify(ALL, 'a'));
-    assertUndefined(predicateFormula('@xPxv@xQx').quantify(ALL, 'a'));
+    assertUndefined(predicateFormula('Pb').quantify(ALL, 'a', 'x'));
+    assertUndefined(predicateFormula('@xPxv@xQx').quantify(ALL, 'a', 'x'));
 
     // ----------------
     // const inst tests 
@@ -899,7 +899,7 @@ try {
     d.arb('a');			// 2. a|
     d.rep(1);			// 3.  | @xPx
     d.allE(3, 'a');		// 4.  | Pa
-    assertFormulasEqual(predicateFormula('@xPx'), d.allI());
+    assertFormulasEqual(predicateFormula('@xPx'), d.allI('x'));
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(0, d.nestingLevels[5]);
 
@@ -907,7 +907,7 @@ try {
     d.arb('a');			// 2. a|
     d.rep(1);			// 3.  | @x~Px
     d.allE(3, 'a');		// 4.  | ~Pa
-    assertFormulasEqual(predicateFormula('@x~Px'), d.allI());
+    assertFormulasEqual(predicateFormula('@x~Px'), d.allI('x'));
 
     var d = deduction('@x@yPxy');	// 1. @x@yPxy
     d.arb('a');				// 2. a|
@@ -916,8 +916,8 @@ try {
     d.arb('b');				// 5. b||
     d.rep(4);				// 6.  || @yPay
     d.allE(6, 'b');			// 7.  || Pab
-    assertFormulasEqual(predicateFormula('@xPax'), d.allI());
-    assertFormulasEqual(predicateFormula('@y@xPyx'), d.allI());
+    assertFormulasEqual(predicateFormula('@xPax'), d.allI('x'));
+    assertFormulasEqual(predicateFormula('@y@xPyx'), d.allI('y'));
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(2, d.nestingLevels[5]);
     assertEquals(1, d.nestingLevels[8]);
@@ -925,14 +925,14 @@ try {
 
     var d = deduction('@xPx');	// 1. @xPx
     d.arb('a');			// 2. a|
-    assertUndefined(d.allI());
+    assertUndefined(d.allI('x'));
     d.rep(1);			// 3.  | @xPx
-    assertUndefined(d.allI());
+    assertUndefined(d.allI('x'));
     d.allE(3, 'b');		// 4.  | Pb
-    assertUndefined(d.allI());
+    assertUndefined(d.allI('x'));
 
-    assertUndefined(deduction().allI());
-    assertUndefined(deduction('@xPx').allI());
+    assertUndefined(deduction().allI('x'));
+    assertUndefined(deduction('@xPx').allI('x'));
 
     // ----------------
     // exsI tests 
@@ -940,40 +940,40 @@ try {
 
     assertFormulasEqual(
         predicateFormula('#xPx'),
-        deduction('Pa').exsI(1,'a')
+        deduction('Pa').exsI(1,'a','x')
     );
     assertFormulasEqual(
         predicateFormula('#xRxx'),
-        deduction('Raa').exsI(1,'a')
+        deduction('Raa').exsI(1,'a','x')
     );
     assertFormulasEqual(
         predicateFormula('#xRxb'),
-        deduction('Rab').exsI(1,'a')
+        deduction('Rab').exsI(1,'a','x')
     );
     assertFormulasEqual(
         predicateFormula('#y@xRxy'),
-        deduction('@xRxa').exsI(1,'a')
+        deduction('@xRxa').exsI(1,'a','y')
     );
     assertFormulasEqual(
         predicateFormula('#y~@xRxy'),
-        deduction('~@xRxa').exsI(1,'a')
+        deduction('~@xRxa').exsI(1,'a','y')
     );
     assertFormulasEqual(
         predicateFormula('#x(Px>Qxb)'),
-        deduction('Pa>Qab').exsI(1,'a')
+        deduction('Pa>Qab').exsI(1,'a','x')
     );
     assertFormulasEqual(
         predicateFormula('#x(Pa>~Qax)'),
-        deduction('Pa>~Qab').exsI(1,'b')
+        deduction('Pa>~Qab').exsI(1,'b','x')
     );
 
-    assertUndefined(deduction().exsI(1,'a'));
+    assertUndefined(deduction().exsI(1,'a','x'));
     var d = deduction('@xPx');
-    assertError(d, d.exsI, [1,'a'], 'מכילה');
+    assertError(d, d.exsI, [1,'a','x'], 'מכילה');
     var d = deduction('Pb');
-    assertError(d, d.exsI, [1,'a'], 'מכילה');
+    assertError(d, d.exsI, [1,'a','x'], 'מכילה');
     var d = deduction('@x(Px>#yRby)');
-    assertError(d, d.exsI, [1,'a'], 'מכילה');
+    assertError(d, d.exsI, [1,'a','x'], 'מכילה');
 
 
     // ----------------
@@ -1427,7 +1427,7 @@ try {
     d.rep(1);					// 6.  | @x(Px>Sx)
     d.allE(6,'a');				// 7.  | Pa>Sa
     d.impE(5,7);				// 8.  | Sa
-    d.allI();					// 9. @xSx
+    d.allI('x');					// 9. @xSx
     assertEquals('a', d.get(3));
     assertFormulasEqual(predicateFormula('@xPx'), d.get(4));
     assertFormulasEqual(predicateFormula('Pa'), d.get(5));
@@ -1453,7 +1453,7 @@ try {
     d.rep(5);					// 11. || ~Sa
     d.conI(10,11);				// 12. || Sa&~Sa
     d.negI();					// 13. | ~Pa
-    d.allI();					// 14. @x~Px
+    d.allI('x');				// 14. @x~Px
     assertFormulasEqual(predicateFormula('~Pa'), d.get(13));
     assertFormulasEqual(predicateFormula('@x~Px'), d.get(14));
     assertEquals(0, d.nestingLevels[2]);
@@ -1469,7 +1469,7 @@ try {
     d.hyp(predicateFormula('Sa-Ba'));		// 2. | Sa&Ba
     d.conE(2);					// 3. | Sa
  						// 4. | Ba
-    d.exsI(4,'a');				// 5. | #xBx
+    d.exsI(4,'a','x');				// 5. | #xBx
     d.exsE(1);					// 6. #xBx
     assertFormulasEqual(predicateFormula('#xBx'), d.get(5));
     assertFormulasEqual(predicateFormula('#xBx'), d.get(6));
@@ -1480,8 +1480,8 @@ try {
     var d = deduction('@x@yLxy');		// 1. @x@yLxy
     d.allE(1,'a');				// 2. @yLay
     d.allE(2,'b');				// 3. Lab
-    d.exsI(3,'a');				// 4. #xLxb
-    d.exsI(4,'b');				// 5. #x#yLxy
+    d.exsI(3,'a','x');				// 4. #xLxb
+    d.exsI(4,'b','y');				// 5. #y#xLxy
     assertFormulasEqual(predicateFormula('#xLxb'), d.get(4));
     assertFormulasEqual(predicateFormula('#y#xLxy'), d.get(5));
 
