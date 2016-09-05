@@ -148,28 +148,6 @@ class UserView(LoginRequiredMixin, generic.ListView):
         logger.debug('%s: user view %d submissions', self.request.user, len(submissions))
         return submissions
 
-#    def get_context_data(self, **kwargs):
-#        context = super(UserView, self).get_context_data(**kwargs)
-#        if not self.object_list:
-#            # no submissions for user
-#            return context
-#
-#        # average score for user
-#        scores = [s.percent_correct() for s in self.object_list]
-#        context['avg'] = sum(scores)/len(scores)
-#
-#        # stats per question type
-#        answers = [a for s in self.object_list for a in s.useranswer_set.all()]
-#        by_type = groupby(answers, lambda a: Question._get(number=a.question_number, chapter=a.submission.chapter).__class__.__name__)
-#        stats = {}
-#        for qtype, answers in by_type:
-#            ans_list = [a for a in answers]
-#            total, correct = stats.get(qtype, (0,0))
-#            stats[qtype] = (total+len(ans_list), correct+len([a for a in ans_list if a.correct]))
-#        stats = {t: int(round((100.*correct/total))) for t, (total,correct) in stats.iteritems() if total > 0}
-#        context['stats'] = stats
-#        return context
-
 class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_stats.html'
 
@@ -186,12 +164,16 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         context = super(ChapterStatsView, self).get_context_data(**kwargs)
         chapter = self.object
         logger.debug('%s: chapter %s stats', self.request.user, chapter)
-        submissions = ChapterSubmission.objects.filter(chapter=chapter)
-        stats = Stat.objects.filter(user_answer__chapter=chapter)
+
+        # get submission data (only ready ones)
+        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
+        stats = [s for s in Stat.objects.filter(user_answer__chapter=chapter) if s.user_answer.submission in submissions]
         logger.debug(
             '%s:chapter %d stats: fetched %d submissions and %d stats',
             self.request.user, chapter.number, len(submissions), len(stats)
         )
+
+        # submission stats
         context['num_sub'] = len(submissions)
         if not submissions:
             return context
@@ -204,14 +186,20 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         grades_dist.sort(key=lambda x: x[0])
         context['grades'] = grades_dist
         context['avg_grade'] = avg(grades)
+ 
+        # question stats
         by_question = groupby(stats, lambda s: s.user_answer.question_number)
         questions_stats = []
         for qnum, stat_list in by_question.iteritems():
             if stat_list:
                 num_stats = len(stat_list)
                 user_answers = set(s.user_answer for s in stat_list)
-                pct_correct = 100.*sum(1 for s in stat_list if s.correct)/num_stats
-                final_pct_correct = 100.*sum(1 for a in user_answers if a.correct)/len(user_answers)
+                if chapter.is_open():
+                    pct_correct = 100.*sum(float(s.user_answer.openanswer.grade) for s in stat_list)/num_stats
+                    final_pct_correct = pct_correct
+                else:
+                    pct_correct = 100.*sum(1 for s in stat_list if s.correct)/num_stats
+                    final_pct_correct = 100.*sum(1 for a in user_answers if a.correct)/len(user_answers)
                 attempts = num_stats
                 avg_attempts = float(num_stats)/len(user_answers)
             else:
@@ -220,8 +208,8 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
                 attempts = None
                 avg_attempts = None
             questions_stats.append((qnum, pct_correct, final_pct_correct, attempts, avg_attempts))
-           
         context['q_stats'] = questions_stats
+
         logger.debug('%s:chapter %d stats: context=%s', self.request.user, chapter.number, context)
         return context
 
