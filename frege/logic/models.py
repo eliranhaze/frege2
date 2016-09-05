@@ -311,8 +311,8 @@ class SemanticsQuestion(FormalQuestion):
                 self._formula_set_cls: self.SET,
                 self._argument_cls: self.ARGUMENT
             }[formal_type(self.formula)]
-        except KeyError:
-            raise ValidationError({'formula':'ערך לא תקין'})
+        except:
+            raise ValidationError({'formula':'קלט לא תקין'})
 
     class Meta(FormalQuestion.Meta):
         abstract = True
