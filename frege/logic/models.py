@@ -104,7 +104,7 @@ class Question(models.Model):
                 chapter_questions = Question._filter(chapter=self.chapter)
                 other_nums = set([q.number for q in Question._filter(chapter=self.chapter) if not q.is_same(self)])
                 if self.number in other_nums:
-                    raise ValidationError({'number':'כבר קיימת שאלה מספר %d בפרק זה' % (self.number)})
+                    raise ValidationError('כבר קיימת שאלה מספר %d בפרק %d' % (self.number, self.chapter.number))
             if self.chapter.is_open():
                 if type(self) != OpenQuestion:
                     raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות פתוחות')
