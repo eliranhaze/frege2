@@ -11,7 +11,7 @@
     <p style="white-space: pre-wrap; font-size: 106%;">{% block question_text %}{% endblock %}</p>
     <div class="page-header" style="margin-top: -18px;"></div>
     <p class="noselect"><b>{% block question_instruction %}{% endblock %}</b></p>
-    <p class="small text-muted">{% block hint %}{% endblock %}<a class="text-muted" href="{% url 'logic:topic-help' 1 %}" target="_blank"><u>{% block hint_link %}{% endblock %}</u></a></p>
+    <p class="small text-muted" style="margin-top: -10px;">{% block hint %}{% endblock %}<a class="text-muted" href="{% url 'logic:topic-help' 1 %}" target="_blank"><u>{% block hint_link %}{% endblock %}</u></a></p>
     {% block question_content %}
     {% endblock %}
     <div class="noselect" style="padding: 5px;margin-top: 20px;">
