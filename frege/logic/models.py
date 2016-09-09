@@ -68,6 +68,9 @@ class Chapter(models.Model):
     def is_open(self):
         return any(type(q) == OpenQuestion for q in self.questions())
 
+    def user_answers(self):
+        return UserAnswer.objects.filter(chapter=self)
+    
     def __unicode__(self):
         return '%s. %s' % (self.number, self.title)
 
@@ -78,6 +81,7 @@ class Chapter(models.Model):
 
 class Question(models.Model):
 
+    CLEAN_CHECK_ANSWERS = True
     DEFAULT_NUM = 0
 
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE, null=True)
@@ -103,6 +107,10 @@ class Question(models.Model):
 
     def clean(self):
         super(Question, self).clean()
+        if self.pk is None and self.CLEAN_CHECK_ANSWERS and self.chapter.user_answers():
+            # question is new and chapter already has answers 
+            logger.error('%s has user answers, not adding new question %s', self.chapter, self)
+            raise ValidationError('לא ניתן להוסיף שאלה לפרק שיש לו תשובות משתמשים')
         if self.chapter_id:
             if self.number > self.DEFAULT_NUM:
                 chapter_questions = Question._filter(chapter=self.chapter)

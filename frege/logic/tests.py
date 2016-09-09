@@ -45,6 +45,8 @@ from .models import (
     ChapterSubmission,
 )
 
+Question.CLEAN_CHECK_ANSWERS = False
+
 def login(self):
     u = User.objects.create_superuser('u', 'u@hi.com', 'pw')
     self.user = u
