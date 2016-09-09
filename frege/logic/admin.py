@@ -174,10 +174,10 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
         # TODO: also deny delete permissions!!! both this and user answer
         return False
 
-    def get_queryset(self, *args, **kwargs):
-        # return only ready submissions
-        submission_ids = [s.id for s in ChapterSubmission.objects.all() if s.is_ready()]
-        return ChapterSubmission.objects.filter(id__in=submission_ids)
+#    def get_queryset(self, *args, **kwargs):
+#        # return only ready submissions
+#        submission_ids = [s.id for s in ChapterSubmission.objects.all() if s.is_ready()]
+#        return ChapterSubmission.objects.filter(id__in=submission_ids)
 
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'num_questions']
