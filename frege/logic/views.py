@@ -489,6 +489,15 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             if type(correct_formalized) == type(formalized) and correct_formalized == formalized:
                 is_correct = True
                 break
+        existing_user_answer = question.user_answer(user=request.user)
+        if existing_user_answer and existing_user_answer.answer != answer:
+            followup_answer = question.user_answer(user=request.user, is_followup=True)
+            if followup_answer:
+                logger.debug(
+                    '%s: formulation answer to %d/%d changed, deleting followup answer',
+                    request.user, question.chapter.number, question.number
+                )
+                followup_answer.delete()
         return is_correct, None, answer
 
     def _handle_truth_table_context(self, question, answer):

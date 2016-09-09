@@ -102,7 +102,11 @@ class Question(models.Model):
         return []
     
     def user_answer(self, user, is_followup=False):
-        kw = UserAnswer.get_kw(self.original if is_followup else self) # original is set in FollowupQuestionView 
+        if is_followup and hasattr(self, 'original'):
+            # original is set in FollowupQuestionView 
+            kw = UserAnswer.get_kw(self.original)
+        else:
+            kw = UserAnswer.get_kw(self)
         return UserAnswer.objects.filter(user=user, chapter=self.chapter, is_followup=is_followup, **kw).first()
 
     def clean(self):
