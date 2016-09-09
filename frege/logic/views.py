@@ -116,18 +116,19 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         # general stats
         subs = [s for s in ChapterSubmission.objects.all() if s.is_ready()]
         context['num_sub'] = len(subs)
-        context['avg_attempts'] = avg(s.attempt for s in subs)
-        context['avg_grade'] = avg(s.percent_correct() for s in subs)
-        # chapter stats
-        chapter_data = []
-        for chapter in chapters:
-            subs = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
-            if subs:
-                avg_grade = avg(s.percent_correct() for s in subs)
-                num_sub = len(subs)
-                avg_attempts = avg(s.attempt for s in subs)
-                chapter_data.append((chapter.number, avg_grade, num_sub, avg_attempts))
-        context['chapter_data'] = chapter_data
+        if subs:
+            context['avg_attempts'] = avg(s.attempt for s in subs)
+            context['avg_grade'] = avg(s.percent_correct() for s in subs)
+            # chapter stats
+            chapter_data = []
+            for chapter in chapters:
+                subs = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
+                if subs:
+                    avg_grade = avg(s.percent_correct() for s in subs)
+                    num_sub = len(subs)
+                    avg_attempts = avg(s.attempt for s in subs)
+                    chapter_data.append((chapter.number, avg_grade, num_sub, avg_attempts))
+            context['chapter_data'] = chapter_data
         logger.debug('%s:stats: context=%s', self.request.user, context)
         return context
 
