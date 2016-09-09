@@ -8,6 +8,7 @@ from django.forms.widgets import TextInput
 from .actions import export_as_csv_action
 from .forms import (
     QuestionForm,
+    ChoiceFormSet,
     FormulationAnswerFormSet,
     TruthTableQuestionForm,
     OpenAnswerForm,
@@ -44,6 +45,7 @@ class FormulationAnswerInline(admin.StackedInline):
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
+    formset = ChoiceFormSet
     extra = 0
 
 #class QuestionInline(admin.StackedInline):

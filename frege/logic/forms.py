@@ -38,6 +38,24 @@ class OpenAnswerForm(forms.ModelForm):
         model = OpenAnswer
         exclude = ['user_answer', 'question', 'text']
 
+class ChoiceFormSet(forms.BaseInlineFormSet):
+
+    def clean(self):
+        super(ChoiceFormSet, self).clean()
+
+        if any(form._errors for form in self.forms):
+            return
+
+        all_choices = [(form.cleaned_data['text'], form.cleaned_data['is_correct']) for form in self.forms if 'text' in form.cleaned_data]
+        if len(all_choices) < 2:
+            raise ValidationError('יש להזין לפחות שתי תשובות בחירה')
+        if sum(1 for t, correct in all_choices if correct) < 1:
+            raise ValidationError('לפחות תשובה אחת צריכה להיות נכונה')
+        if sum(1 for t, correct in all_choices if not correct) < 1:
+            raise ValidationError('לפחות תשובה אחת צריכה להיות לא נכונה')
+        if len(set(t for t, correct in all_choices)) < len(all_choices):
+            raise ValidationError('אין להזין תשובות כפולות')
+
 class FormulationAnswerFormSet(forms.BaseInlineFormSet):
 
     def clean(self):
