@@ -675,6 +675,7 @@ class FollowupQuestionView(QuestionView):
         followup.chapter = original.chapter
         followup.number = original.number
         followup.formula = self._get_answer(original).answer
+        followup.original = original
         if type(followup) == TruthTableQuestion or type(followup) == ModelQuestion:
             followup._set_table_type()
 
