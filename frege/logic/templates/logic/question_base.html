@@ -6,7 +6,9 @@
 {% block chapter_content %}
 <div class="panel panel-default">
   <div class="panel-body">
-    <p class="text-muted hint" id="ans-time">{% if ans_time %}ענית על שאלה זו ב-{{ans_time}}{% endif %}</p>
+    <p class="text-muted hint" id="ans-time">
+      {% if ans_time %}ענית על שאלה זו ב-{{ans_time}}{% if submitted_correct != None %}, תשובה {% if submitted_correct %}נכונה <span class="glyphicon glyphicon-ok"></span>{% else %}שגויה <span class="glyphicon glyphicon-remove">{% endif %}{% endif %}{% endif %}
+    </p>
     <p class="text-muted hint">{% if question.has_followup %}לשאלה זו יש המשך{% endif %}</p>
     <p style="white-space: pre-wrap; font-size: 106%;">{% block question_text %}{% endblock %}</p>
     <div class="page-header" style="margin-top: -18px;"></div>

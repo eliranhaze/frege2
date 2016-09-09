@@ -351,8 +351,10 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             is_followup = self._is_followup(),
         ).first()
         if user_answer:
-            context['ans_time'] = user_answer.time
             answer = user_answer.answer
+            context['ans_time'] = user_answer.time
+            if user_answer.is_submitted():
+                context['submitted_correct'] = user_answer.correct
  
         # update context according to type
         context.update(

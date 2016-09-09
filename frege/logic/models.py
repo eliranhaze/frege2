@@ -505,6 +505,10 @@ class UserAnswer(models.Model):
     is_followup = models.BooleanField(default=False)
     time = models.DateTimeField(verbose_name='זמן', blank=True, null=True)
 
+    def is_submitted(self):
+        """ returns true iff chapter was submitted with this answer """
+        return self.time < self.submission.time
+
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
 
