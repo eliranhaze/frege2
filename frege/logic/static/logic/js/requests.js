@@ -72,9 +72,8 @@ function errhandler(response) {
         $.notifyClose();
         $.notify({
             message: "<strong>נראה שיש בעיה בשרת...</strong> \
-                     <br>הבעיה נרשמה והיא תטופל בהקדם. \
-                     <br>תודה על הסבלנות. \
-                     <br>בינתיים, הנה לב ממני: <span class='glyphicon glyphicon-heart'></span>"
+                     <br>אנא דווחו על כך בהקדם. \
+                     <br>תודה. <span class='glyphicon glyphicon-heart'></span>"
         },{
             type: "info",
             allow_dismiss: true,
