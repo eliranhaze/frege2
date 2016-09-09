@@ -56,7 +56,7 @@ def next_question(chapter, user):
 
     # check for unanswered followups
     for question in questions:
-        if question.has_followup() and len(question.user_answer(user)) == 1:
+        if question.has_followup() and len(question.user_answers(user=user)) == 1:
             return question
 
     # all questions are answered, check if re-answering
@@ -344,12 +344,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         # update answer data
         answer = None
-        user_answer = UserAnswer.objects.filter(
-            user=self.request.user,
-            chapter=question.chapter,
-            question_number=question.number,
-            is_followup = self._is_followup(),
-        ).first()
+        user_answer = question.user_answer(user=self.request.user, is_followup=self._is_followup())
         if user_answer:
             answer = user_answer.answer
             context['ans_time'] = user_answer.time
@@ -416,13 +411,13 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user=request.user,
             chapter=question.chapter,
             submission=submission,
-            question_number=question.number,
             is_followup = self._is_followup(),
             defaults={
                 'correct': correct,
                 'answer': answer,
                 'time': timezone.localtime(timezone.now()),
             },
+            **UserAnswer.get_kw(question)
         )
 
         # handle user answer if needed
@@ -434,6 +429,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user_ans.correct = correct
             user_ans.answer = answer
             user_ans.time = timezone.localtime(timezone.now())
+            user_ans.save()
+        else:
+            user_ans.set_question(question)
             user_ans.save()
 
         # create stat for answer
@@ -654,11 +652,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 class FollowupQuestionView(QuestionView):
 
     def _get_answer(self, question):
-        return UserAnswer.objects.filter(
-            user=self.request.user,
-            chapter=question.chapter,
-            question_number=question.number
-        ).first()
+        # get the answer to the original (non-followup question)
+        return question.user_answer(self.request.user, is_followup=False)
 
     def dispatch(self, request, chnum, qnum):
         question = get_question_or_404(chapter__number=chnum, number=qnum)

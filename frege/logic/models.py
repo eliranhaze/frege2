@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_delete 
+from django.db.models.signals import pre_delete, post_delete 
 from django.dispatch import receiver
 
 from .formula import (
@@ -89,13 +89,17 @@ class Question(models.Model):
         except Chapter.DoesNotExist:
             pass # chapter is deleted
 
-    def user_answers(self):
+    def user_answers(self, user=None):
         if self._get_chapter():
-            return UserAnswer.objects.filter(chapter=self.chapter, question_number=self.number)
+            kw = UserAnswer.get_kw(self)
+            if user:
+                kw['user'] = user
+            return UserAnswer.objects.filter(chapter=self.chapter, **kw)
         return []
     
-    def user_answer(self, user):
-        return UserAnswer.objects.filter(user=user, chapter=self.chapter, question_number=self.number)
+    def user_answer(self, user, is_followup=False):
+        kw = UserAnswer.get_kw(self)
+        return UserAnswer.objects.filter(user=user, chapter=self.chapter, is_followup=is_followup, **kw).first()
 
     def clean(self):
         super(Question, self).clean()
@@ -401,7 +405,7 @@ class Choice(models.Model):
 
 class ChapterSubmission(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
-    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.PROTECT)
     attempt = models.PositiveIntegerField(verbose_name='נסיונות')
     ongoing = models.BooleanField()
     time = models.DateTimeField(verbose_name='זמן הגשה', blank=True, null=True)
@@ -497,17 +501,80 @@ class ChapterSubmission(models.Model):
 
 class UserAnswer(models.Model):
     user = models.ForeignKey(User, verbose_name='משתמש', on_delete=models.CASCADE)
-    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.PROTECT)
     submission = models.ForeignKey(ChapterSubmission, verbose_name='הגשת פרק', on_delete=models.CASCADE)
-    question_number = models.PositiveIntegerField(verbose_name='מספר שאלה')
+
+    _cq = models.ForeignKey(ChoiceQuestion, on_delete=models.PROTECT, null=True)
+    _oq = models.ForeignKey(OpenQuestion, on_delete=models.PROTECT, null=True)
+    _fq = models.ForeignKey(FormulationQuestion, on_delete=models.PROTECT, null=True)
+    _tq = models.ForeignKey(TruthTableQuestion, on_delete=models.PROTECT, null=True)
+    _mq = models.ForeignKey(ModelQuestion, on_delete=models.PROTECT, null=True)
+    _dq = models.ForeignKey(DeductionQuestion, on_delete=models.PROTECT, null=True)
+
     correct = models.BooleanField(verbose_name='תשובה נכונה')
     answer = models.TextField()
     is_followup = models.BooleanField(default=False)
     time = models.DateTimeField(verbose_name='זמן', blank=True, null=True)
 
+    def set_question(self, q):
+        if type(q) == ChoiceQuestion:
+            self._cq = q
+        elif type(q) == OpenQuestion:
+            self._oq = q
+        elif type(q) == FormulationQuestion:
+            self._fq = q
+        elif type(q) == TruthTableQuestion:
+            self._tq = q
+        elif type(q) == ModelQuestion:
+            self._mq = q
+        elif type(q) == DeductionQuestion:
+            self._dq = q
+        else:
+            raise ValueError('Unknown question type: %s' % type(q))
+
+    @classmethod
+    def get_kw(cls, q):
+        if type(q) == ChoiceQuestion:
+            kw = {'_cq': q}
+        elif type(q) == OpenQuestion:
+            kw = {'_oq': q}
+        elif type(q) == FormulationQuestion:
+            kw = {'_fq': q}
+        elif type(q) == TruthTableQuestion:
+            kw = {'_tq': q}
+        elif type(q) == ModelQuestion:
+            kw = {'_mq': q}
+        elif type(q) == DeductionQuestion:
+            kw = {'_dq': q}
+        else:
+            raise ValueError('Unknown question type: %s' % type(q))
+        return kw
+
+    @property
+    def question(self):
+        for q in self._all_q:
+            if q:
+                return q
+
+    @property
+    def question_number(self):
+        q = self.question
+        if q:
+            return q.number
+
+    @property
+    def _all_q(self):
+        return [self._cq, self._oq, self._fq, self._tq, self._mq, self._dq]
+
     def is_submitted(self):
         """ returns true iff chapter was submitted with this answer """
-        return self.time < self.submission.time
+        return self.submission and self.submission.time and (self.time < self.submission.time)
+
+    def save(self, *args, **kwargs):
+        if not self.question:
+            logger.error('%s has no question, aborting save', self)
+            raise ValidateionError('cannot save user answer with no question')
+        super(UserAnswer, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return '%s/%s/%s/%s' % (self.user, self.chapter.number, self.question_number, 'T' if self.correct else 'F')
@@ -515,11 +582,11 @@ class UserAnswer(models.Model):
     class Meta:
         verbose_name = 'תשובת משתמש'
         verbose_name_plural = '[תשובות משתמשים]'
-        unique_together = ('chapter', 'user', 'question_number', 'is_followup')
+        unique_together = ('chapter', 'user', '_cq', '_oq', '_fq', '_tq', '_mq', '_dq', 'is_followup')
 
 class OpenAnswer(models.Model):
     text = models.TextField(verbose_name='טקסט')
-    question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
+    question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.PROTECT)
     upload = models.FileField(verbose_name='קובץ', upload_to='uploads/%Y/%m', null=True, blank=True)
     user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE, unique=True)
     grade = models.DecimalField(

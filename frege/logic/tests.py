@@ -50,6 +50,12 @@ def login(self):
     self.user = u
     self.client.login(username = 'u', password = 'pw')
 
+def create_user_answer(q, **kw):
+    a = UserAnswer(**kw)
+    a.set_question(q)
+    a.save()
+    return a
+
 class IndexViewTests(TestCase):
 
     def setUp(self):
@@ -370,14 +376,14 @@ class ChapterSubmissionTests(TestCase):
         # with 1 question
         q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         cs = self.create_submission(chapter, user)
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=False)
         self.assertEquals(cs.percent_correct(), 0)
         ua.correct = True
         ua.save()
         self.assertEquals(cs.percent_correct(), 100)
         # 2nd question
         q2 = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
-        ua2 = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q2.number,correct=False)
+        ua2 = create_user_answer(q=q2, chapter=chapter,user=user,submission=cs, correct=False)
         self.assertEquals(cs.percent_correct(), 50)
         ua2.correct = True
         ua2.save()
@@ -392,15 +398,15 @@ class ChapterSubmissionTests(TestCase):
         self.assertTrue(cs.is_complete())
 
         # with 1 question
-        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=False)
         self.assertTrue(cs.is_complete())
 
         # 2nd question
-        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
+        q2 = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=2,correct=True)
+        ua = create_user_answer(q=q2, chapter=chapter,user=user,submission=cs, correct=True)
         self.assertTrue(cs.is_complete())
 
     def test_is_complete_followups(self):
@@ -409,25 +415,25 @@ class ChapterSubmissionTests(TestCase):
         cs = self.create_submission(chapter, user)
 
         # with 1 question + followup
-        FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=1, followup=FormulationQuestion.DEDUCTION)
+        q = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=1, followup=FormulationQuestion.DEDUCTION)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=True,is_followup=False)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=True, is_followup=False)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False,is_followup=True)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=False, is_followup=True)
         self.assertTrue(cs.is_complete())
 
         # 2nd question
-        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
+        q2 = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=2)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=2,correct=True)
+        ua = create_user_answer(q=q2, chapter=chapter,user=user,submission=cs, correct=True)
         self.assertTrue(cs.is_complete())
 
         # 3rd question + followup
-        FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3, followup=FormulationQuestion.DEDUCTION)
+        q3 = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3, followup=FormulationQuestion.DEDUCTION)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=3,correct=False,is_followup=False)
+        ua = create_user_answer(q=q3, chapter=chapter,user=user,submission=cs, correct=False, is_followup=False)
         self.assertFalse(cs.is_complete())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=3,correct=False,is_followup=True)
+        ua = create_user_answer(q=q3, chapter=chapter,user=user,submission=cs, correct=False, is_followup=True)
         self.assertTrue(cs.is_complete())
 
     def test_is_ready_no_open(self):
@@ -436,9 +442,9 @@ class ChapterSubmissionTests(TestCase):
         cs = self.create_submission(chapter, user)
 
         # with 1 non-open question
-        ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
+        q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         self.assertFalse(cs.is_ready())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=1,correct=False)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=False)
         self.assertTrue(cs.is_ready())
 
     def test_is_ready_open(self):
@@ -449,7 +455,7 @@ class ChapterSubmissionTests(TestCase):
         # with 1 non-open question
         q = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         self.assertFalse(cs.is_ready())
-        ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=q.number,correct=False)
+        ua = create_user_answer(q=q, chapter=chapter,user=user,submission=cs, correct=False)
         oa = OpenAnswer.objects.create(text='x', question=q, user_answer=ua)
         self.assertFalse(cs.is_ready())
         oa.grade = 1.
@@ -466,7 +472,7 @@ class ChapterSubmissionTests(TestCase):
         q3 = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=3)
  
         def _create_answer(question):
-            ua = UserAnswer.objects.create(chapter=chapter,user=user,submission=cs, question_number=question.number,correct=False)
+            ua = create_user_answer(q=question, chapter=chapter,user=user,submission=cs, correct=False)
             oa = OpenAnswer.objects.create(text='x', question=question, user_answer=ua)
             return oa
 
