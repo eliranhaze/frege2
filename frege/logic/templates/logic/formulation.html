@@ -13,9 +13,13 @@
     <input type="button" class="btn sym-btn" id="dis" value="∨"/>
     <input type="button" class="btn sym-btn" id="imp" value="⊃"/>
     <input type="button" class="btn sym-btn" id="eqv" value="≡"/>
+    {% if 'Predicate' in type %}
     <input type="button" class="btn sym-btn" id="all" value="∀"/>
     <input type="button" class="btn sym-btn" id="exs" value="∃"/>
+    {% endif %}
+    {% if 'Argument' in type %}
     <input type="button" class="btn sym-btn" id="thf" value="∴"/>
+    {% endif %}
   </div>
 </div>
 <script src="{% static 'logic/js/formula.js'%}"></script>
