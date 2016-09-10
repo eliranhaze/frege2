@@ -120,7 +120,7 @@ class Question(models.Model):
             if self.number > self.DEFAULT_NUM:
                 chapter_questions = Question._filter(chapter=self.chapter)
                 other_nums = set([q.number for q in Question._filter(chapter=self.chapter) if not q.is_same(self)])
-                if self.number in other_nums:
+                if self.number in other_nums and not self._chapter_changed():
                     raise ValidationError('כבר קיימת שאלה מספר %d בפרק %d' % (self.number, self.chapter.number))
             if self.chapter.is_open():
                 if type(self) != OpenQuestion:
@@ -131,12 +131,26 @@ class Question(models.Model):
     def save(self, *args, **kwargs):
         logger.debug('saving %s', self)
         if self.number == self.DEFAULT_NUM:
-            # set a number for this question
-            others = Question._filter(chapter=self.chapter)
-            self.number = max(q.number for q in others) + 1 if others else 1
-            logger.debug('setting number to %d', self.number)
+            # new question, set a number
+            self._auto_number()
+        elif self._chapter_changed():
+            # question moved to another chapter, renumber the question
+            self._auto_number()
         self.clean()
         super(Question, self).save(*args, **kwargs)
+
+    def _chapter_changed(self):
+        existing_q = self._get_existing()
+        return existing_q and self.chapter != existing_q.chapter
+
+    def _get_existing(self):
+        if self.pk:
+            return type(self).objects.get(pk=self.pk)
+
+    def _auto_number(self):
+        others = Question._filter(chapter=self.chapter)
+        self.number = max(q.number for q in others) + 1 if others else 1
+        logger.debug('setting number to %d', self.number)
 
     def has_followup(self):
         return self.__class__ == FormulationQuestion and self.followup != FormulationQuestion.NONE
