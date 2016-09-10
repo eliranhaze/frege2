@@ -7,7 +7,7 @@ urlpatterns = [
 
     # general
     url(r'^$', views.IndexView.as_view(), name='index'),
-    url(r'^about/$', views.AboutView.as_view(), name='about'),
+    #url(r'^about/$', views.AboutView.as_view(), name='about'),
     url(r'^stats/$', views.StatsView.as_view(), name='stats'),
     url(r'^user/$', views.UserView.as_view(), name='user'),
 
