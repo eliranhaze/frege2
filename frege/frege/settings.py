@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'logic.apps.LogicConfig',
-    'adminsortable2',
-    'django_extensions',
+#    'adminsortable2',
+#    'django_extensions',
 ]
 
 MIDDLEWARE_CLASSES = [
