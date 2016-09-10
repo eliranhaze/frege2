@@ -113,10 +113,7 @@ class Question(models.Model):
     def clean(self):
         super(Question, self).clean()
         if self.chapter_id:
-            if self.pk is None and self.CLEAN_CHECK_ANSWERS and self.chapter.user_answers():
-                # question is new and chapter already has answers 
-                logger.error('%s has user answers, not adding new question %s', self.chapter, self)
-                raise ValidationError('לא ניתן להוסיף שאלה לפרק שיש לו תשובות משתמשים')
+            self._validate_affecting_answers()
             if self.number > self.DEFAULT_NUM:
                 chapter_questions = Question._filter(chapter=self.chapter)
                 other_nums = set([q.number for q in Question._filter(chapter=self.chapter) if not q.is_same(self)])
@@ -128,6 +125,25 @@ class Question(models.Model):
             elif self.chapter.num_questions() > 0 and type(self) == OpenQuestion:
                     raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות לא פתוחות')
 
+    def _validate_affecting_answers(self):
+        if self.CLEAN_CHECK_ANSWERS:
+            chapter_has_answers = len(self.chapter.user_answers()) > 0
+            if self._is_new():
+                if chapter_has_answers:
+                    # question is new and chapter already has answers
+                    logger.error('%s has user answers, not adding new question %s', self.chapter, self)
+                    raise ValidationError('לא ניתן להוסיף שאלה לפרק שיש לו תשובות משתמשים')
+            elif chapter_has_answers:
+                # question changed in a chapter with answers
+                logger.error('%s has user answers, not editing question %s', self.chapter, self)
+                raise ValidationError('לא ניתן לערוך שאלה בפרק שיש לו תשובות משתמשים')
+            else:
+                existing_chapter = self._get_existing().chapter
+                if existing_chapter != self.chapter and existing_chapter.user_answers():
+                    # question changed in a chapter with answers
+                    logger.error('%s has user answers, not editing question %s', existing_chapter, self)
+                    raise ValidationError('לא ניתן לערוך שאלה בפרק שיש לו תשובות משתמשים')
+                
     def save(self, *args, **kwargs):
         logger.debug('saving %s', self)
         if self.number == self.DEFAULT_NUM:
@@ -144,8 +160,11 @@ class Question(models.Model):
         return existing_q and self.chapter != existing_q.chapter
 
     def _get_existing(self):
-        if self.pk:
+        if not self._is_new():
             return type(self).objects.get(pk=self.pk)
+
+    def _is_new(self):
+        return self.pk is None
 
     def _auto_number(self):
         others = Question._filter(chapter=self.chapter)
