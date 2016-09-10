@@ -7,6 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete 
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .formula import (
     Formula,
@@ -463,6 +464,10 @@ class ChapterSubmission(models.Model):
         _, _, pct = self.correctness_data()
         return pct
     percent_correct.short_description = 'ציון'
+
+    @property
+    def localtime_str(self):
+        return timezone.localtime(self.time).strftime('%Y-%m-%d %H:%M')
 
     def correctness_data(self):
         """

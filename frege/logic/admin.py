@@ -170,10 +170,10 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
         'user': 'user',
         'chapter': 'chapter_number_f',
         'percent': 'percent_correct_f',
+        'time': 'localtime_str',
     })]
  
     def has_add_permission(self, request, obj=None):
-        # TODO: also deny delete permissions!!! both this and user answer
         return False
 
 #    def get_queryset(self, *args, **kwargs):
