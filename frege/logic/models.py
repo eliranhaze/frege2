@@ -50,7 +50,7 @@ def _concrete_sub_classes(cls):
          
 class Chapter(models.Model):
     number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
-    title = models.CharField(verbose_name='כותרת', max_length=30)
+    title = models.CharField(verbose_name='כותרת', max_length=40)
 
     def num_questions(self, followups=False):
         if followups:
