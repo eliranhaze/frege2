@@ -8,7 +8,7 @@
 <div>
   <form id=choices>
   {% for choice in question.choice_set.all %}
-    <input name="choice" value="{{ choice.id }}" type="radio" {% if answer and choice.id == answer %}checked{% endif %}> {{ choice }}<br>
+    <input name="choice" value="{{ choice.id }}" type="radio" {% if answer and choice.id == answer %}checked{% endif %}> {{ choice.text }}<br>
   {% endfor %}
   </form>
 </div>
