@@ -51,6 +51,9 @@ Deduction.prototype.openIndex = function() {
 
 // add a formula to the deduction
 Deduction.prototype.push = function(f, symbol, nest, endnest) {
+    if (this.idx() >= 80 || (f.lit && f.lit.length >= 50)) {
+        throw Error('נראה לי שהגזמת...');
+    }
     this.formulas.push(f);
     this.symbols.push(symbol);
     if (nest) this.nestingStack.push(this.idx());
@@ -627,7 +630,7 @@ $(document).ready(function() {
     });
     $("#exs-i").click(function() {
         doApply($(this), dd.exsI, 1, {
-            label: 'קבוע, משתנה',
+            label: 'קבוע ומשתנה',
             hint: 'יש להזין קבוע ומשתנה מופרדים בפסיק עבור הכנסת כמת ישי',
             handler: arbsInputHandler,
             hideBtns: true,
