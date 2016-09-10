@@ -12,6 +12,8 @@
 
     <div class="panel panel-default">
       <div class="panel-body">
+
+{% if num_sub > 0 %}
         <h3>כללי</h3>
         <p>
           מספר הגשות: {{num_sub}}<br>
@@ -32,6 +34,11 @@
         </p>
           {% endif %}
         {% endfor %}
+
+{% else %}
+<p>אין נתונים.</p>
+{% endif %}
+
       </div>
     </div>
 
