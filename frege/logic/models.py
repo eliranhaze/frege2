@@ -61,7 +61,7 @@ class Chapter(models.Model):
     num_questions.short_description = 'מספר שאלות'
 
     def questions(self):
-        return Question._filter(chapter__number=self.number)
+        return Question._filter(chapter=self)
 
     def first_question(self):
         return min(self.questions(), key=lambda q: q.number)
@@ -71,7 +71,19 @@ class Chapter(models.Model):
 
     def user_answers(self):
         return UserAnswer.objects.filter(chapter=self)
-    
+   
+    def reorder_questions(self, moved_num=None):
+        """ renumbers questions if there are any gaps in numbers, starting 1 """
+        questions = sorted(self.questions(), key=lambda q: q.number)
+        next_num = 1
+        for q in questions:
+            if moved_num is None or moved_num != q.number:
+                if q.number != next_num:
+                    logger.debug('ch. %s: renumbering %s to %d', self.number, q, next_num)
+                    q.number = next_num
+                    q.save()
+                next_num += 1
+
     def __unicode__(self):
         return '%s. %s' % (self.number, self.title)
 
@@ -117,7 +129,8 @@ class Question(models.Model):
             if self.number > self.DEFAULT_NUM:
                 chapter_questions = Question._filter(chapter=self.chapter)
                 other_nums = set([q.number for q in Question._filter(chapter=self.chapter) if not q.is_same(self)])
-                if self.number in other_nums and not self._chapter_changed():
+                chapter_changed, _ = self._chapter_changed()
+                if self.number in other_nums and not chapter_changed:
                     raise ValidationError('כבר קיימת שאלה מספר %d בפרק %d' % (self.number, self.chapter.number))
             if self.chapter.is_open():
                 if type(self) != OpenQuestion:
@@ -138,26 +151,35 @@ class Question(models.Model):
                 logger.error('%s has user answers, not editing question %s', self.chapter, self)
                 raise ValidationError('לא ניתן לערוך שאלה בפרק שיש לו תשובות משתמשים')
             else:
-                existing_chapter = self._get_existing().chapter
-                if existing_chapter != self.chapter and existing_chapter.user_answers():
+                chapter_changed, existing_chapter = self._chapter_changed()
+                if chapter_changed and existing_chapter.user_answers():
                     # question changed in a chapter with answers
                     logger.error('%s has user answers, not editing question %s', existing_chapter, self)
                     raise ValidationError('לא ניתן לערוך שאלה בפרק שיש לו תשובות משתמשים')
                 
     def save(self, *args, **kwargs):
         logger.debug('saving %s', self)
+        reorder_chapter = False
         if self.number == self.DEFAULT_NUM:
             # new question, set a number
             self._auto_number()
-        elif self._chapter_changed():
-            # question moved to another chapter, renumber the question
-            self._auto_number()
+        else:
+            chapter_changed, existing_chapter = self._chapter_changed()
+            if chapter_changed:
+                old_num = self.number
+                # question moved to another chapter, renumber the question
+                self._auto_number()
+                reorder_chapter = True
         self.clean()
         super(Question, self).save(*args, **kwargs)
+        if reorder_chapter:
+            # reorder the chapter from which the question was moved (must be after save)
+            existing_chapter.reorder_questions(moved_num=old_num)
 
     def _chapter_changed(self):
         existing_q = self._get_existing()
-        return existing_q and self.chapter != existing_q.chapter
+        existing_ch = existing_q.chapter if existing_q else None
+        return existing_q and self.chapter != existing_ch, existing_ch
 
     def _get_existing(self):
         if not self._is_new():
@@ -219,16 +241,10 @@ def delete_stuff(instance, sender, **kwargs):
     if issubclass(sender, Question):
         self = instance
         logger.debug('post delete %s', self)
-        # delete question-related entities
-        for ua in self.user_answers():
-            logger.debug('deleting %s of question %s', ua, self)
-            ua.delete()
         # re-order other questions
-        if self._get_chapter(): # if chapter was not deleted
-            for q in Question._filter(chapter=self.chapter, number__gt=self.number):
-                q.number = q.number - 1
-                q.save()
-                logger.debug('reordered %s', q)
+        chapter = self._get_chapter()
+        if chapter: # if chapter was not deleted
+            chapter.reorder_questions()
 
 class TextualQuestion(Question):
     text = models.TextField(verbose_name='טקסט')
