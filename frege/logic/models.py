@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import os
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -651,9 +653,18 @@ class UserAnswer(models.Model):
         unique_together = ('chapter', 'user', '_cq', '_oq', '_fq', '_tq', '_mq', '_dq', 'is_followup')
 
 class OpenAnswer(models.Model):
+
+    def name_file(instance, filename):
+        path = 'uploads/%s/ch%d' % (timezone.localtime(timezone.now()).year, instance.question.chapter.number)
+        extension = filename.rsplit('.', 1).pop()
+        name = '%s_%s_%s.%s' % (instance.user_answer.user.username, instance.question.chapter.number, instance.question.number, extension)
+        print 'PATH', path
+        print 'NAME', name
+        return os.path.join(path, name)
+
     text = models.TextField(verbose_name='טקסט')
     question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.PROTECT)
-    upload = models.FileField(verbose_name='קובץ', upload_to='uploads/%Y/%m', null=True, blank=True)
+    upload = models.FileField(verbose_name='קובץ', upload_to=name_file, null=True, blank=True)
     user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE, unique=True)
     grade = models.DecimalField(
         verbose_name='ניקוד',
