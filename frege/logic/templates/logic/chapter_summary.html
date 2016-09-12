@@ -18,13 +18,13 @@
           ציון: {{pct}}.
         </p>
       {% if num_correct < answer_data|length and remaining > 0 %}
-        <p><a href='{% url 'logic:question' chapter.number chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
+        <p><a href='{% url 'logic:question' chapter.chnum chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
       {% endif %}
         <table class="table table-condensed">
           {% for qnum, followup, correct_or_grade in answer_data %}
           <tr>
             <td>
-              <a href='{% url 'logic:question' chapter.number qnum %}'>שאלה {{qnum}}{% if followup %}: המשך{% endif %}
+              <a href='{% url 'logic:question' chapter.chnum qnum %}'>שאלה {{qnum}}{% if followup %}: המשך{% endif %}
             </td>
             {% if chapter.is_open %}
             <td>{{correct_or_grade}}</td>

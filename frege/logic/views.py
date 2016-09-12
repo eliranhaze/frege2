@@ -67,9 +67,9 @@ def next_question(chapter, user):
 def next_question_url(chapter, user):
     question = next_question(chapter, user)
     if question:
-        url = reverse('logic:question', args=(chapter.number,question.number))
+        url = reverse('logic:question', args=(chapter.chnum,question.number))
     else:
-        url = reverse('logic:chapter-summary', args=(chapter.number,))
+        url = reverse('logic:chapter-summary', args=(chapter.chnum,))
     return url
 
 def chapter_questions_user_data(chapter, user):
@@ -102,6 +102,15 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         logger.debug('%s: %d chapters', self.request.user, len(chapters))
         return chapters
 
+class ChapterPartsView(LoginRequiredMixin, generic.ListView):
+    template_name = 'logic/parts.html'
+
+    def get_queryset(self, **kwargs):
+        chapter = Chapter.objects.get(number=self.kwargs['chnum'])
+        parts = chapter.parts()
+        logger.debug('%s:chapter%s: %d parts', self.request.user, chapter.number, len(parts))
+        return parts
+
 class StatsView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/stats.html'
 
@@ -127,7 +136,7 @@ class StatsView(LoginRequiredMixin, generic.ListView):
                     avg_grade = avg(s.percent_correct() for s in subs)
                     num_sub = len(subs)
                     avg_attempts = avg(s.attempt for s in subs)
-                    chapter_data.append((chapter.number, avg_grade, num_sub, avg_attempts))
+                    chapter_data.append((chapter, avg_grade, num_sub, avg_attempts))
             context['chapter_data'] = chapter_data
         logger.debug('%s:stats: context=%s', self.request.user, context)
         return context
@@ -191,7 +200,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
         stats = [s for s in Stat.objects.filter(user_answer__chapter=chapter) if s.user_answer.submission in submissions]
         logger.debug(
-            '%s:chapter %d stats: fetched %d submissions and %d stats',
+            '%s:chapter %s stats: fetched %d submissions and %d stats',
             self.request.user, chapter.number, len(submissions), len(stats)
         )
 
@@ -232,7 +241,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
             questions_stats.append((qnum, pct_correct, final_pct_correct, attempts, avg_attempts))
         context['q_stats'] = questions_stats
 
-        logger.debug('%s:chapter %d stats: context=%s', self.request.user, chapter.number, context)
+        logger.debug('%s:chapter %s stats: context=%s', self.request.user, chapter.number, context)
         return context
 
 class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
@@ -287,14 +296,13 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
             submission.ongoing = False
             submission.save()
             logger.info('%s: saved submission: %s', self.request.user, submission)
-            response['next'] = reverse('logic:chapter-summary', args=(chapter.number,))
+            response['next'] = reverse('logic:chapter-summary', args=(chapter.chnum,))
         else:
             logger.info('%s: submission not allowed: %s', self.request.user, submission)
         logger.debug('%s: submission post response: %s', self.request.user, response)
         return JsonResponse(response)
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
-    template_name = 'logic/chapter.html'
     context_object_name = 'question'
 
     def __init__(self, *args, **kwargs):
@@ -348,7 +356,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         if user_answer:
             answer = user_answer.answer
             context['ans_time'] = user_answer.time
-            if user_answer.is_submitted():
+            if user_answer.is_submitted() and type(question) != OpenQuestion:
                 context['submitted_correct'] = user_answer.correct
  
         # update context according to type
@@ -449,7 +457,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
     def _next_url(self, request, question):
         if question.has_followup():
-            return reverse('logic:followup', args=(question.chapter.number, question.number))
+            return reverse('logic:followup', args=(question.chapter.chnum, question.number))
         else:
             return next_question_url(question.chapter, request.user)
 
@@ -494,7 +502,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             followup_answer = question.user_answer(user=request.user, is_followup=True)
             if followup_answer:
                 logger.debug(
-                    '%s: formulation answer to %d/%d changed, deleting followup answer',
+                    '%s: formulation answer to %s/%d changed, deleting followup answer',
                     request.user, question.chapter.number, question.number
                 )
                 followup_answer.delete()

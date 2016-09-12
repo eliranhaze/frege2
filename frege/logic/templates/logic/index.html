@@ -10,15 +10,19 @@
 
     <div class="list-group">
     {% for chapter in chapter_list %}
-        {% if chapter.num_questions > 0 %}
-        <a class="list-group-item text-center" href="{% url 'logic:chapter' chapter.number %}">
-        <span class="pull-right"><h4 class="text-muted">{{ chapter.number }}</h4></span>
-        <h4>{{ chapter.title }}</h4>
+        {% if chapter.is_first_part and chapter.num_questions > 0 %}
+          {% if chapter.has_parts %}
+        <a class="list-group-item text-center" href="{% url 'logic:chapter-parts' chapter.chnum %}">
+          {% else %}
+        <a class="list-group-item text-center" href="{% url 'logic:chapter' chapter.chnum %}">
+          {% endif %}
+        <span class="pull-right"><h4 class="text-muted">{{ chapter.chapter_display }}</h4></span>
+        <h4>{% if chapter.has_parts and chapter.gen_title %}{{chapter.gen_title}}{% else %}{{chapter.title}}{% endif %}</h4>
         </a>
         {% endif %}
     {% endfor %}
     </div>
-    <a class="text-muted" href="{% url 'logic:stats' %}" target="_blank" style="margin-right: 3px;">
+    <a class="text-muted" href="{% url 'logic:stats' %}" style="margin-right: 3px;">
       <span class="glyphicon glyphicon-stats"></span> סטטיסטיקה
     </a>
   </div>

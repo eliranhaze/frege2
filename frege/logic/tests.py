@@ -78,13 +78,13 @@ class IndexViewTests(TestCase):
         self.assertQuerysetEqual(response.context['chapter_list'], [])
 
     def test_index_one_chapter(self):
-        chapters = [Chapter.objects.create(title='chapternum1', number=1)]
+        chapters = [Chapter.objects.create(title='chapternum1', number=1.0)]
         self._create_for_chapters(chapters)
         response = self.client.get(reverse('logic:index'))
         self._assertHas(response, chapters)
  
     def test_index_many_chapters(self):
-        chapters = [Chapter.objects.create(title='chapternum%s'%i, number=i) for i in range(1,6)]
+        chapters = [Chapter.objects.create(title='chapternum%s'%i, number=float(i)) for i in range(1,6)]
         self._create_for_chapters(chapters)
         response = self.client.get(reverse('logic:index'))
         self._assertHas(response, chapters)
@@ -92,7 +92,7 @@ class IndexViewTests(TestCase):
 class QuestionViewTests(TestCase):
  
     def setUp(self):
-        self.chapter = Chapter.objects.create(title='chap', number=1)
+        self.chapter = Chapter.objects.create(title='chap', number=1.0)
         login(self)
 
     def _create_choice_question(self, number=1, num_choices=1):
@@ -118,7 +118,7 @@ class QuestionViewTests(TestCase):
         return q, answers
 
     def _get_url(self, question):
-        return reverse('logic:question', args=(question.chapter.number, question.number))
+        return reverse('logic:question', args=(question.chapter.chnum, question.number))
 
     def _get_view(self, question):
         return self.client.get(self._get_url(question))
@@ -141,7 +141,7 @@ class QuestionViewTests(TestCase):
 
     def _post_followup(self, question, conclusion, allowed=True):
         response = self.client.post(
-            reverse('logic:followup', args=(question.chapter.number, question.number)),
+            reverse('logic:followup', args=(question.chapter.chnum, question.number)),
             {'conclusion':conclusion, 'obj':''}
         )
         self.assertTrue(allowed == ('next' in response.json()))
@@ -151,11 +151,11 @@ class QuestionViewTests(TestCase):
         self.assertTrue(allowed == ('next' in response.json()))
 
     def _post_submission(self, allowed):
-        response = self.client.post(reverse('logic:chapter-summary', args=(self.chapter.number,)))
+        response = self.client.post(reverse('logic:chapter-summary', args=(self.chapter.chnum,)))
         self.assertTrue(allowed == ('next' in response.json()))
 
     def _get_submission(self, allowed):
-        response = self.client.get(reverse('logic:chapter-summary', args=(self.chapter.number,)))
+        response = self.client.get(reverse('logic:chapter-summary', args=(self.chapter.chnum,)))
         if allowed:
             self.assertContains(response, 'ענית נכון')
             self.assertNotContains(response, 'russell')
@@ -323,19 +323,19 @@ class QuestionViewTests(TestCase):
 class QuestionTests(TestCase):
 
     def test_clean_duplicate_number(self):
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         qc = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         # create another question with the same number and assert error
         qo = OpenQuestion(chapter=chapter, text='hi?', number=1)
         self.assertRaises(ValidationError, qo.clean)
         # create it in another chapter, this should be ok
-        chapter = Chapter.objects.create(title='chap', number=2)
+        chapter = Chapter.objects.create(title='chap', number=2.0)
         qo = OpenQuestion(chapter=chapter, text='hi?', number=1)
         qo.clean()
         
     def test_query_all(self):
-        chapter = Chapter.objects.create(title='chap', number=1)
-        chapter_open = Chapter.objects.create(title='chap', number=2)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
+        chapter_open = Chapter.objects.create(title='chap', number=2.0)
         qc = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         qo = OpenQuestion.objects.create(chapter=chapter_open, text='hi?', number=2)
         qf = FormulationQuestion.objects.create(chapter=chapter, text='hi?', number=3)
@@ -352,17 +352,17 @@ class QuestionTests(TestCase):
 class ChapterTests(TestCase):
 
     def test_is_open_empty(self):
-        chapter = Chapter.objects.create(title='ch', number=1)
+        chapter = Chapter.objects.create(title='ch', number=1.0)
         self.assertFalse(chapter.is_open())
 
     def test_is_open_yes(self):
-        chapter = Chapter.objects.create(title='ch', number=1)
+        chapter = Chapter.objects.create(title='ch', number=1.0)
         OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         OpenQuestion.objects.create(chapter=chapter, text='hi2?', number=2)
         self.assertTrue(chapter.is_open())
 
     def test_is_open_no(self):
-        chapter = Chapter.objects.create(title='ch', number=1)
+        chapter = Chapter.objects.create(title='ch', number=1.0)
         ModelQuestion.objects.create(chapter=chapter, formula='Pa', number=1)
         DeductionQuestion.objects.create(chapter=chapter, formula=u'p%sq∴p'%CON, number=2)
         self.assertFalse(chapter.is_open())
@@ -374,7 +374,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_percent_correct(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         # with 1 question
         q = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
         cs = self.create_submission(chapter, user)
@@ -393,7 +393,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_is_complete(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
 
         # no questions
         cs = self.create_submission(chapter, user)
@@ -413,7 +413,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_is_complete_followups(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         cs = self.create_submission(chapter, user)
 
         # with 1 question + followup
@@ -440,7 +440,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_is_ready_no_open(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         cs = self.create_submission(chapter, user)
 
         # with 1 non-open question
@@ -451,7 +451,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_is_ready_open(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         cs = self.create_submission(chapter, user)
 
         # with 1 non-open question
@@ -466,7 +466,7 @@ class ChapterSubmissionTests(TestCase):
 
     def test_is_ready_many_open(self):
         user = User.objects.create(username='u', password='pw')
-        chapter = Chapter.objects.create(title='chap', number=1)
+        chapter = Chapter.objects.create(title='chap', number=1.0)
         cs = self.create_submission(chapter, user)
 
         q1 = OpenQuestion.objects.create(chapter=chapter, text='hi?', number=1)

@@ -1,0 +1,25 @@
+{% extends "logic/base.html" %}
+
+{% block title %}רשימת חלקים{% endblock %}
+
+{% block content %}
+{% if chapter_list %}
+  <div class="container">
+    <div class="page-header">
+    </div>
+
+    <div class="list-group">
+    {% for chapter in chapter_list %}
+        {% if chapter.num_questions > 0 %}
+        <a class="list-group-item text-center" href="{% url 'logic:chapter' chapter.chnum %}">
+        <span class="pull-right"><h4 class="text-muted">{{ chapter.part_display }}</h4></span>
+        <h4>{{ chapter.title }}</h4>
+        </a>
+        {% endif %}
+    {% endfor %}
+    </div>
+  </div>
+{% else %}
+    <p>No chapters are available.</p>
+{% endif %}
+{% endblock content %} 

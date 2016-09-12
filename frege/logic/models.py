@@ -49,10 +49,61 @@ def _concrete_sub_classes(cls):
         else:
             subs.append(sub)
     return subs
-         
+ 
 class Chapter(models.Model):
-    number = models.PositiveIntegerField(verbose_name='מספר', unique=True)
+    number = models.DecimalField(
+        verbose_name='מספר',
+        max_digits=3,
+        decimal_places=1,
+        unique=True,
+        validators = [
+            MaxValueValidator(100.),
+            MinValueValidator(1.),
+        ]
+    )
     title = models.CharField(verbose_name='כותרת', max_length=40)
+    gen_title = models.CharField(
+        verbose_name='כותרת כללית (אופציונלי. שם זה ישמש לתצוגה במסך הראשי עבור פרקים מרובי חלקים)', max_length=40, null=True, blank=True
+    )
+
+    @property
+    def chnum(self):
+        return str(self.number)
+
+    @property
+    def chapter_display(self):
+        return str(int(self.number))
+    
+    @property
+    def part_display(self):
+        return '%s%s' % (int(self.number), {
+            '0': 'א',
+            '1': 'ב',
+            '2': 'ג',
+            '3': 'ד',
+            '4': 'ה',
+            '5': 'ו',
+            '6': 'ז',
+            '7': 'ח',
+            '8': 'ט',
+            '9': 'י',
+        }[str(self.number).split('.').pop()])
+   
+    @property
+    def display(self):
+        if self.has_parts():
+            return self.part_display
+        else:
+            return self.chapter_display
+
+    def parts(self):
+        return Chapter.objects.filter(number__gte=int(self.number), number__lt=int(self.number)+1)
+
+    def has_parts(self):
+        return not self.is_first_part() or self.parts().count() > 1
+
+    def is_first_part(self):
+        return self.number == int(self.number)
 
     def num_questions(self, followups=False):
         if followups:
@@ -87,7 +138,7 @@ class Chapter(models.Model):
                 next_num += 1
 
     def __unicode__(self):
-        return '%s. %s' % (self.number, self.title)
+        return '%s. %s' % (self.display, self.title)
 
     class Meta:
         verbose_name = 'פרק'
@@ -133,7 +184,7 @@ class Question(models.Model):
                 other_nums = set([q.number for q in Question._filter(chapter=self.chapter) if not q.is_same(self)])
                 chapter_changed, _ = self._chapter_changed()
                 if self.number in other_nums and not chapter_changed:
-                    raise ValidationError('כבר קיימת שאלה מספר %d בפרק %d' % (self.number, self.chapter.number))
+                    raise ValidationError('כבר קיימת שאלה מספר %d בפרק %s' % (self.number, self.chapter.display))
             if self.chapter.is_open():
                 if type(self) != OpenQuestion:
                     raise ValidationError('לא ניתן לשמור שאלה זו בפרק עם שאלות פתוחות')
@@ -228,7 +279,7 @@ class Question(models.Model):
 
     @property
     def _str(self):
-        return '%d/%d' % (self.chapter.number, self.number)
+        return '%s/%d' % (self.chapter.number, self.number)
 
     def is_same(self, other):
         return self.id == other.id and type(self) == type(other)
@@ -518,7 +569,8 @@ class ChapterSubmission(models.Model):
 
     @property
     def localtime_str(self):
-        return timezone.localtime(self.time).strftime('%Y-%m-%d %H:%M')
+        if self.time:
+            return timezone.localtime(self.time).strftime('%Y-%m-%d %H:%M')
 
     def correctness_data(self):
         """
@@ -652,15 +704,14 @@ class UserAnswer(models.Model):
         verbose_name_plural = '[תשובות משתמשים]'
         unique_together = ('chapter', 'user', '_cq', '_oq', '_fq', '_tq', '_mq', '_dq', 'is_followup')
 
-class OpenAnswer(models.Model):
+def name_file(instance, filename):
+    chapnum = str(instance.question.chapter.number).replace('.','-')
+    path = 'uploads/%s/ch%s' % (timezone.localtime(timezone.now()).year, chapnum)
+    extension = filename.rsplit('.', 1).pop()
+    name = '%s_%s_%s.%s' % (instance.user_answer.user.username, chapnum, instance.question.number, extension)
+    return os.path.join(path, name)
 
-    def name_file(instance, filename):
-        path = 'uploads/%s/ch%d' % (timezone.localtime(timezone.now()).year, instance.question.chapter.number)
-        extension = filename.rsplit('.', 1).pop()
-        name = '%s_%s_%s.%s' % (instance.user_answer.user.username, instance.question.chapter.number, instance.question.number, extension)
-        print 'PATH', path
-        print 'NAME', name
-        return os.path.join(path, name)
+class OpenAnswer(models.Model):
 
     text = models.TextField(verbose_name='טקסט')
     question = models.ForeignKey(OpenQuestion, verbose_name='שאלה', on_delete=models.PROTECT)

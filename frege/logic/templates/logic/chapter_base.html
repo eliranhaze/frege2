@@ -1,9 +1,9 @@
 {% extends "logic/base.html" %}
-{% block title %}פרק {{ chapter.number }}: {{ chapter.title }}{% endblock %}
+{% block title %}פרק {{ chapter.display }}: {{ chapter.title }}{% endblock %}
 {% block content %}
   <div class="container">
     <div id="topic" class="page-header noselect">
-    <h3>{% block topic_header %}{% endblock %} <small>פרק {{ chapter.number }}: {{ chapter.title }}</small></h3>
+    <h3>{% block topic_header %}{% endblock %} <small>פרק {{ chapter.display }}: {{ chapter.title }}</small></h3>
     </div>
   {% block chapter_content %}
   {% endblock %}

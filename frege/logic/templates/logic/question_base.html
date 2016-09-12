@@ -1,5 +1,5 @@
 {% extends "logic/chapter_base.html" %}
-{% block title %}שאלה {{question.number }} פרק {{ chapter.number }}{% endblock %}
+{% block title %}שאלה {{question.number }} פרק {{ chapter.display }}{% endblock %}
 {% block topic_header %}שאלה {{ question.number }}{% if followup %}: המשך{% endif %}{% endblock %}
 {% block help_url %}{% url 'logic:topic-help' 1 %}{% endblock help_url%}
 
@@ -17,9 +17,9 @@
     {% block question_content %}
     {% endblock %}
     <div class="noselect" style="padding: 5px;margin-top: 20px;">
-      {% if followup %}<a href='{% url 'logic:question' chapter.number question.number %}' class="btn btn-default silent btn-lg">חזרה</a>{% endif %}
+      {% if followup %}<a href='{% url 'logic:question' chapter.chnum question.number %}' class="btn btn-default silent btn-lg">חזרה</a>{% endif %}
       <button class="btn btn-default btn-lg" id="answer">אישור</button>
-      <button class="btn btn-default {% if question.has_followup %}silent{% else %}answered{% endif %} btn-lg" {% if answer and question.has_followup %}onclick="location.href='{% url 'logic:followup' chapter.number question.number %}';"{% else %}style="display: none;"{% endif %} id="next">{% if question.has_followup %}המשך{% else %}שאלה הבאה{% endif %}</button>
+      <button class="btn btn-default {% if question.has_followup %}silent{% else %}answered{% endif %} btn-lg" {% if answer and question.has_followup %}onclick="location.href='{% url 'logic:followup' chapter.chnum question.number %}';"{% else %}style="display: none;"{% endif %} id="next">{% if question.has_followup %}המשך{% else %}שאלה הבאה{% endif %}</button>
       <button class="btn btn-primary btn-lg" style="display: {% if can_submit %}inline{% else %}none{% endif %};" id="sum" data-toggle="modal" data-target="#chp-sbmt">סיום פרק</button>
     </div>
   </div>
@@ -28,9 +28,9 @@
   function reg() {
       $('#answer').one('click', function() {
           {% if followup %}
-          ans('{% url 'logic:followup' chapter.number question.number %}', '{{ csrf_token }}');
+          ans('{% url 'logic:followup' chapter.chnum question.number %}', '{{ csrf_token }}');
           {% else %}
-          ans('{% url 'logic:question' chapter.number question.number %}', '{{ csrf_token }}');
+          ans('{% url 'logic:question' chapter.chnum question.number %}', '{{ csrf_token }}');
           {% endif %}
       });
   }
@@ -63,7 +63,7 @@
 $(document).ready(function() {
     $('#chp-sbmt').on('click', '.btn-ok', function(e) {
         $(e.delegateTarget).addClass('loading');
-        sbt('{% url 'logic:chapter-summary' chapter.number %}', '{{ csrf_token }}');
+        sbt('{% url 'logic:chapter-summary' chapter.chnum %}', '{{ csrf_token }}');
     });
 });
 </script>
@@ -76,7 +76,7 @@ $(document).ready(function() {
   {% if question and qnum == question.number %}
       <button class="btn btn-primary btn-q">{{ qnum }}</button>
   {% else %}
-      <a href='{% url 'logic:question' chapter.number qnum %}' class="btn btn-default btn-q {% if status == 'half' %}silent{% elif status %}answered{% endif %}">{{ qnum }}</a>
+      <a href='{% url 'logic:question' chapter.chnum qnum %}' class="btn btn-default btn-q {% if status == 'half' %}silent{% elif status %}answered{% endif %}">{{ qnum }}</a>
   {% endif %}
 {% endfor %}
     </div>

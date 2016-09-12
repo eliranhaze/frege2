@@ -30,9 +30,9 @@
       ממוצע נסיונות לפי פרק:<br>
       <div id="attempts-chart" class="bar-graph"></div>
       <h3>פרקים</h3>
-      {% for number, grade, subs, attempts in chapter_data %}
-      <a class="" href="{% url 'logic:chapter-stats' number %}" style="margin-right: 3px;">
-        <span class="glyphicon glyphicon-stats"></span> פרק {{number}}
+      {% for chapter, grade, subs, attempts in chapter_data %}
+      <a class="" href="{% url 'logic:chapter-stats' chapter.chnum %}" style="margin-right: 3px;">
+        <span class="glyphicon glyphicon-stats"></span> פרק {{chapter.display}}
       </a><br>
       {% endfor %}
 
@@ -49,8 +49,8 @@
   new Morris.Bar({
     element: 'grades-chart',
     data: [
-      {% for number, grade, subs, attempts in chapter_data %}
-      {num: {{number}}, grade: {{grade}}},
+      {% for chapter, grade, subs, attempts in chapter_data %}
+      {num: '{{chapter.display}}', grade: {{grade}}},
       {% endfor %}
     ],
     xkey: 'num',
@@ -60,8 +60,8 @@
   new Morris.Bar({
     element: 'subs-chart',
     data: [
-      {% for number, grade, subs, attempts in chapter_data %}
-      {num: {{number}}, subs: {{subs}}},
+      {% for chapter, grade, subs, attempts in chapter_data %}
+      {num: '{{chapter.display}}', subs: {{subs}}},
       {% endfor %}
     ],
     xkey: 'num',
@@ -71,8 +71,8 @@
   new Morris.Bar({
     element: 'attempts-chart',
     data: [
-      {% for number, grade, subs, attempts in chapter_data %}
-      {num: {{number}}, attempts: {{attempts|floatformat:-1}}},
+      {% for chapter, grade, subs, attempts in chapter_data %}
+      {num: '{{chapter.display}}', attempts: {{attempts|floatformat:-1}}},
       {% endfor %}
     ],
     xkey: 'num',
