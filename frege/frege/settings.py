@@ -151,15 +151,9 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'logic': {
+        '': { # general catch-all logger
             'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': True,
-        },
-        'frege': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
         },
     },
 }
