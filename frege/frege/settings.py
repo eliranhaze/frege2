@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '6an*s0-z35iaa-4=j8!3smn%9uhwquf27m4)1a%vqqamdsj($a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -151,9 +151,27 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'django.security': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
         '': { # general catch-all logger
             'handlers': ['file'],
             'level': 'DEBUG',
         },
     },
 }
+
+# mail settings
+SERVER_EMAIL = 'fregeapp@gmail.com'
+ADMINS = (
+  ('Eliran Haziza', 'eliranhaziza@mail.tau.ac.il'),
+)
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'fregeapp@gmail.com'
+EMAIL_HOST_PASSWORD = 'sense&reference'
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = 'user@djangodomain.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
