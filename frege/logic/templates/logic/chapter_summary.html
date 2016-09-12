@@ -24,7 +24,11 @@
           {% for qnum, followup, correct_or_grade in answer_data %}
           <tr>
             <td>
-              <a href='{% url 'logic:question' chapter.chnum qnum %}'>שאלה {{qnum}}{% if followup %}: המשך{% endif %}
+              {% if followup %}
+              <a href='{% url 'logic:followup' chapter.chnum qnum %}'>שאלה {{qnum}}: המשך
+              {% else %}
+              <a href='{% url 'logic:question' chapter.chnum qnum %}'>שאלה {{qnum}}
+              {% endif %}
             </td>
             {% if chapter.is_open %}
             <td>{{correct_or_grade}}</td>
