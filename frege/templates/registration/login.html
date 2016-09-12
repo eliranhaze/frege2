@@ -101,7 +101,7 @@ $(document).ready(function() {
 $(document).ready(function() {
     $("#login-form").submit(function(e) {
         $("#errors").empty();
-        if (!$("#id_username").val()) {
+        if (!$.trim($("#id_username").val())) {
             $("#errors").text("נא להזין מספר ת.ז.");
             e.preventDefault();
         } else {

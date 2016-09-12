@@ -23,7 +23,7 @@ def _user_exists(name):
     return len(User.objects.filter(username=name)) > 0
 
 def _is_valid(name):
-    return len(name) == 9 and all(c.isdigit() for c in name)
+    return name and len(name) == 9 and all(c.isdigit() for c in name)
 
 def login(request):
     context = {}
@@ -34,14 +34,15 @@ def login(request):
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
     else: # POST
-        username = request.POST['username']
-        logger.info('login post: username=%s', username)
-        context['username'] = username
-        context['password'] = request.POST['password']
-        if not _user_exists(username) and _is_valid(username):
-            logger.info('login first time: %s', username)
-            context['first_time'] = True
-            context['groups'] = ['%02d' % i for i in range(2,9+1)] # TODO: put this in settings
+        username = request.POST.get('username', '').strip()
+        if username:
+            logger.info('login post: username=%s', username)
+            context['username'] = username
+            context['password'] = request.POST['password']
+            if not _user_exists(username) and _is_valid(username):
+                logger.info('login first time: %s', username)
+                context['first_time'] = True
+                context['groups'] = ['%02d' % i for i in range(2,9+1)] # TODO: put this in settings
 
     return auth_login(
         request,
