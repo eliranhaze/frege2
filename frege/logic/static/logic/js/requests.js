@@ -59,10 +59,10 @@ function ansDone(btn) {
             if (!data['has_followup']) {
                 $("#next").hide();
             }
-        }
-        else {
+        } else {
             $("#next").attr("onclick", data['next']);
             $("#next").show();
+            $("#sum").hide();
         }
     }
 }
