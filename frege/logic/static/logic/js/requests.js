@@ -97,7 +97,7 @@ function okmsg(msg) {
         template:
           '<div data-notify="container" class="col-xs-11 col-sm-3 alert text-center note ok" role="alert">' +
             '<span data-notify="dismiss">' +
-              '<span data-notify="message">{2} ☑</span>' +
+              '<span data-notify="message">{2}</span>' +
             '</span>' +
           '</div>'
     });
