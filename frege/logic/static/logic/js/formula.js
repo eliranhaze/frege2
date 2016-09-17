@@ -349,6 +349,7 @@ function Argument(str, cls) { // @@export
     try {
         if (!cls) cls = Formula;
         var splits = str.split(THF);
+        if (splits.length != 2) throw Error();
         this.conclusion = new cls(splits[1]);
         this.premises = [];
         var prmSplits = splits[0].split(',');
