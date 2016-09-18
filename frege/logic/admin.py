@@ -157,7 +157,7 @@ class AnswerGroupFilter(GroupFilter):
 
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
-    list_filter = [AnswerGroupFilter, 'grade', 'user_answer__user', 'question__chapter', 'question__number']
+    list_filter = [AnswerGroupFilter, 'grade', 'question__chapter', 'question__number', 'user_answer__user']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
     form = OpenAnswerForm
