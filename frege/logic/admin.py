@@ -136,7 +136,7 @@ class GroupFilter(admin.SimpleListFilter):
     parameter_name = 'group'
 
     def lookups(self, request, model_admin):
-        groups = list(set(cs.user.userprofile.group for cs in ChapterSubmission.objects.all()))
+        groups = list(set(cs.user.userprofile.group for cs in ChapterSubmission.objects.all() if hasattr(cs.user, 'userprofile')))
         return (
             (g, g) for g in groups
         )
