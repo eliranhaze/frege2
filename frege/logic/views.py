@@ -106,7 +106,7 @@ class ChapterPartsView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/parts.html'
 
     def get_queryset(self, **kwargs):
-        chapter = Chapter.objects.get(number=self.kwargs['chnum'])
+        chapter = get_object_or_404(Chapter, number=self.kwargs['chnum'])
         parts = chapter.parts()
         logger.debug('%s:chapter%s: %d parts', self.request.user, chapter.number, len(parts))
         return parts
