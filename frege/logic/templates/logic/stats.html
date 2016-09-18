@@ -50,7 +50,7 @@
     element: 'grades-chart',
     data: [
       {% for chapter, grade, subs, attempts in chapter_data %}
-      {num: '{{chapter.display}}', grade: {{grade}}},
+      {num: '{{chapter.display}}', grade: {{grade|floatformat:-1}}},
       {% endfor %}
     ],
     xkey: 'num',

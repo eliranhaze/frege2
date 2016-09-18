@@ -131,9 +131,33 @@ class UserAnswerAdmin(admin.ModelAdmin):
     def has_delete_permission(self, *args, **kwargs):
         return False
 
+class GroupFilter(admin.SimpleListFilter):
+    title = 'קבוצה'
+    parameter_name = 'group'
+
+    def lookups(self, request, model_admin):
+        groups = list(set(cs.user.userprofile.group for cs in ChapterSubmission.objects.all()))
+        return (
+            (g, g) for g in groups
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(**self._get_kw())
+        else:
+            print 'ALL'
+            return queryset.all()
+
+    def _get_kw(self):
+        return {'user__userprofile__group': self.value()}
+
+class AnswerGroupFilter(GroupFilter):
+    def _get_kw(self):
+        return {'user_answer__user__userprofile__group': self.value()}
+
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
-    list_filter = ['grade', 'user_answer__user', 'question__chapter', 'question__number']
+    list_filter = [AnswerGroupFilter, 'grade', 'user_answer__user', 'question__chapter', 'question__number']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
     form = OpenAnswerForm
@@ -162,7 +186,7 @@ class OpenAnswerAdmin(admin.ModelAdmin):
 
 class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
-    list_filter = ['user', 'chapter', 'time']
+    list_filter = [GroupFilter, 'chapter', 'time', 'user']
     ordering = ['chapter', 'user']
     readonly_fields = ['user', 'chapter', 'time', 'attempt']
     exclude = ['ongoing']
