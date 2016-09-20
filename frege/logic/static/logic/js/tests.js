@@ -684,31 +684,31 @@ try {
     var d = deduction('#xPx','Qb');
     d.hyp(predicateFormula('Pa'));
     d.rep(2);
-    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1));
-    assertUndefined(d.exsE(1));
+    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1,3,4));
+    assertUndefined(d.exsE(1,3,4));
 
     var d = deduction('#xPx','Qb');
     d.hyp(predicateFormula('Pa'));
     d.rep(2);
-    assertUndefined(d.exsE(2));
-    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1));
+    assertUndefined(d.exsE(2,1,2));
+    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1,3,4));
 
     var d = deduction('#x(Px-@yLxy)','Qb');
     d.hyp(predicateFormula('Pa-@yLay'));
     d.rep(2);
-    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1));
+    assertFormulasEqual(predicateFormula('Qb'), d.exsE(1,3,4));
 
     var d = deduction('#xPx','Qb');
     d.hyp(predicateFormula('Qa'));
     d.rep(2);
-    assertUndefined(d.exsE(1));
-    assertUndefined(d.exsE(2));
-    assertUndefined(d.exsE(3));
+    assertUndefined(d.exsE(1,2,3));
+    assertUndefined(d.exsE(2,3,4));
+    assertUndefined(d.exsE(3,2,3));
 
     var d = deduction('#xPx','Qa');
     d.hyp(predicateFormula('Pa'));
     d.rep(2);
-    assertError(d, d.exsE, [1], 'להוציא');
+    assertError(d, d.exsE, [1,3,4], 'להוציא');
 
     // ----------------
     // conI tests 
@@ -805,8 +805,8 @@ try {
     d.hyp(formula('p'));
     assertEquals(1, d.nesting());
     assertEquals(1, d.openIndex());
-    assertFormulasEqual(formula('p>p'), d.impI());
-    assertUndefined(d.impI());
+    assertFormulasEqual(formula('p>p'), d.impI(1));
+    assertUndefined(d.impI(1));
     assertEquals(0, d.nesting());
     assertUndefined(d.openIndex());
     assertEquals(1, d.nestingLevels[1]);
@@ -817,10 +817,10 @@ try {
     d.hyp(formula('q'));
     assertEquals(2, d.nesting());
     assertEquals(2, d.openIndex());
-    assertFormulasEqual(formula('q>q'), d.impI());
+    assertFormulasEqual(formula('q>q'), d.impI(2));
     assertEquals(1, d.nesting());
     assertEquals(1, d.openIndex());
-    assertFormulasEqual(formula('p>(q>q)'), d.impI());
+    assertFormulasEqual(formula('p>(q>q)'), d.impI(1,3));
     assertEquals(0, d.nesting());
     assertUndefined(d.openIndex());
     assertEquals(1, d.nestingLevels[1]);
@@ -832,8 +832,8 @@ try {
     d.hyp(predicateFormula('@xPx'));
     assertEquals(1, d.nesting());
     assertEquals(1, d.openIndex());
-    assertFormulasEqual(predicateFormula('@xPx>@xPx'), d.impI());
-    assertUndefined(d.impI());
+    assertFormulasEqual(predicateFormula('@xPx>@xPx'), d.impI(1));
+    assertUndefined(d.impI(1));
     assertEquals(0, d.nesting());
     assertUndefined(d.openIndex());
     assertEquals(1, d.nestingLevels[1]);
@@ -841,12 +841,12 @@ try {
 
     var d = deduction();
     d.arb('a');
-    assertUndefined(d.impI());
+    assertUndefined(d.impI(1));
 
-    assertUndefined(deduction().impI());
-    assertUndefined(deduction('p>q').impI());
-    assertUndefined(deduction('p>q', 'p').impI());
-    assertUndefined(deduction('Pa>Qa', 'Pa').impI());
+    assertUndefined(deduction().impI(1));
+    assertUndefined(deduction('p>q').impI(1));
+    assertUndefined(deduction('p>q', 'p').impI(1,2));
+    assertUndefined(deduction('Pa>Qa', 'Pa').impI(1,2));
 
     // ----------------
     // negI tests 
@@ -854,42 +854,42 @@ try {
 
     var d = deduction();
     d.hyp(formula('p-~p'));
-    assertFormulasEqual(formula('~(p-~p)'), d.negI());
+    assertFormulasEqual(formula('~(p-~p)'), d.negI(1));
     assertEquals(1, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
 
     var d = deduction();
     d.hyp(formula('(~qvp)-~(pv~q)'));
-    assertFormulasEqual(formula('~((~qvp)-~(pv~q))'), d.negI());
+    assertFormulasEqual(formula('~((~qvp)-~(pv~q))'), d.negI(1));
     assertEquals(1, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
 
     var d = deduction();
     d.hyp(predicateFormula('@xPx-~@xPx'));
-    assertFormulasEqual(predicateFormula('~(@xPx-~@xPx)'), d.negI());
+    assertFormulasEqual(predicateFormula('~(@xPx-~@xPx)'), d.negI(1));
     assertEquals(1, d.nestingLevels[1]);
     assertEquals(0, d.nestingLevels[2]);
 
-    assertUndefined(deduction().negI());
-    assertUndefined(deduction('p-~p').negI());
-    assertUndefined(deduction('@xPx-~@xPx').negI());
-    assertUndefined(deduction('p-~p', 'p').negI());
+    assertUndefined(deduction().negI(1));
+    assertUndefined(deduction('p-~p').negI(1));
+    assertUndefined(deduction('@xPx-~@xPx').negI(1));
+    assertUndefined(deduction('p-~p', 'p').negI(1,2));
     var d = deduction();
     d.hyp(formula('pv~p'));
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(1));
     var d = deduction();
     d.hyp(formula('~p'));
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(1));
 
     var d = deduction('p-~p');
     d.arb('a');
     d.rep(1);
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(1,2));
 
     var d = deduction('Pa-~Pa');
     d.arb('b');
     d.rep(1);
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(1));
 
     // ----------------
     // allI tests 
@@ -899,7 +899,7 @@ try {
     d.arb('a');			// 2. a|
     d.rep(1);			// 3.  | @xPx
     d.allE(3, 'a');		// 4.  | Pa
-    assertFormulasEqual(predicateFormula('@xPx'), d.allI('x'));
+    assertFormulasEqual(predicateFormula('@xPx'), d.allI(2,4,'x'));
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(0, d.nestingLevels[5]);
 
@@ -907,7 +907,7 @@ try {
     d.arb('a');			// 2. a|
     d.rep(1);			// 3.  | @x~Px
     d.allE(3, 'a');		// 4.  | ~Pa
-    assertFormulasEqual(predicateFormula('@x~Px'), d.allI('x'));
+    assertFormulasEqual(predicateFormula('@x~Px'), d.allI(2,4,'x'));
 
     var d = deduction('@x@yPxy');	// 1. @x@yPxy
     d.arb('a');				// 2. a|
@@ -916,8 +916,8 @@ try {
     d.arb('b');				// 5. b||
     d.rep(4);				// 6.  || @yPay
     d.allE(6, 'b');			// 7.  || Pab
-    assertFormulasEqual(predicateFormula('@xPax'), d.allI('x'));
-    assertFormulasEqual(predicateFormula('@y@xPyx'), d.allI('y'));
+    assertFormulasEqual(predicateFormula('@xPax'), d.allI(5,7,'x'));
+    assertFormulasEqual(predicateFormula('@y@xPyx'), d.allI(2,8,'y'));
     assertEquals(1, d.nestingLevels[4]);
     assertEquals(2, d.nestingLevels[5]);
     assertEquals(1, d.nestingLevels[8]);
@@ -925,14 +925,14 @@ try {
 
     var d = deduction('@xPx');	// 1. @xPx
     d.arb('a');			// 2. a|
-    assertUndefined(d.allI('x'));
+    assertUndefined(d.allI(2,2,'x'));
     d.rep(1);			// 3.  | @xPx
-    assertUndefined(d.allI('x'));
+    assertUndefined(d.allI(2,3,'x'));
     d.allE(3, 'b');		// 4.  | Pb
-    assertUndefined(d.allI('x'));
+    assertUndefined(d.allI(2,4,'x'));
 
-    assertUndefined(deduction().allI('x'));
-    assertUndefined(deduction('@xPx').allI('x'));
+    assertUndefined(deduction().allI(1,2,'x'));
+    assertUndefined(deduction('@xPx').allI(1,1,'x'));
 
     // ----------------
     // exsI tests 
@@ -1025,16 +1025,16 @@ try {
     assertUndefined(d.rep(5));
     assertUndefined(d.rep(0));
 
-    var d = deduction('p');
-    d.hyp(formula('q'));
-    d.impI();  // 3. q>q
+    var d = deduction('p');				// 1. p
+    d.hyp(formula('q'));				// 2. | q
+    d.impI(2);						// 3. q>q
     assertError(d, d.rep, [1], 'הנוכחית');
     assertError(d, d.rep, [2], 'אחרת');
-    d.hyp(formula('q'));
-    assertFormulasEqual(formula('p'), d.rep(1));
-    assertFormulasEqual(formula('q>q'), d.rep(3));
+    d.hyp(formula('q'));				// 4. | q
+    assertFormulasEqual(formula('p'), d.rep(1));	// 5. | p
+    assertFormulasEqual(formula('q>q'), d.rep(3));	// 6. | q>q
     assertError(d, d.rep, [2], 'אחרת');
-    d.impI(); // 5. q>q
+    assertFormulasEqual(formula('q>(q>q)'), d.impI(4,6));// 7. q>(q>q)
     assertError(d, d.rep, [3], 'הנוכחית');
     assertError(d, d.rep, [4], 'אחרת');
 
@@ -1045,7 +1045,7 @@ try {
     d.hyp(formula('~p'));			// 4. ||~p
     d.rep(1); 					// 5. || p
     d.conI(4,5);				// 6. || ~p-p
-    d.negI();					// 7. | ~~p
+    d.negI(4,6);				// 7. | ~~p
     assertError(d, d.rep, [2], 'הנוכחית');
     assertError(d, d.rep, [3], 'הנוכחית');
     assertError(d, d.rep, [4], 'אחרת');
@@ -1056,7 +1056,7 @@ try {
     assertError(d, d.rep, [4], 'אחרת');
     assertError(d, d.rep, [5], 'אחרת');
     assertError(d, d.rep, [6], 'אחרת');
-    d.impI();					// 10. | p>q
+    d.impI(8,9);				// 10. | p>q
     assertError(d, d.rep, [2], 'הנוכחית');
     assertError(d, d.rep, [3], 'הנוכחית');
     d.hyp(formula('p'));			// 11. || p
@@ -1069,12 +1069,12 @@ try {
     d.rep(3);					// 17. |||| p
     assertError(d, d.rep, [14], 'הנוכחית');
     assertError(d, d.rep, [15], 'הנוכחית');
-    d.impI();					// 18. ||| p>p
+    d.impI(13,17);				// 18. ||| p>p
     assertError(d, d.rep, [4], 'אחרת');
     assertError(d, d.rep, [8], 'אחרת');
     assertError(d, d.rep, [14], 'אחרת');
     assertError(d, d.rep, [16], 'אחרת');
-    d.impI();					// 19. || p>p
+    d.impI(12,18);				// 19. || p>(p>p)
     assertError(d, d.rep, [4], 'אחרת');
     assertError(d, d.rep, [8], 'אחרת');
     assertError(d, d.rep, [14], 'אחרת');
@@ -1086,7 +1086,7 @@ try {
     assertError(d, d.rep, [9], 'אחרת');
     assertError(d, d.rep, [11], 'הנוכחית');
     d.rep(1);					// 24. || p
-    d.impI();					// 25. | p>p
+    d.impI(11,24);				// 25. | p>p
     assertError(d, d.rep, [4], 'אחרת');
     assertError(d, d.rep, [8], 'אחרת');
     assertError(d, d.rep, [11], 'אחרת');
@@ -1134,7 +1134,7 @@ try {
 
     var d = deduction();
     d.hyp(formula('q'));
-    d.impI();
+    d.impI(1);
     d.pop();
     assertEquals(1, d.idx());
     assertEquals(1, d.nesting());
@@ -1151,13 +1151,13 @@ try {
     assertEquals(4, d.idx());
     assertEquals(1, d.nesting());
     d.rep(3);
-    d.impI(); // 6. r>q
+    d.impI(4,5); // 6. r>q
     assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     d.pop();
     assertEquals(5, d.idx());
     assertEquals(1, d.nesting());
-    d.impI(); // 6. r>q
+    d.impI(4,5); // 6. r>q
     assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
     d.conI(1,6) // 7. p-(r>q)
@@ -1197,7 +1197,7 @@ try {
     assertFormulasEqual(formula('r'), d.get(4));
     d.hyp(formula('r'));  			// 5. || r
     d.hyp(formula('r'));  			// 6. ||| r
-    d.impI();					// 7. || r>r
+    d.impI(6);					// 7. || r>r
     d.hyp(formula('q'));  			// 8. ||| q
     d.pop();
     d.pop();					// 1. p
@@ -1217,14 +1217,14 @@ try {
     assertEquals(2, d.nestingLevels[5]);
     assertEquals(3, d.nestingLevels[6]);
     d.rep(1); 		 			// 7. ||| p
-    d.impI();					// 8. || r>p
-    d.impI();					// 9. | r>(r>p)
+    d.impI(6,7);				// 8. || r>p
+    d.impI(5,8);				// 9. | r>(r>p)
     d.pop();					// 8. || r>p
     assertEquals(8, d.idx());
     assertEquals(2, d.nesting());
     assertFormulasEqual(formula('r>p'), d.get(8));
     assertError(d, d.rep, [7], 'אחרת');
-    d.impI();					// 9. | r>(r>p)
+    d.impI(5,8);				// 9. | r>(r>p)
     d.pop();
     d.pop();
     d.pop();
@@ -1237,7 +1237,7 @@ try {
     assertEquals(1, d.nesting());
     assertFormulasEqual(formula('r'), d.get(4));
     d.rep(1); 		 			// 5. | p
-    d.impI();					// 6. r>p
+    d.impI(4,5);				// 6. r>p
     d.pop();					// 5. | p
     assertEquals(5, d.idx());
     assertEquals(1, d.nesting());
@@ -1246,7 +1246,7 @@ try {
     assertUndefined(d.get(7));
     assertUndefined(d.rep(6));
     assertUndefined(d.rep(7));
-    d.impI();					// 6. r>p
+    d.impI(4,5);				// 6. r>p
     assertFormulasEqual(formula('r>p'), d.get(6));
     assertEquals(6, d.idx());
     assertEquals(0, d.nesting());
@@ -1314,10 +1314,10 @@ try {
     d.disI(2, formula('~p'));		// 3.  || pv~p
     d.rep(1);  				// 4.  || ~(pv~p)
     d.conI(3,4);			// 5.  || (pv~p)-~(pv~p)
-    d.negI();				// 6.  | ~p
+    d.negI(2,5);			// 6.  | ~p
     d.disI(6, formula('p'));		// 7.  | ~pvp
     d.conI(1,7);			// 8.  | (pv~p)-~(pv~p)
-    d.negI();				// 9.  ~~(pv~p)
+    d.negI(1,8);			// 9.  ~~(pv~p)
     d.negE(9);				// 10. pv~p
     assertFormulasEqual(d.get(4), formula('~(pv~p)'));
     assertFormulasEqual(d.get(6), formula('~p'));
@@ -1330,8 +1330,8 @@ try {
     d.hyp(formula('p'));		// 1. | p
     d.hyp(formula('q'));		// 2. || q 
     d.rep(1);  				// 3. || p
-    d.impI();  				// 4. | q>p
-    d.impI();  				// 5. p>(q>p)
+    d.impI(2,3); 			// 4. | q>p
+    d.impI(1,4);  			// 5. p>(q>p)
     assertFormulasEqual(d.get(3), formula('p'));
     assertFormulasEqual(d.get(4), formula('q>p'));
     assertFormulasEqual(d.get(5), formula('p>(q>p)'));
@@ -1342,9 +1342,9 @@ try {
     d.hyp(formula('p-~p'));		// 1. | p-~p
     d.hyp(formula('~q'));		// 2. || ~q 
     d.rep(1);  				// 3. || p-~p
-    d.negI();  				// 4. | ~~q 
+    d.negI(2,3); 			// 4. | ~~q 
     d.negE(4);  			// 5. | q 
-    d.impI();  				// 6. (p-~p)>q
+    d.impI(1,5); 			// 6. (p-~p)>q
     assertFormulasEqual(d.get(2), formula('~q'));
     assertFormulasEqual(d.get(4), formula('~~q'));
     assertFormulasEqual(d.get(6), formula('(p-~p)>q'));
@@ -1357,12 +1357,12 @@ try {
     d.pop();				// 1. | p
     d.hyp(formula('q'));		// 2. || q 
     d.rep(1);  				// 3. || p
-    d.impI();  				// 4. | q>p
-    d.impI();  				// 5. p>(q>p)
+    d.impI(2,3);  			// 4. | q>p
+    d.impI(1,4); 			// 5. p>(q>p)
     d.pop();  				// 4. | q>p
     d.pop();  				// 3. || p
-    d.impI();  				// 4. | q>p
-    d.impI();  				// 5. p>(q>p)
+    d.impI(2,3);  			// 4. | q>p
+    d.impI(1,4); 			// 5. p>(q>p)
     assertFormulasEqual(formula('p'), d.get(1));
     assertFormulasEqual(formula('q'), d.get(2));
     assertFormulasEqual(formula('p'), d.get(3));
@@ -1380,21 +1380,20 @@ try {
     d.hyp(formula('p-~p'));		// 1. | p-~p
     assertError(d, d.rep, [1], 'הנוכחית');
     d.hyp(formula('~q'));		// 2. || ~q 
-    d.negI();
     d.rep(1);  				// 3. || p-~p
     assertUndefined(d.impE(1,2));
     assertUndefined(d.conI(1,2));
-    d.negI();  				// 4. | ~~q 
-    assertUndefined(d.negI());
+    d.negI(2,3); 			// 4. | ~~q 
+    assertUndefined(d.negI(2,3));
     assertError(d, d.rep, [3], 'אחרת');
     d.negE(4);  			// 5. | q 
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(1,5));
     assertError(d, d.rep, [3], 'אחרת');
-    d.impI();  				// 6. (p-~p)>q
+    d.impI(1,5);  			// 6. (p-~p)>q
     assertError(d, d.rep, [3], 'אחרת');
     assertError(d, d.rep, [1], 'אחרת');
     assertError(d, d.rep, [5], 'אחרת');
-    assertUndefined(d.negI());
+    assertUndefined(d.negI(6));
     assertUndefined(d.impE(1,6));
     assertUndefined(d.conI(1,6));
     assertUndefined(d.conI(3,4));
@@ -1411,8 +1410,8 @@ try {
     d.hyp(predicateFormula('Pa'));	// 1. | Pa 
     d.hyp(predicateFormula('Qa'));	// 2. || Qa 
     d.rep(1);  				// 3. || Pa 
-    d.impI();  				// 4. | Qa>Pa
-    d.impI();  				// 5. Pa>(Qa>Pa)
+    d.impI(2,3);  			// 4. | Qa>Pa
+    d.impI(1,4);			// 5. Pa>(Qa>Pa)
     assertFormulasEqual(d.get(3), predicateFormula('Pa'));
     assertFormulasEqual(d.get(4), predicateFormula('Qa>Pa'));
     assertFormulasEqual(d.get(5), predicateFormula('Pa>(Qa>Pa)'));
@@ -1427,7 +1426,7 @@ try {
     d.rep(1);					// 6.  | @x(Px>Sx)
     d.allE(6,'a');				// 7.  | Pa>Sa
     d.impE(5,7);				// 8.  | Sa
-    d.allI('x');					// 9. @xSx
+    d.allI(3,8,'x');				// 9. @xSx
     assertEquals('a', d.get(3));
     assertFormulasEqual(predicateFormula('@xPx'), d.get(4));
     assertFormulasEqual(predicateFormula('Pa'), d.get(5));
@@ -1452,8 +1451,8 @@ try {
     d.impE(8,9);				// 10. || Sa
     d.rep(5);					// 11. || ~Sa
     d.conI(10,11);				// 12. || Sa&~Sa
-    d.negI();					// 13. | ~Pa
-    d.allI('x');				// 14. @x~Px
+    d.negI(8,12);				// 13. | ~Pa
+    d.allI(3,13,'x');				// 14. @x~Px
     assertFormulasEqual(predicateFormula('~Pa'), d.get(13));
     assertFormulasEqual(predicateFormula('@x~Px'), d.get(14));
     assertEquals(0, d.nestingLevels[2]);
@@ -1470,7 +1469,7 @@ try {
     d.conE(2);					// 3. | Sa
  						// 4. | Ba
     d.exsI(4,'a','x');				// 5. | #xBx
-    d.exsE(1);					// 6. #xBx
+    d.exsE(1,2,5);				// 6. #xBx
     assertFormulasEqual(predicateFormula('#xBx'), d.get(5));
     assertFormulasEqual(predicateFormula('#xBx'), d.get(6));
     assertEquals(1, d.nestingLevels[5]);

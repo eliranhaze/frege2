@@ -217,8 +217,8 @@ Deduction.prototype.allE = function(i, c) {
 
 // existential elimination
 // ∃xPx, Pa ... H => H
-Deduction.prototype.exsE = function(i) {
-    if (this.nesting() > 0) {
+Deduction.prototype.exsE = function(i, i1, i2) {
+    if (this.nesting() > 0 && this.areOpenCloseIdx(i1, i2)) {
         var fExs = this.get(i);
         var f1 = this.get(this.openIndex());
         var f2 = this.get(this.idx());
@@ -277,8 +277,8 @@ Deduction.prototype.eqvI = function(i1, i2) {
 
 // implication introduction
 // A ... B => A⊃B
-Deduction.prototype.impI = function() {
-    if (this.nesting() > 0) {
+Deduction.prototype.impI = function(i1, i2) {
+    if (this.nesting() > 0 && this.areOpenCloseIdx(i1, i2)) {
         var f1 = this.get(this.openIndex());
         var f2 = this.get(this.idx());
         if (f1 && f2 && !isArbConst(f1)) {
@@ -291,8 +291,8 @@ Deduction.prototype.impI = function() {
 
 // negation introduction
 // A ... B·~B => ~A
-Deduction.prototype.negI = function() { // @@export
-    if (this.nesting() > 0) {
+Deduction.prototype.negI = function(i1, i2) { // @@export
+    if (this.nesting() > 0 && this.areOpenCloseIdx(i1, i2)) {
         var f1 = this.get(this.openIndex());
         var f2 = this.get(this.idx());
         if (f1 && f2 && f2.isContradiction() && !isArbConst(f1)) {
@@ -305,11 +305,14 @@ Deduction.prototype.negI = function() { // @@export
 
 // universal introduction
 // a ... Pa => ∀xPx
-Deduction.prototype.allI = function(v) { // @@export
-    if (this.nesting() > 0) {
+Deduction.prototype.allI = function(i1, i2, v) { // @@export
+    if (this.nesting() > 0 && this.areOpenCloseIdx(i1, i2)) {
         var c = this.get(this.openIndex());
         var f1 = this.get(this.idx());
         if (c && f1 && f1.contains && f1.contains(c)) {
+            if (f1.contains(v)) {
+                throw Error('הנוסחה כבר מכילה את המשתנה שהוזן');
+            }
             var result = f1.quantify(ALL, c, v);
             this.push(result, 'I ' + ALL + ' ' + this.openIndex() + '-' + this.idx(), false, true);
             return result;
@@ -365,6 +368,11 @@ Deduction.prototype.rep = function(i) {
     return f;
 }
 
+Deduction.prototype.areOpenCloseIdx = function(i1, i2) {
+    if (i2 == undefined) i2 = i1;
+    return (i1 == this.openIndex() && i2 == this.idx()) || (i1 == this.openIndex() && i2 == this.idx());
+}
+
 function isArbConst(x) {
     return typeof x == 'string' && x.length == 1 && isLower(x);
 }
@@ -377,6 +385,10 @@ var dd = new Deduction();
 
 // perform handling before applying rule
 function doApply(btn, func, num, txtKW, allowOffLevel) {
+    if (func == dd.impI || func == dd.negI || func == dd.allI || func == dd.exsE) {
+        // subproof rule
+        num += dd.idx() == dd.openIndex()? 1 : 2;
+    }
     if (txtKW) {
         if (validateSelection(num)) {
             showText(btn, func, num, txtKW);
@@ -461,7 +473,7 @@ function validateSelection(numRows, allowOffLevel) {
         var checked = getChecked();
         if (checked.length != numRows) {
             var words = ["", "שורה אחת", "שתי שורות", "שלוש שורות"];
-            errmsg("יש לבחור "+words[numRows]+" בדיוק על מנת להשתמש בכלל זה");
+            errmsg("יש לבחור "+words[numRows]+" על מנת להשתמש בכלל זה");
             return false;
         }
         if (allowOffLevel) return true;
