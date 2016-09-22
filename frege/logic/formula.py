@@ -447,7 +447,7 @@ def quantifier_range(string):
                 return qrange
         # case 2: quantified expression is a negation
         elif start == NEG:
-            return start + quantifier_range(string.replace('~','',1))
+            return start + quantifier_range(string.replace(NEG,'',1))
         # case 3: quantified expression starts with a quantifier
         elif start in QUANTIFIERS:
             remaining_range = quantifier_range(remaining)
