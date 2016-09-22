@@ -14,7 +14,7 @@ window.resetE = function(e) {
   }
 </script>
 <script>
-{% if answer %}
+{% if answer or filename %}
 $(document).ready(function() {
     $('#answer').remove();
     $('#filelbl').remove();
@@ -24,13 +24,13 @@ $(document).ready(function() {
 <div>
 
   <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
-    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if answer %}disabled{% endif %}>{{answer}}</textarea>
+    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if answer or filename %}disabled{% endif %}>{{answer}}</textarea>
     <label class="btn btn-default btn-lg" id="filelbl">
         <span class="glyphicon glyphicon-folder-open"></span>
         העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
     </label>
     <label id="filename" class="text-muted small">
-      {% if answer %}{% if filename %}קובץ: {{filename}}{% endif %}
+      {% if filename %}קובץ: {{filename}}
       {% else %} לא נבחר
       {% endif %}
     </label>
@@ -41,8 +41,8 @@ $(document).ready(function() {
 
 <script>
   function isEmpty() {
-      if (!$.trim($('#anstxt').val())) {
-          return 'יש להזין תשובה לא ריקה';
+      if (!$.trim($('#anstxt').val()) && !$('#file').val()) {
+          return 'יש להזין תשובה';
       }
   }
   function getPostData() {
