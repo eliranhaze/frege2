@@ -181,7 +181,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 from django.contrib.staticfiles.templatetags import staticfiles
 old_static = staticfiles.static
 def new_static(path):
-    if path.startswith('admin/'):
-        path = path.replace('admin/','mgr/',1)
+    if 'admin/' in path:
+        path = path.replace('admin/','mgr/')
     return old_static(path)
 staticfiles.static = new_static

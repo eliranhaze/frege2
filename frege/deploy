@@ -3,11 +3,14 @@
 echo 'start ['`date +'%Y-%m-%d %H:%M:%S'`']'
 
 # collect static files
+rm -rf static/
 echo 'yes' | python manage.py collectstatic > /dev/null
 
 # alias admin static dir
 cd static/ > /dev/null
-ln -sf admin mgr
+ln -s admin mgr
+cd mgr/js
+ln -s admin mgr
 cd - > /dev/null
 
 echo 'done ['`date +'%Y-%m-%d %H:%M:%S'`']'
