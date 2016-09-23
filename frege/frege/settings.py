@@ -176,3 +176,12 @@ EMAIL_HOST_PASSWORD = 'sense&reference'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'user@djangodomain.com'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# a major hack to change 'admin/' to 'mgr/'
+from django.contrib.staticfiles.templatetags import staticfiles
+old_static = staticfiles.static
+def new_static(path):
+    if path.startswith('admin/'):
+        path = path.replace('admin/','mgr/',1)
+    return old_static(path)
+staticfiles.static = new_static
