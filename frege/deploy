@@ -1,0 +1,13 @@
+#! /bin/bash
+
+echo 'start ['`date +'%Y-%m-%d %H:%M:%S'`']'
+
+# collect static files
+echo 'yes' | python manage.py collectstatic > /dev/null
+
+# alias admin static dir
+cd static/ > /dev/null
+ln -sf admin mgr
+cd - > /dev/null
+
+echo 'done ['`date +'%Y-%m-%d %H:%M:%S'`']'
