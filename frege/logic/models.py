@@ -284,6 +284,10 @@ class Question(models.Model):
     def is_same(self, other):
         return self.id == other.id and type(self) == type(other)
  
+    def admin_display(self):
+        return 'שאלה %s' % self.number
+    admin_display.short_description = 'שאלה'
+
     class Meta:
         abstract = True
         ordering = ['number']
@@ -306,6 +310,10 @@ class TextualQuestion(Question):
     def short_text(self):
         return shorten_text(self.text)
  
+    def admin_display(self):
+        return '%s. %s' % (self.number, self.short_text)
+    admin_display.short_description = 'שאלה'
+
     def __unicode__(self):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.short_text)
 

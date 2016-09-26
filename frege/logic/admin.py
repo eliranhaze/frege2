@@ -79,7 +79,7 @@ class ChoiceInline(admin.TabularInline):
 #    model = DeductionQuestion
 #
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ['__unicode__', 'chapter']
+    list_display = ['admin_display', 'chapter']
     list_filter = ['chapter']
     ordering = ['chapter', 'number']
     form = QuestionForm
@@ -104,7 +104,7 @@ class ChoiceQuestionAdmin(TextualQuestionAdmin):
     ]
 
 class FormalQuestionAdmin(QuestionAdmin):
-    list_display = ['number', 'chapter', 'formula']
+    list_display = ['admin_display', 'chapter', 'formula']
     search_fields = ['formula']
 
     formfield_overrides = {
