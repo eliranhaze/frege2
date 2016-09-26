@@ -25,9 +25,9 @@
           <tr>
             <td>
               {% if followup %}
-              <a href='{% url 'logic:followup' chapter.chnum qnum %}'>שאלה {{qnum}}: המשך
+              <a href='{% url 'logic:followup' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}: המשך
               {% else %}
-              <a href='{% url 'logic:question' chapter.chnum qnum %}'>שאלה {{qnum}}
+              <a href='{% url 'logic:question' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}
               {% endif %}
             </td>
             {% if chapter.is_open %}
