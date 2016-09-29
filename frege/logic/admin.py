@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
+from django.db import models, transaction
 from django.forms.widgets import TextInput
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
+from django.utils.html import format_html
 
 from .actions import export_as_csv_action
 from .forms import (
@@ -28,6 +34,8 @@ from .models import (
     OpenAnswer,
     UserProfile,
 )
+import logging
+logger = logging.getLogger(__name__)
 
 formal_text_widget = {'widget': TextInput(attrs={
     'dir' : 'ltr',
@@ -145,7 +153,6 @@ class GroupFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(**self._get_kw())
         else:
-            print 'ALL'
             return queryset.all()
 
     def _get_kw(self):
@@ -206,8 +213,66 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
 #        return ChapterSubmission.objects.filter(id__in=submission_ids)
 
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ['__unicode__', 'num_questions']
+    list_display = ['__unicode__', 'num_questions', 'show_url']
     search_fields = ['title']
+
+    def show_url(self, chapter):
+        return format_html("<a href='chq/%s'>רשימת שאלות פרק %s</a>" % (chapter.number, chapter.display.encode('utf-8')))
+    show_url.short_description = 'שאלות'
+
+    def get_urls(self):
+        urls = super(ChapterAdmin, self).get_urls()
+        return [
+            url(r'^chq/(?P<chnum>[0-9]+\.[0-9]+)/$', self.questions_view, name='chapter-questions'),
+        ] + urls
+
+    def questions_view(self, request, chnum):
+
+        context = {}
+        chapter = get_object_or_404(Chapter, number=chnum) 
+        questions = chapter.questions()
+
+        if request.method == 'POST':
+            logger.info('%s: post chapter %s questions view', request.user, chnum) 
+            qdata = request.POST.get('qdata')
+            magic_number = 9999999
+            if qdata:
+                try:
+                    with transaction.atomic():
+                        questions_by_num = {q.number: q for q in questions}
+                        changed = []
+                        for item in qdata.split(','):
+                            if ':' in item:
+                                qnum, new_num = item.split(':')
+                                qnum = int(qnum.replace('q',''))
+                                new_num = int(new_num)
+                                if new_num != qnum:
+                                    question = questions_by_num[qnum]
+                                    logger.debug('%s: chapter %s questions: setting %d->%d', request.user, chnum, qnum, new_num)
+                                    question.number = new_num + magic_number
+                                    question.save()
+                                    changed.append(question)
+                        for question in changed:
+                            question.number -= magic_number
+                            logger.debug('%s: chapter %s questions: saving %s', request.user, chnum, question)
+                            question.save()
+                except ValidationError, e:
+                    # get the questions anew
+                    questions = chapter.questions()
+                    context['error'] = e.message
+
+        questions = [
+            (q, reverse('admin:logic_%s_change' % str(type(q).__name__).lower(), args=(q.id,)))
+            for q in sorted(questions, key=lambda q: q.number)
+        ]
+
+        context.update(dict(
+            self.admin_site.each_context(request),
+            questions=questions,
+            chapter=chapter,
+        ))
+        return TemplateResponse(request, 'admin/chapter_questions.html', context)
+
 #    inlines = [
 #        OpenQuestionInline,
 #        FormulationQuestionInline,

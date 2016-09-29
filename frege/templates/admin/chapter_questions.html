@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% load i18n admin_static %}
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+    {% block breadcrumbs %}
+    <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' 'logic' %}">לוגיקה</a>
+    &rsaquo; <a href="{% url 'admin:logic_chapter_changelist' %}">פרקים</a>
+    </div>
+    {% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content %}
+
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script><!--TODO: Download -->
+
+  <style>
+  #sortable { list-style-type: none; margin: 0; padding: 0; width: 80%; }
+  #sortable li {
+    list-style-type: none;
+    margin: 0 3px 6px 3px;
+    padding: 6px 12px 6px 0;
+    padding-left: 1.5em;
+    font-size: 1.1em;
+    color: #333;
+    height: 18px;
+    box-shadow: 0px 0px 2px 1px #ccc;
+    cursor: default;
+  }
+  #sortable li span { position: absolute; margin-left: -1.3em; }
+  </style>
+
+<script>
+    $(function() {
+        $('#sortable').sortable();
+        $('#sortable').disableSelection();
+    });
+    $(document).mouseup(function(e) {
+        update_qdata();
+    });
+    function update_qdata() {
+        $('#qdata').val('');
+        $('li').each(function(i) {
+            $('#qdata').val($('#qdata').val() + ',' + this.id + ':' + (i+1));
+        });
+    }
+</script>
+
+<h1><a href="{% url 'admin:logic_chapter_change' chapter.id %}">פרק {{chapter}}</a></h1>
+<h2>שאלות</h2>
+<p style="color: #777; font-size: 95%;">ניתן לשנות סדר באמצעות לחיצה על שאלה וגרירה למיקום הרצוי. הסדר יישמר רק לאחר לחיצה על שמירה.</p>
+{% if error %}<p style="color: crimson; font-size: 95%;">שגיאה: {{error}}</p>{% endif %}
+
+<form method="post" onsubmit="$('#submit').prop('disabled', true); $('#submit').val('שומר...');">{% csrf_token %}
+  <input type="submit" id="submit" value="שמירה">
+  <input type="hidden" id="qdata" name="qdata">
+</form>
+
+<ul id="sortable" style="margin-top: 10px;">
+  {% for question, link in questions %}
+  <li class="ui-state-default" id="q{{question.number}}">
+    {{question.number}}. <span style="margin-right: 6px;"{% if question.formula %}dir="ltr"{% endif %}>{{question.admin_list_display}}</span>
+    <span style="float: left !important; position: relative;"><a href="{{link}}">קישור</a></span>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

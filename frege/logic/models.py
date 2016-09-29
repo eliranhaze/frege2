@@ -135,7 +135,7 @@ class Chapter(models.Model):
 
 class Question(models.Model):
 
-    CLEAN_CHECK_ANSWERS = True
+    CLEAN_CHECK_ANSWERS = False
     DEFAULT_NUM = 0
 
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE, null=True)
@@ -303,7 +303,7 @@ class TextualQuestion(Question):
     admin_display.short_description = 'שאלה'
 
     def admin_list_display(self):
-        return '%s. %s' % (self.number, shorten_text(self.text, size=100))
+        return '%s' % (shorten_text(self.text, size=150))
 
     def __unicode__(self):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.short_text)
@@ -317,7 +317,7 @@ class FormalQuestion(Question):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.formula)
 
     def admin_list_display(self):
-        return '%s. %s' % (self.number, self.formula)
+        return '%s' % (self.formula)
 
     class Meta(Question.Meta):
         abstract = True
