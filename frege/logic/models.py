@@ -26,18 +26,6 @@ from .formula import (
 import logging
 logger = logging.getLogger(__name__)
 
-"""
-This module contains definitions for the app's entities.
-
-Here's a brief summary:
-- Chapter: a group of questions that has a number and title.
-- OpenQuestion: a question with no predifined answer.
-- ChoiceQuestion: a question with several choices (some of them correct).
-- FormulationQuestion: a question with predefined answers (all of them correct).
-- TruthTableQuestion: a question that is answered by a truth table in gui.
-- DeductionQuestion: a question that is answered by a deduction in gui.
-"""
-
 def shorten_text(text, size=50):
     return text if len(text) <= size else '%s...' % text[:size-3]
 
@@ -314,6 +302,9 @@ class TextualQuestion(Question):
         return '%s. %s' % (self.number, self.short_text)
     admin_display.short_description = 'שאלה'
 
+    def admin_list_display(self):
+        return '%s. %s' % (self.number, shorten_text(self.text, size=100))
+
     def __unicode__(self):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.short_text)
 
@@ -324,6 +315,9 @@ class FormalQuestion(Question):
 
     def __unicode__(self):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.formula)
+
+    def admin_list_display(self):
+        return '%s. %s' % (self.number, self.formula)
 
     class Meta(Question.Meta):
         abstract = True
