@@ -3,6 +3,7 @@ import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import formats, timezone
@@ -374,29 +375,32 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = Question._get(chapter__number=chnum, number=qnum)
         ext_data = None
 
-        # handl user submission
-        submission, created = ChapterSubmission.objects.get_or_create(
-            user=request.user,
-            chapter=chapter,
-            defaults={
-                'attempt':0,
-                'ongoing':True,
-            },
-        )
-        logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
+        # atomize all the save operations, to commit once
+        with transaction.atomic():
 
-        if not submission.can_try_again():
-            response = {}
-            logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
-            return JsonResponse(response)
+            # handle user submission
+            submission, created = ChapterSubmission.objects.get_or_create(
+                user=request.user,
+                chapter=chapter,
+                defaults={
+                    'attempt':0,
+                    'ongoing':True,
+                },
+            )
+            logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
 
-        if not submission.ongoing:
-            logger.debug('%s: submission is now ongoing', request.user)
-            submission.ongoing = True
-            submission.save()
+            if not submission.can_try_again():
+                response = {}
+                logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
+                return JsonResponse(response)
 
-        # handle answer
-        user_ans, ext_data = self._handle_user_answer(request, question, submission)
+            if not submission.ongoing:
+                logger.debug('%s: submission is now ongoing', request.user)
+                submission.ongoing = True
+                submission.save()
+
+            # handle answer
+            user_ans, ext_data = self._handle_user_answer(request, question, submission)
 
         # make a response
         response = {
