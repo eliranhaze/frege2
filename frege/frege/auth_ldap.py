@@ -3,7 +3,7 @@ import ldap
 ENABLED = True
 ENDPOINT = 'ldap://ldap.tau.ac.il'
 
-USER_OU = ['Student', 'Staff']
+USER_OU = ['Students', 'Staff']
 
 COURSE_ID = '06181012'
 COURSE_MAIN = '01'
@@ -30,7 +30,7 @@ def user_exists(uname):
     if not ENABLED:
         return True
     for ou in USER_OU:
-        result = connect().search_s('ou=Student,o=TAU', ldap.SCOPE_SUBTREE, 'cn=%s')
+        result = connect().search_s('ou=%s,o=TAU' % ou, ldap.SCOPE_SUBTREE, 'cn=%s')
         if result:
             return True
     return False
