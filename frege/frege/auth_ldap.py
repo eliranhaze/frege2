@@ -40,6 +40,18 @@ def user_exists_in_ou(uname, ou):
     result = connect().search_s('ou=%s,o=TAU' % ou, ldap.SCOPE_SUBTREE, 'cn=%s' % uname)
     return len(result) > 0
 
+def user_exists_in_course(uname, course_id=COURSE_ID, group_id=COURSE_MAIN):
+    if not ENABLED:
+        return True
+    return uname in list_students(course_id, group_id)
+
+def get_user_group_id(uname, course_id=COURSE_ID):
+    if not ENABLED:
+        return COURSE_MAIN
+    for group_id in COURSE_GROUPS:
+        if user_exists_in_course(uname, group_id=group_id):
+            return group_id
+
 def list_students(course_id=COURSE_ID, group_id=COURSE_MAIN):
     if not ENABLED:
         return []
