@@ -30,7 +30,7 @@ def user_exists(uname):
     if not ENABLED:
         return True
     for ou in USER_OU:
-        result = connect().search_s('ou=%s,o=TAU' % ou, ldap.SCOPE_SUBTREE, 'cn=%s')
+        result = connect().search_s('ou=%s,o=TAU' % ou, ldap.SCOPE_SUBTREE, 'cn=%s' % uname)
         if result:
             return True
     return False
