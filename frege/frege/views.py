@@ -4,12 +4,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import login as auth_login
 from django.contrib.auth.views import logout as auth_logout
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.forms import ValidationError
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render_to_response
 from django.template.context_processors import csrf
 
 from logic.models import UserProfile
+from . import auth_ldap
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,10 +22,11 @@ def _get_default_redirect():
     return reverse(DEFAULT_REDIRECT)
 
 def _user_exists(name):
-    return len(User.objects.filter(username=name)) > 0
+    return User.objects.filter(username=name).count() > 0
 
 def _is_valid(name):
-    return name and len(name) == 9 and all(c.isdigit() for c in name)
+     return True
+#    return name and len(name) == 9 and all(c.isdigit() for c in name) # check for valid id number
 
 def login(request):
     context = {}
@@ -33,16 +36,8 @@ def login(request):
             return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
-    else: # POST
-        username = request.POST.get('username', '').strip()
-        if username:
-            logger.info('login post: username=%s', username)
-            context['username'] = username
-            context['password'] = request.POST['password']
-            if not _user_exists(username) and _is_valid(username):
-                logger.info('login first time: %s', username)
-                context['first_time'] = True
-                context['groups'] = ['%02d' % i for i in range(2,9+1)] # TODO: put this in settings
+    else: # POST (full handling is done in UserAuthForm)
+        context['username'] = request.POST.get('username','').strip()
 
     return auth_login(
         request,
@@ -80,15 +75,51 @@ def register(request):
 
 class UserAuthForm(AuthenticationForm):
 
-    def __init__(self, *args, **kwargs):
-        super(UserAuthForm, self).__init__(*args, **kwargs)
+    def __init__(self, request, **kwargs):
+        super(UserAuthForm, self).__init__(request, **kwargs)
+        self.request = request
 
     def clean(self, *args, **kwargs):
-        username = self.cleaned_data.get('username')
-        if not _user_exists(username):
-            if not _is_valid(username):
-                raise ValidationError('יש להזין מספר ת.ז. תקין בן תשע ספרות') 
-            else:
-                # to prompt new user creation without error messages
-                raise ValidationError('')
+        if self.request.method == 'POST':
+            self._handle_login_post()
         super(UserAuthForm, self).clean(*args, **kwargs)
+
+    def _handle_login_post(self):
+        username = self.request.POST.get('username', '').strip()
+        password = self.request.POST.get('password', '')
+        logger.info('login post: username=%s', username)
+        if username and password:
+            # authenticate user through ldap
+            _ldap_auth(username, password)
+            group_id = auth_ldap.get_user_group_id(username)
+            logger.debug('%s: group=%s', username, group_id)
+            if not group_id:
+                raise ValidationError('אינך רשומ\ה לקורס')
+            with transaction.atomic():
+                user, created = User.objects.get_or_create(username=username)
+                UserProfile.objects.update_or_create(user=user, defaults={'group': group_id})
+                logger.debug('%s: created=%s', username, created)
+                if not user.check_password(password):
+                    # password has changed
+                    logger.debug('%s: changing user password', username)
+                    user.set_password(password)
+                    user.save()
+        else:
+            raise ValidationError('נא להזין שם משתמש וסיסמה')
+
+def _ldap_auth(username, password):
+    logger.debug('check ldap auth: %s', username)
+    if auth_ldap.auth(username, password):
+        # ok
+        logger.debug('check ldap auth: %s: OK', username)
+    else:
+        # not ok
+        if auth_ldap.user_exists(username):
+            # wrong password
+            logger.debug('check ldap auth: %s: wrong password', username)
+            raise ValidationError('סיסמה שגויה')
+        else:
+            # wrong username
+            logger.debug('check ldap auth: %s: wrong username', username)
+            raise ValidationError('שם לא נמצא')
+    logger.debug('check ldap auth: %s: done', username)

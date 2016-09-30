@@ -214,19 +214,19 @@ input:-webkit-autofill {
 
 /* Input */
 
-input[type=text], textarea {
+input[type=text], input[type=password], textarea {
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;
   -ms-transition: all 0.3s ease-in-out;
   -o-transition: all 0.3s ease-in-out;
   outline: none;
-  box-shadow: none;
-  border: 1px solid #ddd;
+  box-shadow: none !important;
+  border: 1px solid #ddd !important;
 }
 
-input[type=text]:focus, textarea:focus {
-  box-shadow: 0 0 2px #ccc;
-  border: 1px solid #ccc;
+input[type=text]:focus, input[type=password]:focus, textarea:focus {
+  box-shadow: 0 0 2px #ccc !important;
+  border: 1px solid #ccc !important;
 }
 
 .txtIn {
