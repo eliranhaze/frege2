@@ -7,7 +7,7 @@ USER_OU = ['Student', 'Staff']
 
 COURSE_ID = '06181012'
 COURSE_MAIN = '01'
-COURSE_GROUPS = ['%02d' % i for i in range(2,9+1)
+COURSE_GROUPS = ['%02d' % i for i in range(2,9+1)]
 
 def connect():
     if ENABLED:
