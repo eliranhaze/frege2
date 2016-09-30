@@ -57,10 +57,14 @@ def list_students(course_id=COURSE_ID, group_id=COURSE_MAIN):
     if not ENABLED:
         return []
     result = connect().search_s('ou=Courses,o=TAU', ldap.SCOPE_SUBTREE, 'cn=%s%s' % (course_id, group_id))
-    return {re.findall('cn=(\S+?),', entry) for entry in result[0][1]['member']}
+    return {_extract_cn(entry) for entry in result[0][1]['member']}
 
 def get_user_ou(uname):
     if ENABLED:
         for ou in USER_OU:
             if user_exists_in_ou(uname, ou):
                 return ou
+
+def _extract_cn(entry):
+    match = re.findall('cn=(\S+?),', entry)
+    return match[0] if match else None
