@@ -121,5 +121,5 @@ def _ldap_auth(username, password):
         else:
             # wrong username
             logger.debug('check ldap auth: %s: wrong username', username)
-            raise ValidationError('שם לא נמצא')
+            raise ValidationError('שם לא נמצא - יש להזין שם משתמש וסיסמה של האוניברסיטה')
     logger.debug('check ldap auth: %s: done', username)
