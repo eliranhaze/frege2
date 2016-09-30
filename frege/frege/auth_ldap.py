@@ -49,8 +49,8 @@ def user_exists_in_course(uname, course_id=COURSE_ID, group_id=COURSE_MAIN):
 def get_user_group_id(uname, course_id=COURSE_ID):
     if not ENABLED:
         return COURSE_MAIN
-    for group_id in COURSE_GROUPS:
-        if user_exists_in_course(uname, group_id=group_id):
+    for group_id in COURSE_GROUPS + [COURSE_MAIN]:
+        if user_exists_in_course(uname, course_id, group_id):
             return group_id
 
 def list_students(course_id=COURSE_ID, group_id=COURSE_MAIN):
