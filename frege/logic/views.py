@@ -452,10 +452,13 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user_ans.save()
 
         # create stat for answer
-        Stat.objects.create(
-            user_answer = user_ans,
-            correct = correct,
-        )
+        if user_ans.stat_set.count() < 10:
+            Stat.objects.create(
+                user_answer = user_ans,
+                correct = correct,
+            )
+        else:
+            logger.warning('exceeding answer stats for %s, not creating any more', user_ans)
 
         logger.info(
             '%s: %s answer %s/%s, correct=%s',
