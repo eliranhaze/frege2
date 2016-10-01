@@ -26,13 +26,13 @@
       {% endif %}
     </div>
 
-    <form class="form-signin" method="post" id="login-form">{% csrf_token %}
+    <form class="form-signin" method="post" id="login-form" onsubmit="$('#submit').prop('disabled', true); $('#submit').text('מתחבר...');">{% csrf_token %}
       <label for="id_username">שם משתמש</label>
       <input type="text" id="id_username" value="{{username}}" name="username" class="form-control txtIn" autofocus autocorrect="off" autocapitalize="none">
       <label for="id_password">סיסמה</label>
       <input type="password" id="id_password" name="password" class="form-control txtIn" autocorrect="off" autocapitalize="none">
       <div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top: 20px; font-size: 130%;">
+        <button class="btn btn-lg btn-primary btn-block" type="submit" id="submit" style="margin-top: 20px; font-size: 130%;">
           התחברות
         </button>
       </div>
