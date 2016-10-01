@@ -203,7 +203,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: chapter %s stats', self.request.user, chapter)
 
         # get submission data (only ready ones)
-        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
+        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter).prefetch_related('useranswer_set') if s.is_ready()]
         stats = [s for s in Stat.objects.filter(user_answer__chapter=chapter) if s.user_answer.submission in submissions]
         logger.debug(
             '%s:chapter %s stats: fetched %d submissions and %d stats',
