@@ -513,6 +513,27 @@ function addRow(content, symbol, rownum, isArb) {
     }
 }
 
+// remove selected deduction rows (must be last rows)
+function removeRows() {
+    var checkedRows = getChecked();
+    if (!checkedRows || checkedRows.length == 0) {
+        removeRow();
+        return;
+    }
+    // check that all are last rows
+    var len = checkedRows.length;
+    for (var i = 0; i < checkedRows.length; i++) {
+        if (checkedRows.indexOf(dd.idx()-i) < 0) {
+            errmsg('ניתן למחוק שורות רק מהסוף');
+            return;
+        }
+    }
+    // remove the last rows
+    for (var i = 0; i < checkedRows.length; i++) {
+        removeRow();
+    }
+}
+
 // remove the last deduction row 
 function removeRow() {
     // delete by row id (premises don't have row id and so cannot be deleted)
@@ -539,7 +560,7 @@ function endNestingLine(index, nesting) {
 // utils
 function getChecked() {
     return $('input:checkbox:checked').map(function() {
-        return this.name;
+        return parseInt(this.name);
     }).get();
 }
 function showText(btn, func, num, txtKW) {
@@ -674,7 +695,7 @@ $(document).ready(function() {
         doApply($(this), dd.rep, 1, null, true);
     });
     $("#rem").click(function() {
-        removeRow();
+        removeRows();
         $(this).blur();
     });
     $("#txtOk").click(function() {
