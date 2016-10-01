@@ -331,7 +331,6 @@ class FormulationQuestion(TextualQuestion):
         (NONE, 'ללא'),
         (TRUTH_TABLE,'טבלת אמת'),
         (DEDUCTION, 'דדוקציה'),
-        (MODEL, 'פשר'),
     )
     followup = models.CharField(verbose_name='שאלת המשך',max_length=1,choices=FOLLOWUP_CHOICES,default=NONE)
 
@@ -624,8 +623,8 @@ class ChapterSubmission(models.Model):
         )
 
     class Meta:
-        verbose_name = 'הגשת משתמש'
-        verbose_name_plural = 'הגשות משתמשים'
+        verbose_name = 'הגשה'
+        verbose_name_plural = 'הגשות'
         unique_together = ('chapter', 'user')
         ordering = ['chapter']
 
@@ -805,3 +804,51 @@ class UserProfile(models.Model):
 class Stat(models.Model):
     user_answer = models.ForeignKey(UserAnswer, on_delete=models.CASCADE)
     correct = models.BooleanField()
+
+# TODO: make migration on prod database
+# TODO: do the same admin index trick for this as for user ans/sub
+class GlobalSettings(models.Model):
+    course_id = models.CharField(
+        verbose_name='מספר קורס',
+        max_length=30,
+        default='0618101201',
+        validators=[RegexValidator(
+            regex='^\d+$',
+            message='יש להזין ספרות בלבד',
+        )]
+    )
+    max_group_id = models.CharField(
+        verbose_name='מספר קבוצה מקסימלי',
+        max_length=2,
+        default='09',
+        validators=[RegexValidator(
+            regex='^\d{2}$',
+            message='יש להזין שתי ספרות',
+        )]
+    )
+    max_attempts = models.PositiveIntegerField(
+        verbose_name='מספר נסיונות מקסימלי להגשה',
+        default=3,
+        validators = [
+            MaxValueValidator(100),
+            MinValueValidator(1),
+        ]
+    )
+    max_file_size = models.PositiveIntegerField(
+        verbose_name='גודל מקסימלי להעלאת קובץ (MB)',
+        default=3,
+        validators = [
+            MaxValueValidator(50),
+            MinValueValidator(1),
+        ]
+    )
+    ldap_enabled = models.BooleanField(verbose_name='אימות משתמשי אוניברסיטה', default=True)
+
+    def __str__(self):
+        return 'הגדרות אפליקציה'
+    __repr__ = __str__
+    __unicode__ = __str__
+
+    class Meta:
+        verbose_name = 'הגדרות כלליות'
+        verbose_name_plural = 'הגדרות כלליות'
