@@ -588,7 +588,7 @@ class ChapterSubmission(models.Model):
         else:
             answer_data = {
                 (ans.question_number, ans.is_followup): ans.correct 
-                for ans in UserAnswer.objects.filter(user=self.user, chapter=self.chapter)
+                for ans in self.useranswer_set.all()
             }
             num_correct = sum(1 for correct in answer_data.itervalues() if correct)
 
