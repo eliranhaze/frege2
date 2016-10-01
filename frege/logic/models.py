@@ -625,7 +625,7 @@ class ChapterSubmission(models.Model):
 
     class Meta:
         verbose_name = 'הגשת משתמש'
-        verbose_name_plural = '[הגשות משתמשים]'
+        verbose_name_plural = 'הגשות משתמשים'
         unique_together = ('chapter', 'user')
         ordering = ['chapter']
 
@@ -763,7 +763,7 @@ class OpenAnswer(models.Model):
 
     class Meta:
         verbose_name = 'תשובה פתוחה'
-        verbose_name_plural = '[תשובות פתוחות]'
+        verbose_name_plural = 'תשובות פתוחות'
 
 # handle open answer deletion
 @receiver(post_delete)   
