@@ -139,14 +139,15 @@ Deduction.prototype.impE = function(i1, i2) {
 
 // conjunction elimination
 // A·B => A,B
-Deduction.prototype.conE = function(i) {
+Deduction.prototype.conE = function(i, sf) {
     if (!this.isOnCurrentLevel(i)) return;
     var f = this.get(i);
-    if (f && f.con == CON) {
-        var result = [f.sf1, f.sf2];
-        this.push(result[0], 'E ' + CON + ' ' + i);
-        this.push(result[1], 'E ' + CON + ' ' + i);
-        return result;
+    if (f && f.con == CON && sf && sf.equals) {
+        if (!sf.equals(f.sf1) && !sf.equals(f.sf2)) {
+            throw Error('הקוניונקציה לא מכילה את הנוסחה שהוזנה')
+        }
+        this.push(sf, 'E ' + CON + ' ' + i);
+        return sf;
     }
 }
 
@@ -177,17 +178,15 @@ Deduction.prototype.disE = function(i1, i2, i3) {
 
 // equivalence elimination
 // A≡B => A⊃B,B⊃A
-Deduction.prototype.eqvE = function(i) {
+Deduction.prototype.eqvE = function(i, sf) {
     if (!this.isOnCurrentLevel(i)) return;
     var f = this.get(i);
-    if (f && f.con == EQV) {
-        var result = [
-            f.sf1.combine(f.sf2, IMP),
-            f.sf2.combine(f.sf1, IMP),
-        ];
-        this.push(result[0], 'E ' + EQV + ' ' + i);
-        this.push(result[1], 'E ' + EQV + ' ' + i);
-        return result;
+    if (f && f.con == EQV && sf && sf.equals) {
+        if (!sf.equals(f.sf1.combine(f.sf2, IMP)) && !sf.equals(f.sf2.combine(f.sf1, IMP))) {
+            throw Error('לא ניתן להוציא נוסחה זו מהשקילות')
+        }
+        this.push(sf, 'E ' + EQV + ' ' + i);
+        return sf;
     }
 }
 
@@ -591,13 +590,21 @@ $(document).ready(function() {
         doApply($(this), dd.impE, 2);
     });
     $("#con-e").click(function() {
-        doApply($(this), dd.conE, 1);
+        doApply($(this), dd.conE, 1, {
+            label: 'נוסחה',
+            hint: 'יש להזין נוסחה עבור הוצאת קוניונקציה',
+            handler: formulaInputHandler
+        });
     });
     $("#dis-e").click(function() {
         doApply($(this), dd.disE, 3);
     });
     $("#eqv-e").click(function() {
-        doApply($(this), dd.eqvE, 1);
+        doApply($(this), dd.eqvE, 1, {
+            label: 'נוסחה',
+            hint: 'יש להזין נוסחה עבור הוצאת שקילות',
+            handler: formulaInputHandler
+        });
     });
     $("#neg-e").click(function() {
         doApply($(this), dd.negE, 1);

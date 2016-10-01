@@ -504,34 +504,35 @@ try {
     // conE tests 
     // ----------------
 
-    assertListsEqual(
-        [formula('q'), formula('p')],
-        deduction('q-p').conE(1)
+    assertFormulasEqual(
+        formula('q'),
+        deduction('q-p').conE(1, formula('q'))
     );
-    assertListsEqual(
-        [formula('~p'), formula('~q')],
-        deduction('~p-~q').conE(1)
+    assertFormulasEqual(
+        formula('~q'),
+        deduction('~p-~q').conE(1, formula('~q'))
     );
-    assertListsEqual(
-        [formula('~p-~q'), formula('p-r')],
-        deduction('((~p-~q)-(p-r))').conE(1)
+    assertFormulasEqual(
+        formula('~p-~q'),
+        deduction('((~p-~q)-(p-r))').conE(1, formula('~p-~q'))
     );
-    assertListsEqual(
-        [predicateFormula('Qa'), predicateFormula('Pa')],
-        deduction('Qa-Pa').conE(1)
+    assertFormulasEqual(
+        predicateFormula('Pa'),
+        deduction('Qa-Pa').conE(1, predicateFormula('Pa'))
     );
-    assertListsEqual(
-        [predicateFormula('@xQx'), predicateFormula('@y#zRzy')],
-        deduction('@xQx-@y#zRzy').conE(1)
+    assertFormulasEqual(
+        predicateFormula('@y#zRzy'),
+        deduction('@xQx-@y#zRzy').conE(1, predicateFormula('@y#zRzy'))
     );
 
     assertUndefined(deduction('((~p-~q)>(p-r))').conE(1));
     assertUndefined(deduction('~(p-q)').conE(1));
     assertUndefined(deduction('p').conE(1));
     assertUndefined(deduction('p-q').conE(0));
-    assertUndefined(deduction('p-q').conE(2));
-    assertUndefined(deduction('pvq').conE(1));
-    assertUndefined(deduction('@x(Px-Qx)').conE(1));
+    d = deduction('p-q');
+    assertError(d, d.conE, [1, formula('r')], 'לא מכילה');
+    assertUndefined(deduction('pvq').conE(1, formula('p')));
+    assertUndefined(deduction('@x(Px-Qx)').conE(1, predicateFormula('Px')));
 
     // ----------------
     // disE tests 
@@ -590,24 +591,25 @@ try {
     // eqvE tests 
     // ----------------
 
-    assertListsEqual(
-        [formula('q>p'), formula('p>q')],
-        deduction('q=p').eqvE(1)
+    assertFormulasEqual(
+        formula('q>p'),
+        deduction('q=p').eqvE(1, formula('q>p'))
     );
-    assertListsEqual(
-        [formula('(p=q)>~(rv~s)'), formula('~(rv~s)>(p=q)')],
-        deduction('(p=q)=~(rv~s)').eqvE(1)
+    assertFormulasEqual(
+        formula('~(rv~s)>(p=q)'),
+        deduction('(p=q)=~(rv~s)').eqvE(1, formula('~(rv~s)>(p=q)'))
     );
-    assertListsEqual(
-        [predicateFormula('#yQy>Pa'), predicateFormula('Pa>#yQy')],
-        deduction('#yQy=Pa').eqvE(1)
+    assertFormulasEqual(
+        predicateFormula('Pa>#yQy'),
+        deduction('#yQy=Pa').eqvE(1, predicateFormula('Pa>#yQy'))
     );
 
     assertUndefined(deduction('p').eqvE(1));
     assertUndefined(deduction('pvq').eqvE(1));
     assertUndefined(deduction('p>(svr)').eqvE(1));
     assertUndefined(deduction('p=q').eqvE(0));
-    assertUndefined(deduction('p=q').eqvE(2));
+    d = deduction('p=q');
+    assertError(d, d.eqvE, [1, formula('p')], 'לא ניתן');
     assertUndefined(deduction('PavQa').eqvE(1));
 
     // ----------------
@@ -1267,14 +1269,15 @@ try {
     assertFormulasEqual(formula('q'), d.get(3));
     d.conI(2,3);
     assertFormulasEqual(formula('p-q'), d.get(4));
-    d.conE(4);
+    d.conE(4, formula('p'));
+    d.conE(4, formula('q'));
     assertFormulasEqual(formula('p'), d.get(5));
     assertFormulasEqual(formula('q'), d.get(6));
     assertUndefined(d.conE(6));
-    assertUndefined(d.conE(7));
+    assertUndefined(d.conE(7, formula('q')));
     d.disI(4, formula('~p'));
     assertFormulasEqual(formula('(p-q)v~p'), d.get(7));
-    assertUndefined(d.conE(0));
+    assertUndefined(d.conE(0, formula('q')));
     assertEquals(d.symbols.length, d.formulas.length);
 
     var d = deduction('p>r', 'q>r', 's', 's>(pvq)');
@@ -1293,7 +1296,8 @@ try {
     assertFormulasEqual(predicateFormula('Qa'), d.get(3));
     d.conI(2,3);
     assertFormulasEqual(predicateFormula('Pa-Qa'), d.get(4));
-    d.conE(4);
+    d.conE(4, predicateFormula('Pa'));
+    d.conE(4, predicateFormula('Qa'));
     assertFormulasEqual(predicateFormula('Pa'), d.get(5));
     assertFormulasEqual(predicateFormula('Qa'), d.get(6));
     assertUndefined(d.conE(6));
@@ -1466,8 +1470,8 @@ try {
     // deducing #x(Sx&Bx) : #xBx
     var d = deduction('#x(Sx-Bx)');		// 1. #x(Sx&Bx)
     d.hyp(predicateFormula('Sa-Ba'));		// 2. | Sa&Ba
-    d.conE(2);					// 3. | Sa
- 						// 4. | Ba
+    d.conE(2, predicateFormula('Sa'));		// 3. | Sa
+    d.conE(2, predicateFormula('Ba'));		// 4. | Ba
     d.exsI(4,'a','x');				// 5. | #xBx
     d.exsE(1,2,5);				// 6. #xBx
     assertFormulasEqual(predicateFormula('#xBx'), d.get(5));
