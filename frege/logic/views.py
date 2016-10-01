@@ -124,7 +124,9 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         context = super(StatsView, self).get_context_data(**kwargs)
         chapters = self.object_list
         # general stats
-        subs = [s for s in ChapterSubmission.objects.all() if s.is_ready()]
+        all_subs = [s for s in ChapterSubmission.objects.all().prefetch_related('useranswer_set')]
+        subs = [s for s in all_subs if s.is_ready()]
+        logger.debug('%s:stats: %d submissions %d ready', self.request.user, len(all_subs), len(subs))
         subs_by_chapter = {}
         for sub in subs:
             subs_by_chapter.setdefault(sub.chapter.number, []).append(sub)
