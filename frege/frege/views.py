@@ -119,8 +119,9 @@ class UserAuthForm(AuthenticationForm):
         has_profile = UserProfile.objects.filter(user=user).count() == 1
         if has_profile:
             profile = user.userprofile
-            if profile.group != group_id:
+            if profile.group != group_id or (id_num is not None and profile.id_num != id_num):
                 profile.group = group_id
+                profile.id_num = id_num
                 profile.save()
         else:
             profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
@@ -129,8 +130,12 @@ class UserAuthForm(AuthenticationForm):
 def _is_id_num_needed(post_data):
     if not 'id_num' in post_data:
         user = User.objects.filter(username=post_data.get('username','').strip()).first()
-        if not user or UserProfile.objects.filter(user=user).count() == 0:
+        if not user:
             return True
+        else:
+            profile = UserProfile.objects.filter(user=user).first()
+            if not profile or not profile.id_num:
+                return True
     return False
 
 def _ldap_auth(username, password):
