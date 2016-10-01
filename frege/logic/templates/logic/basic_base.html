@@ -1,14 +1,10 @@
 {% load staticfiles %}
-
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        
-    <!-- Icon -->
     <link rel="apple-touch-icon" sizes="57x57" href="/static/logic/images/apple-touch-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/static/logic/images/apple-touch-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/static/logic/images/apple-touch-icon-72x72.png">
@@ -30,9 +26,7 @@
     <meta name="msapplication-TileImage" content="/static/logic/images/mstile-144x144.png">
     <meta name="msapplication-config" content="/static/logic/images/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
-
     <title>{% block title %}frege{% endblock %} | לוגיקה</title>
-
     <link href="{% static 'logic/bootstrap/css/bootstrap.min.css'%}" rel="stylesheet">
     <link href="{% static 'logic/bootstrap/css/bootstrap-paper.min.css'%}" rel="stylesheet">
     <link href="{% static 'logic/css/mycss.css'%}" rel="stylesheet" media="screen">
@@ -42,27 +36,22 @@
     <script src="{% static 'logic/bootstrap/js/bootstrap-notify.min.js'%}"></script>
     <script src="{% static 'logic/js/requests.js'%}"></script>
   </head>
-
   <body role="document">
-
 {% block body_content %}
 {% endblock %} 
-
-    <footer class="footer noselect">
-        <p class="text-muted text-center small" id="about">
-          <a class="text-muted">אודות</a>
-        </p>
-      </div>
-<script>
-$(document).ready(function() {
-    $('[data-toggle="tooltip"]').tooltip(); 
-    $("#about").click(function() {
-        $("#about").html('פותח על ידי אלירן חזיזה עבור אוניברסיטת תל אביב');
-    });
-});
-</script>
-    </footer>
-
+  <footer class="footer noselect">
+    <p class="text-muted text-center small" id="about">
+      <a class="text-muted">אודות</a>
+    </p>
+    <script>
+      $(document).ready(function() {
+        $('[data-toggle="tooltip"]').tooltip(); 
+        $("#about").click(function() {
+          $("#about").html('פותח על ידי אלירן חזיזה עבור אוניברסיטת תל אביב');
+        });
+      });
+    </script>
+  </footer>
   </body>
 <html>
 
