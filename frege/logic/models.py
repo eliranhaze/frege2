@@ -5,7 +5,7 @@ import os
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete 
 from django.dispatch import receiver
@@ -772,9 +772,17 @@ def delete_open_answer(instance, sender, **kwargs):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     group = models.CharField(max_length=2, verbose_name='מספר קבוצה')
+    id_num = models.CharField(
+        max_length=9,
+        verbose_name='מספר ת.ז',
+        validators=[RegexValidator(
+            regex='^\d{9}$',
+            message='מספר ת.ז צריך להיות באורך 9 ספרות',
+        )]
+    )
 
     def __str__(self):
-        return '%s/%s' % (self.user, self.group)
+        return '%s/%s/%s' % (self.user, self.group, self.id_num)
     __repr__ = __str__
     __unicode__ = __str__
 
