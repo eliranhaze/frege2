@@ -21,7 +21,7 @@ def auth(uname, pw):
     try:
         user_ou = get_user_ou(uname)
         if user_ou:
-            connect().simple_bind_s('cn=%s,ou=%s,o=TAU' % (uname, get_user_ou(uname)), pw)
+            connect().simple_bind_s('cn=%s,ou=%s,o=TAU' % (uname, get_user_ou(uname)), pw.encode('utf-8'))
             success = True
     except ldap.INVALID_CREDENTIALS:
         pass
