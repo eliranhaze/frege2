@@ -781,6 +781,10 @@ class UserProfile(models.Model):
         )]
     )
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(UserProfile, self).save(*args, **kwargs)
+
     def __str__(self):
         return '%s/%s/%s' % (self.user, self.group, self.id_num)
     __repr__ = __str__

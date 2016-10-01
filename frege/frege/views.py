@@ -38,6 +38,9 @@ def login(request):
         context['next'] = _get_default_redirect()
     else: # POST (full handling is done in UserAuthForm)
         context['username'] = request.POST.get('username','').strip()
+        context['password'] = request.POST.get('password','')
+        if _is_id_num_needed(request.POST):
+            context['get_id_num'] = True
 
     return auth_login(
         request,
@@ -50,6 +53,7 @@ def logout(request):
     logger.info('logout: %s', request.user)
     return auth_logout(request, next_page=_get_default_redirect())
 
+# this is currently unused
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -87,6 +91,7 @@ class UserAuthForm(AuthenticationForm):
     def _handle_login_post(self):
         username = self.request.POST.get('username', '').strip()
         password = self.request.POST.get('password', '')
+        id_num = self.request.POST.get('id_num')
         logger.info('login post: username=%s', username)
         if username and password:
             # authenticate user through ldap
@@ -95,10 +100,13 @@ class UserAuthForm(AuthenticationForm):
             logger.debug('%s: group=%s', username, group_id)
             if not group_id:
                 raise ValidationError('אינך רשומ\ה לקורס')
+            if _is_id_num_needed(self.request.POST):
+                # to prompt the user to input id num
+                raise ValidationError('')
             with transaction.atomic():
-                user, created = User.objects.get_or_create(username=username)
-                UserProfile.objects.update_or_create(user=user, defaults={'group': group_id})
-                logger.debug('%s: created=%s', username, created)
+                user, user_created = User.objects.get_or_create(username=username)
+                profile = self._handle_user_profile(user, group_id, id_num)
+                logger.debug('%s: user_created=%s, profile=%s', username, user_created, profile)
                 if not user.check_password(password):
                     # password has changed
                     logger.debug('%s: changing user password', username)
@@ -106,6 +114,24 @@ class UserAuthForm(AuthenticationForm):
                     user.save()
         else:
             raise ValidationError('נא להזין שם משתמש וסיסמה')
+
+    def _handle_user_profile(self, user, group_id, id_num):
+        has_profile = UserProfile.objects.filter(user=user).count() == 1
+        if has_profile:
+            profile = user.userprofile
+            if profile.group != group_id:
+                profile.group = group_id
+                profile.save()
+        else:
+            profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
+        return profile
+
+def _is_id_num_needed(post_data):
+    if not 'id_num' in post_data:
+        user = User.objects.filter(username=post_data.get('username','').strip()).first()
+        if not user or UserProfile.objects.filter(user=user).count() == 0:
+            return True
+    return False
 
 def _ldap_auth(username, password):
     logger.debug('check ldap auth: %s', username)

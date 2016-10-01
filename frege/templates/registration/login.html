@@ -30,7 +30,7 @@
       <label for="id_username">שם משתמש</label>
       <input type="text" id="id_username" value="{{username}}" name="username" class="form-control txtIn" autofocus autocorrect="off" autocapitalize="none">
       <label for="id_password">סיסמה</label>
-      <input type="password" id="id_password" name="password" class="form-control txtIn" autocorrect="off" autocapitalize="none">
+      <input type="password" id="id_password" value="{{password}}" name="password" class="form-control txtIn" autocorrect="off" autocapitalize="none">
       <div>
         <button class="btn btn-lg btn-primary btn-block" type="submit" id="submit" style="margin-top: 20px; font-size: 130%;">
           התחברות
@@ -42,7 +42,7 @@
   </div>
 </div>
 
-{% if first_time %}
+{% if get_id_num %}
 <button class="btn btn-primary btn-lg" style="display: none;" id="first-btn" data-toggle="modal" data-target="#first-time"></button>
 <div class="modal fade"  data-keyboard="false" data-backdrop="static" style="vertical-align: middle;" id="first-time" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
   <div class="modal-dialog">
@@ -51,28 +51,18 @@
         <h3 class="modal-title" id="modal-title">שלום!</h3>
       </div>
       <div class="modal-body" style="font-size: 102%;">
-        <p>זו כניסה ראשונה עבור מספר תעודת הזהות שהוזן. אנא בחרו מספר קבוצה ואשרו על מנת להירשם.</p>
-        <p><b>ת.ז. {{username}}</b></p>
-        <p id="grp-err" class="errmsg"><p>
-        <div class="row" style="">
-        <label for="grp" class="col-xs-3 pull-right">מספר קבוצה</label>
-        <div class="col-xs-3 pull-right">
-        <select class="form-control" id="grp">
-          <option>--</option>
-          {% for group in groups %} 
-          <option>{{group}}</option>
-          {% endfor %}
-        </select>
-        </div>
-        </div>
-        <a class="text-muted small" target="_blank" href="{% url 'logic:group-help' %}"><u>מה זה מספר קבוצה?</u></a>
+        <p>זו כניסה ראשונה למערכת. אנא הזינו מספר ת.ז תקין בן 9 ספרות.</p>
+        <p id="inp-err" class="errmsg"><p>
+        <label for="id1">מספר ת.ז:</label>
+        <input id="id1" type="text" class="txtIn pull-left" style="width:50%; margin-left: 33%;" autofocus autocorrect="off" autocapitalize="none">
+        <label for="id2">אימות:</label>
+        <input id="id2" type="text" class="txtIn pull-left" style="width:50%; margin-left: 33%;" autocorrect="off" autocapitalize="none">
       </div>
       <div class="modal-footer">
-        <form method="post" id="register-form" action="/accounts/register/">{% csrf_token %}
+        <form method="post" id="register-form">{% csrf_token %}
           <input value="{{username}}" type="hidden" name="username">
-          <input value="{{password}}" type="hidden" name="password1">
-          <input value="{{password}}" type="hidden" name="password2">
-          <input value="" type="hidden" name="group" id="group-inp">
+          <input value="{{password}}" type="hidden" name="password">
+          <input value="" type="hidden" name="id_num" id="id-inp">
           <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">ביטול</button>
           <button type="submit" class="btn btn-primary btn-lg btn-ok">אישור</button>
         </form>
@@ -84,13 +74,17 @@
 $(document).ready(function() {
     $('#first-btn').click();
     $("#register-form").submit(function(e) {
-        $("#grp-err").empty();
-        var selectedGroup = $("#grp option:selected").text();
-        if (selectedGroup == "--") {
-            $("#grp-err").text("נא לבחור מספר קבוצה.");
+        $("#inp-err").empty();
+        var id1 = $("#id1").val();
+        var id2 = $("#id2").val();
+        if (!new RegExp('^\\d{9}$').test(id1)) {
+            $("#inp-err").text("מספר ת.ז לא תקין");
+            e.preventDefault();
+        } else if (id1 != id2) {
+            $("#inp-err").text("שני השדות אינם זהים");
             e.preventDefault();
         } else {
-            $("#group-inp").val(selectedGroup);
+            $("#id-inp").val(id1);
             $("#first-time").addClass('loading');
         }
     });
