@@ -54,7 +54,7 @@
         <p>זו כניסה ראשונה למערכת. אנא הזינו מספר ת.ז תקין בן 9 ספרות.</p>
         <p id="inp-err" class="errmsg"><p>
         <label for="id1">מספר ת.ז:</label>
-        <input id="id1" type="text" class="txtIn pull-left" style="width:50%; margin-left: 33%;" autofocus autocorrect="off" autocapitalize="none">
+        <input id="id1" type="text" class="txtIn pull-left" style="width:50%; margin-left: 33%;" autocorrect="off" autocapitalize="none">
         <label for="id2">אימות:</label>
         <input id="id2" type="text" class="txtIn pull-left" style="width:50%; margin-left: 33%;" autocorrect="off" autocapitalize="none">
       </div>
@@ -64,7 +64,7 @@
           <input value="{{password}}" type="hidden" name="password">
           <input value="" type="hidden" name="id_num" id="id-inp">
           <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">ביטול</button>
-          <button type="submit" class="btn btn-primary btn-lg btn-ok">אישור</button>
+          <button type="submit" class="btn btn-primary btn-lg btn-ok" id="id-submit">אישור</button>
         </form>
       </div>
     </div>
@@ -87,6 +87,17 @@ $(document).ready(function() {
             $("#id-inp").val(id1);
             $("#first-time").addClass('loading');
         }
+    });
+    $('#first-time').on('shown.bs.modal', function() {
+        $('#id1').focus();
+        $('#first-time').keypress(function(e) {
+            if (e.which == 13) { // Enter 
+                $("#id-submit").click();
+            }
+        });
+    });
+    $('#first-time').on('hidden.bs.modal', function() {
+        $('#first-time').off('keypress');
     });
 });
 </script>
