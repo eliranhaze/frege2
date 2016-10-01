@@ -9,6 +9,11 @@
   </div>
   <div class="panel panel-default">
     <div class="panel-body">
+    <p>
+      <b>שם משתמש:</b> {{request.user.username}}<br>
+      <b>מספר ת.ז:</b> {{request.user.userprofile.id_num}}<br>
+      <b>קבוצה:</b> {{request.user.userprofile.group}}
+    </p>
     <div class="table-responsive">
     {% if chaptersubmission_list %}
       <p>
