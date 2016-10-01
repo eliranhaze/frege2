@@ -845,7 +845,7 @@ class GlobalSettings(models.Model):
     ldap_enabled = models.BooleanField(verbose_name='אימות משתמשי אוניברסיטה', default=True)
 
     def __str__(self):
-        return 'הגדרות אפליקציה'
+        return 'הגדרות אפליקציה'.encode('utf-8')
     __repr__ = __str__
     __unicode__ = __str__
 
