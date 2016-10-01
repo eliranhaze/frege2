@@ -533,7 +533,7 @@ class ChapterSubmission(models.Model):
         this is premised on the assumption that a user can always advance to the followup question,
         even if the preliminary one is incorrect
         """
-        user_answers = UserAnswer.objects.filter(chapter=self.chapter, user=self.user)
+        user_answers = self.useranswer_set.all()
         chapter_questions = {q.number: q for q in self.chapter.questions()}
         chapter_followups = {q.number for q in chapter_questions.itervalues() if q.has_followup()}
         answered_questions = {a.question_number: a.correct for a in user_answers if not a.is_followup}
