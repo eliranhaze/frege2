@@ -125,6 +125,9 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         chapters = self.object_list
         # general stats
         subs = [s for s in ChapterSubmission.objects.all() if s.is_ready()]
+        subs_by_chapter = {}
+        for sub in subs:
+            subs_by_chapter.setdefault(sub.chapter.number, []).append(sub)
         context['num_sub'] = len(subs)
         if subs:
             context['avg_attempts'] = avg(s.attempt for s in subs)
@@ -132,7 +135,7 @@ class StatsView(LoginRequiredMixin, generic.ListView):
             # chapter stats
             chapter_data = []
             for chapter in chapters:
-                subs = [s for s in ChapterSubmission.objects.filter(chapter=chapter) if s.is_ready()]
+                subs = subs_by_chapter.get(chapter.number)
                 if subs:
                     avg_grade = avg(s.percent_correct() for s in subs)
                     num_sub = len(subs)
