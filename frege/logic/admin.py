@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -197,12 +198,14 @@ class ChapterSubmissionAdmin(admin.ModelAdmin):
     ordering = ['chapter', 'user']
     readonly_fields = ['user', 'chapter', 'time', 'attempt']
     exclude = ['ongoing']
-    actions = [export_as_csv_action(fields={
-        'user': 'user',
-        'chapter': 'chapter_number_f',
-        'percent': 'percent_correct_f',
-        'time': 'localtime_str',
-    })]
+    actions = [export_as_csv_action(fields=OrderedDict([
+        ('user', 'user'),
+        ('id', 'user_id_num'),
+        ('group', 'user_group'),
+        ('chapter', 'chapter_number_f'),
+        ('percent', 'percent_correct_f'),
+        ('time', 'localtime_str'),
+    ]))]
  
     def has_add_permission(self, request, obj=None):
         return False

@@ -561,6 +561,14 @@ class ChapterSubmission(models.Model):
         return self.max_attempts - self.attempt
 
     @property
+    def user_id_num(self):
+        return self.user.userprofile.id_num if hasattr(self.user, 'userprofile') else ''
+
+    @property
+    def user_group(self):
+        return self.user.userprofile.group if hasattr(self.user, 'userprofile') else ''
+
+    @property
     def percent_correct_f(self):
         return self.percent_correct()
 
