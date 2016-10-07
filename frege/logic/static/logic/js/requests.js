@@ -122,7 +122,7 @@ $(document).ready(function() {
         offset: {x: 0, y: 200},
         placement: {from: "bottom", align: "center"},
         animate: {enter: "animated fadeIn", exit: "animated fadeOut"},
-        delay: 2500,
+        delay: 2000,
     });
 });
 
