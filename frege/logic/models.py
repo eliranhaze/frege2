@@ -851,6 +851,10 @@ class GlobalSettings(models.Model):
         assert all_settings.count() == 1, ('got %d global settings objects!' % all_settings.count())
         return all_settings[0]
  
+    def save(self, *args, **kwargs):
+        logger.info('saving settings: %s', self.__dict__)
+        super(GlobalSettings, self).save(*args, **kwargs)
+
     def __str__(self):
         return 'app-settings'
     __repr__ = __str__
