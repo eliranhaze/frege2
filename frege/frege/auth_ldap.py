@@ -1,21 +1,37 @@
 import ldap
 import re
 
-ENABLED = True
-ENDPOINT = 'ldap://ldap.tau.ac.il'
+from logic.models import GlobalSettings
 
+##############################################################################################
+# settings
+
+ENDPOINT = 'ldap://ldap.tau.ac.il'
 USER_OU = ['Students', 'Staff']
 
-COURSE_ID = '06181012'
-COURSE_MAIN = '01'
-COURSE_GROUPS = ['%02d' % i for i in range(2,9+1)]
+def enabled():
+    return GlobalSettings.get().ldap_enabled
+
+def course_id():
+    return GlobalSettings.get().course_id[:-2]
+
+def course_main():
+    return GlobalSettings.get().course_id[-2:]
+
+def course_groups():
+    return ['%02d' % i for i in range(2,int(GlobalSettings.get().max_group_id)+1)]
+
+##############################################################################################
+
+##############################################################################################
+# functionality
 
 def connect():
-    if ENABLED:
+    if enabled():
         return ldap.initialize(ENDPOINT)
 
 def auth(uname, pw):
-    if not ENABLED:
+    if not enabled():
         return True
     success = False
     try:
@@ -28,7 +44,7 @@ def auth(uname, pw):
     return success
 
 def user_exists(uname):
-    if not ENABLED:
+    if not enabled():
         return True
     for ou in USER_OU:
         if user_exists_in_ou(uname, ou):
@@ -36,31 +52,31 @@ def user_exists(uname):
     return False
 
 def user_exists_in_ou(uname, ou):
-    if not ENABLED:
+    if not enabled():
         return True
     result = connect().search_s('ou=%s,o=TAU' % ou, ldap.SCOPE_SUBTREE, 'cn=%s' % uname)
     return len(result) > 0
 
-def user_exists_in_course(uname, course_id=COURSE_ID, group_id=COURSE_MAIN):
-    if not ENABLED:
+def user_exists_in_course(uname, course_id=course_id(), group_id=course_main()):
+    if not enabled():
         return True
     return uname in list_students(course_id, group_id)
 
-def get_user_group_id(uname, course_id=COURSE_ID):
-    if not ENABLED:
-        return COURSE_MAIN
-    for group_id in COURSE_GROUPS + [COURSE_MAIN]:
+def get_user_group_id(uname, course_id=course_id()):
+    if not enabled():
+        return course_main()
+    for group_id in course_groups() + [course_main()]:
         if user_exists_in_course(uname, course_id, group_id):
             return group_id
 
-def list_students(course_id=COURSE_ID, group_id=COURSE_MAIN):
-    if not ENABLED:
+def list_students(course_id=course_id(), group_id=course_main()):
+    if not enabled():
         return []
     result = connect().search_s('ou=Courses,o=TAU', ldap.SCOPE_SUBTREE, 'cn=%s%s' % (course_id, group_id))
     return {_extract_cn(entry) for entry in result[0][1]['member']}
 
 def get_user_ou(uname):
-    if ENABLED:
+    if enabled():
         for ou in USER_OU:
             if user_exists_in_ou(uname, ou):
                 return ou
@@ -68,3 +84,5 @@ def get_user_ou(uname):
 def _extract_cn(entry):
     match = re.findall('cn=(\S+?),', entry)
     return match[0] if match else None
+
+##############################################################################################

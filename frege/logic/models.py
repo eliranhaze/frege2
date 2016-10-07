@@ -852,7 +852,7 @@ class GlobalSettings(models.Model):
         return all_settings[0]
  
     def __str__(self):
-        return 'הגדרות אפליקציה'.encode('utf-8')
+        return 'app-settings'
     __repr__ = __str__
     __unicode__ = __str__
 
