@@ -43,6 +43,7 @@ from .models import (
     UserAnswer,
     OpenAnswer,
     ChapterSubmission,
+    GlobalSettings,
 )
 
 Question.CLEAN_CHECK_ANSWERS = False
@@ -58,7 +59,14 @@ def create_user_answer(q, **kw):
     a.save()
     return a
 
+def create_settings():
+   GlobalSettings.objects.create()
+
 class IndexViewTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        create_settings()
 
     def setUp(self):
         login(self)
@@ -91,6 +99,10 @@ class IndexViewTests(TestCase):
 
 class QuestionViewTests(TestCase):
  
+    @classmethod
+    def setUpTestData(cls):
+        create_settings()
+
     def setUp(self):
         self.chapter = Chapter.objects.create(title='chap', number=1.0)
         login(self)
@@ -322,6 +334,10 @@ class QuestionViewTests(TestCase):
 
 class QuestionTests(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        create_settings()
+
     def test_clean_duplicate_number(self):
         chapter = Chapter.objects.create(title='chap', number=1.0)
         qc = ChoiceQuestion.objects.create(chapter=chapter, text='hi?', number=1)
@@ -351,6 +367,10 @@ class QuestionTests(TestCase):
 
 class ChapterTests(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        create_settings()
+
     def test_is_open_empty(self):
         chapter = Chapter.objects.create(title='ch', number=1.0)
         self.assertFalse(chapter.is_open())
@@ -368,6 +388,10 @@ class ChapterTests(TestCase):
         self.assertFalse(chapter.is_open())
 
 class ChapterSubmissionTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        create_settings()
 
     def create_submission(self, chapter, user):
         return ChapterSubmission.objects.create(chapter=chapter,user=user,attempt=0,ongoing=False)
