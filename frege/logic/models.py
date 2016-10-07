@@ -848,7 +848,7 @@ class GlobalSettings(models.Model):
     @classmethod
     def get(cls):
         all_settings = cls.objects.all()
-        assert all_settings.count() == 1, 'got more than 1 global settings object!'
+        assert all_settings.count() == 1, ('got %d global settings objects!' % all_settings.count())
         return all_settings[0]
  
     def __str__(self):
