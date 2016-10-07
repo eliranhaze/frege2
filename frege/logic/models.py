@@ -546,11 +546,13 @@ class ChapterSubmission(models.Model):
                 return False
         return self.is_complete()
 
-    MAX_ATTEMPTS = 3
+    @classmethod
+    def MAX_ATTEMPTS(cls):
+        return GlobalSettings.get().max_attempts
 
     @property
     def max_attempts(self):
-        return self.MAX_ATTEMPTS if not self.chapter.is_open() else 1
+        return self.MAX_ATTEMPTS() if not self.chapter.is_open() else 1
  
     def can_try_again(self):
         return self.attempt < self.max_attempts
@@ -805,8 +807,7 @@ class Stat(models.Model):
     user_answer = models.ForeignKey(UserAnswer, on_delete=models.CASCADE)
     correct = models.BooleanField()
 
-# TODO: make migration on prod database
-# TODO: do the same admin index trick for this as for user ans/sub
+# TODO: use this in places
 class GlobalSettings(models.Model):
     course_id = models.CharField(
         verbose_name='מספר קורס',
@@ -834,7 +835,7 @@ class GlobalSettings(models.Model):
             MinValueValidator(1),
         ]
     )
-    max_file_size = models.PositiveIntegerField(
+    max_file_size = models.PositiveIntegerField( # in MB
         verbose_name='גודל מקסימלי להעלאת קובץ (MB)',
         default=3,
         validators = [
@@ -844,6 +845,12 @@ class GlobalSettings(models.Model):
     )
     ldap_enabled = models.BooleanField(verbose_name='אימות משתמשי אוניברסיטה', default=True)
 
+    @classmethod
+    def get(cls):
+        all_settings = cls.objects.all()
+        assert all_settings.count() == 1, 'got more than 1 global settings object!'
+        return all_settings[0]
+ 
     def __str__(self):
         return 'הגדרות אפליקציה'.encode('utf-8')
     __repr__ = __str__
@@ -852,3 +859,4 @@ class GlobalSettings(models.Model):
     class Meta:
         verbose_name = 'הגדרות כלליות'
         verbose_name_plural = 'הגדרות כלליות'
+

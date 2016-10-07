@@ -37,6 +37,7 @@ from .models import (
     ChapterSubmission,
     OpenAnswer,
     Stat,
+    GlobalSettings,
 )
 
 import logging
@@ -354,7 +355,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             context['remaining'] = submission.remaining
         else:
             # default
-            context['remaining'] = ChapterSubmission.MAX_ATTEMPTS
+            context['remaining'] = ChapterSubmission.MAX_ATTEMPTS()
 
         # update answer data
         answer = None
@@ -648,7 +649,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
     def _handle_open_context(self, question, answer):
         self.template_name = 'logic/open.html'
         context = {
-            'maxfilesize': 1024*1024*2, # 2mb
+            'maxfilesize': 1024*1024*GlobalSettings.get().max_file_size,
         }
         if answer:
             filename, text = answer.split('/',1)
