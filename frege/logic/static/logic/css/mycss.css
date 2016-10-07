@@ -238,9 +238,8 @@ input[type=text]:focus, input[type=password]:focus, textarea:focus {
 .note {
   padding: 5px;
   color: #555;
-  background-color: #eee;
-  border: 0px solid #666;
-  box-shadow: 0px 1px 4px #666;
+  background-color: #f1f1f1;
+  box-shadow: 0px 1px 3px #777;
   cursor: default;
 }
 
