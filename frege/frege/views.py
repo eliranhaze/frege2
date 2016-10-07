@@ -102,6 +102,7 @@ class UserAuthForm(AuthenticationForm):
                 raise ValidationError('אינך רשומ\ה לקורס')
             if _is_id_num_needed(self.request.POST):
                 # to prompt the user to input id num
+                logger.debug('%s: prompting user for id num', username)
                 raise ValidationError('')
             with transaction.atomic():
                 user, user_created = User.objects.get_or_create(username=username)
