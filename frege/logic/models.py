@@ -340,6 +340,8 @@ class FormulationQuestion(TextualQuestion):
 
 class OpenQuestion(TextualQuestion):
 
+    has_file = models.BooleanField(verbose_name='אפשר העלאת קובץ', default=False)
+
     class Meta(TextualQuestion.Meta):
         verbose_name = 'שאלת פתוחה'
         verbose_name_plural = 'שאלות פתוחות'
