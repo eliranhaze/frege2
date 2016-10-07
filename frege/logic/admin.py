@@ -34,6 +34,7 @@ from .models import (
     ChapterSubmission,
     OpenAnswer,
     UserProfile,
+    GlobalSettings,
 )
 import logging
 logger = logging.getLogger(__name__)
@@ -306,6 +307,14 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 #########################################################3
 
+class GlobalSettingsAdmin(admin.ModelAdmin):
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, *args, **kwargs):
+        return False
+
 admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(OpenQuestion, OpenQuestionAdmin)
 admin.site.register(FormulationQuestion, FormulationQuestionAdmin)
@@ -316,6 +325,7 @@ admin.site.register(DeductionQuestion, FormalQuestionAdmin)
 admin.site.register(ChapterSubmission, ChapterSubmissionAdmin)
 #admin.site.register(UserAnswer, UserAnswerAdmin)
 admin.site.register(OpenAnswer, OpenAnswerAdmin)
+admin.site.register(GlobalSettings, GlobalSettingsAdmin)
 
 # override admin stuff like so
 admin.site.site_title = 'ממשק ניהול'
