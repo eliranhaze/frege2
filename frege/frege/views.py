@@ -120,9 +120,11 @@ class UserAuthForm(AuthenticationForm):
         has_profile = UserProfile.objects.filter(user=user).count() == 1
         if has_profile:
             profile = user.userprofile
+            logger.debug('%s: profile=%s', user, profile)
             if profile.group != group_id or (id_num is not None and profile.id_num != id_num):
                 profile.group = group_id
-                profile.id_num = id_num
+                if id_num:
+                    profile.id_num = id_num
                 profile.save()
         else:
             profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
