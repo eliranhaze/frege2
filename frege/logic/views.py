@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import ast
 import re
 
@@ -335,6 +336,9 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         self.answer_handlers = {
             OpenQuestion: self._handle_open_answer,
         }
+        self.post_validators = {
+            OpenQuestion: self._validate_open_post,
+        }
 
     def get_object(self):
         question = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
@@ -381,6 +385,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         question = Question._get(chapter__number=chnum, number=qnum)
         ext_data = None
 
+        if type(question) in self.post_validators:
+            if not self.post_validators[type(question)](question):
+                logger.info('%s: post is not valid, question=%s', request.user, question)
+                return JsonResponse({'msg':'תשובה כבר נבדקה - לא ניתן לבצע שינויים'})
+
         # atomize all the save operations, to commit once
         with transaction.atomic():
 
@@ -396,7 +405,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
 
             if not submission.can_try_again():
-                response = {}
+                response = {'msg':'עברת את מספר הנסיונות המירבי לפרק זה'}
                 logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
                 return JsonResponse(response)
 
@@ -655,29 +664,47 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             filename, text = answer.split('/',1)
             context['answer'] = text
             context['filename'] = filename
+            cur_open_ans = OpenAnswer.objects.filter(question=question, user_answer__user=self.request.user).first()
+            if cur_open_ans:
+                context['open_ans'] = cur_open_ans
+                context['graded'] = cur_open_ans.grade is not None
         return context
 
     def _handle_open_post(self, request, question):
-        text, upload = self._get_open_answer_input(request)
-        answer = '%s/%s' % (upload.name if upload else '', text) # / cannot be a filename char, so it is used to separate filename and text
+        text, upload, upload_changed = self._get_open_answer_input(request)
+        answer = '%s/%s' % (upload.name if upload else '', text) # '/' cannot be a filename char, so it is used to separate filename and text
         return False, None, answer
 
     def _handle_open_answer(self, request, question, user_answer):
-        text, upload = self._get_open_answer_input(request)
-        logger.debug('%s: saving open answer, text=%s, file=%s', request.user, text, upload)
-        open_ans, created = OpenAnswer.objects.update_or_create(
-            question=question,
-            user_answer=user_answer,
-            defaults={
-                'text': text,
-                'upload': upload,
-            },
-        )
+        text, upload, upload_changed = self._get_open_answer_input(request)
+        logger.debug('%s: saving open answer, text=%s, file=%s, file-changed=%s', request.user, text, upload, upload_changed)
+        cur_open_ans = OpenAnswer.objects.filter(question=question, user_answer=user_answer).first()
+        if cur_open_ans:
+            cur_open_ans.text = text
+            if upload_changed:
+                cur_open_ans.upload = upload
+            cur_open_ans.save()
+        else:
+            OpenAnswer.objects.create(
+                question=question,
+                user_answer=user_answer,
+                text=text,
+                upload=upload,
+            )
     
+    def _validate_open_post(self, question):
+        cur_open_ans = OpenAnswer.objects.filter(question=question, user_answer__user=self.request.user).first()
+        if cur_open_ans and cur_open_ans.grade is not None:
+            # answer grader - cannot submit
+            logger.warning('%s: not allowing post - answer (%s) already graded', self.request.user, cur_open_ans)
+            return False
+        return True
+
     def _get_open_answer_input(self, request):
         text = request.POST['anstxt'].strip()
         upload = request.FILES.get('file', None)
-        return text, upload
+        upload_changed = request.POST.get('file-upd') == 'true'
+        return text, upload, upload_changed
 
 class FollowupQuestionView(QuestionView):
 

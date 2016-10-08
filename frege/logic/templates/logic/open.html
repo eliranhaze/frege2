@@ -6,25 +6,24 @@
 {% block question_content %}
 
 <script>
+$(document).ready(function() {
+  {% if graded %}
+    $('#answer').remove();
+    $('#filelbl').remove();
+    $('#unfile').remove();
+  {% endif %}
+});
 window.resetE = function(e) {
     console.log('resetting ' + e);
     e.wrap('<form>').closest('form').get(0).reset();
     e.unwrap();
-    _updateFile(e.get(0));
-  }
+    _updateFile(e.get(0), true);
+};
 </script>
-<script>
-{% if answer or filename %}
-$(document).ready(function() {
-    $('#answer').remove();
-    $('#filelbl').remove();
-});
-{% endif %}
-</script>
-<div>
 
+<div>
   <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
-    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if answer or filename %}disabled{% endif %}>{{answer}}</textarea>
+    <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if graded %}disabled{% endif %}>{{answer}}</textarea>
     {% if question.has_file %}
     <div>
       <label class="btn btn-default btn-lg" id="filelbl">
@@ -32,21 +31,33 @@ $(document).ready(function() {
         העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
       </label>
       <label id="filename" class="text-muted small">
-        {% if filename %}קובץ: {{filename}}
-        {% else %} לא נבחר
+        {% if filename %}קובץ: <a href="{{open_ans.upload.url}}">{{filename}}</a>
+        {% elif not graded %} לא נבחר
         {% endif %}
       </label>
-      <button id="unfile" type="button" class="btn btn-default btn-sm" onclick="resetE($('#file'));" style="display: none;"><span class="glyphicon glyphicon-remove"></span></button>
+      <label id="upload-status" class="text-muted small"></label>
+      <button id="unfile" type="button" class="btn btn-default btn-sm" onclick="resetE($('#file'));" style="display: {% if filename %}inline{%else %}none{% endif %};"><span class="glyphicon glyphicon-remove"></span></button>
+      <input id="file-upd" name="file-upd" type="hidden" value="false">
     </div>
     {% endif %}
   </form>
-
 </div>
+
+{% if graded and open_ans %}
+<div>
+  <div class="page-header" style="margin-top: 0px;"></div>
+  <p><b>ניקוד:</b> {{open_ans.grade|floatformat:-1}} מתוך 1
+  {% if open_ans.comment %}
+  <br><b>הערות:</b> {{open_ans.comment}}
+  {% endif %}
+  </p>
+</div>
+{% endif %}
 
 <script>
   function isEmpty() {
       if (!$.trim($('#anstxt').val()) && !$('#file').val()) {
-          return 'יש להזין תשובה';
+          return 'יש להזין תשובה{% if question.has_file %} או להעלות קובץ{% endif %}';
       }
   }
   function getPostData() {
@@ -65,26 +76,38 @@ $(document).ready(function() {
       }
       return true;
   }
-  function _updateFile(e) {
+  function _updateFile(e, reset) {
       var file = e.files[0];
       if (!_validateFile(file)) {
           return;
       }
       if (file) {
-          label = 'שם: ' + file.name + ' גודל: ' + humansize(file.size);
+          var label = 'קובץ: ' + file.name;
+          var sts = '[*לחצו אישור להעלאה]';
           $('#unfile').show();
-      } else {
-          label = 'לא נבחר';
+      } else if (reset){
+          var label = 'לא נבחר';
+          var sts = '';
           $('#unfile').hide();
+      } else {
+          // user canceled browse
+          return;
       }
       $('#filename').text(label);
+      $('#upload-status').text(sts);
+      $('#file-upd').val('true');
+  }
+  function ansOk() {
+      if (($('#file').get(0) && $('#file').get(0).files[0]) || {% if filename %}true{% else %}false{% endif %}) {
+          $('#upload-status').text('[קובץ הועלה בהצלחה]');
+      }
   }
   $(document).on('change', ':file', function() {
       _updateFile(this);
   });
   function humansize(bytes) {
       var tmp = bytes;
-      var units = ['', 'k', 'm'];
+      var units = ['', 'k', 'm', 'g'];
       var i = 0;
       while (tmp > 1024 && i < units.length - 1) {
           tmp /= 1024;

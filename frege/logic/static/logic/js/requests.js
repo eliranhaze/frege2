@@ -45,13 +45,14 @@ function ansDone(btn) {
     return function(data, status) {
         btn.html("אישור");
         if (!data['next']) {
-            errmsg('עברת את מספר הנסיונות המירבי לפרק זה');
+            errmsg(data['msg']);
             return;
         }
         if (data['ans_time']) {
             $('#ans-time').text('ענית על שאלה זו ב-'+data['ans_time']);
         }
         okmsg('תשובה נשמרה');
+        ansOk(); // callback for specific question types
         reg();
         btn.html("אישור");
         if (data['complete']) {
