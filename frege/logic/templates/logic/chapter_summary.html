@@ -31,7 +31,7 @@
               {% endif %}
             </td>
             {% if chapter.is_open %}
-            <td>{{correct_or_grade}}</td>
+            <td>{{correct_or_grade|floatformat:-1}}</td>
             {% else %}
             <td>{% if correct_or_grade %}נכון{% else %}לא נכון{% endif %}</td>
             {% endif %}
