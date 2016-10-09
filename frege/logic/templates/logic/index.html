@@ -22,9 +22,11 @@
         {% endif %}
     {% endfor %}
     </div>
+    {% if request.user.is_staff %}
     <a class="text-muted" href="{% url 'logic:stats' %}" style="margin-right: 3px;">
       <span class="glyphicon glyphicon-stats"></span> סטטיסטיקה
     </a>
+    {% endif %}
   </div>
 {% else %}
     <p>No chapters are available.</p>

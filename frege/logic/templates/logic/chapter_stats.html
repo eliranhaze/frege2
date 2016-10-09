@@ -6,6 +6,7 @@
 
 {% block chapter_content %}
 
+{% if request.user.is_staff %}
 <link href="{% static 'logic/morris/morris.css'%}" rel="stylesheet">
 <script src="{% static 'logic/morris/raphael-min.js'%}"></script>
 <script src="{% static 'logic/morris/morris.min.js'%}"></script>
@@ -55,4 +56,8 @@
     labels: ['תלמידים'],
   });
 </script>
+{% else %}
+<p>אין לך הרשאה לצפות בדף זה.</p>
+{% endif %}
+
 {% endblock chapter_content %}

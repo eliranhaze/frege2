@@ -4,6 +4,8 @@
 {% block title %}סטטיסטיקה{% endblock %}
 
 {% block content %}
+
+{% if request.user.is_staff %}
 <link href="{% static 'logic/morris/morris.css'%}" rel="stylesheet">
 <script src="{% static 'logic/morris/raphael-min.js'%}"></script>
 <script src="{% static 'logic/morris/morris.min.js'%}"></script>
@@ -80,4 +82,8 @@
     labels: ['ממוצע נסיונות'],
   });
 </script>
+{% else %}
+<p>אין לך הרשאה לצפות בדף זה.</p>
+{% endif %}
+
 {% endblock content %}
