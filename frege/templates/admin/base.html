@@ -42,6 +42,7 @@
                         <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
                     {% endif %}
                 {% endif %}
+                <a href="{{MEDIA_URL}}/docs/admin.pdf">תיעוד</a> /
                 {% if user.has_usable_password %}
                 <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
                 {% endif %}
