@@ -29,15 +29,6 @@ class TruthTableQuestionForm(QuestionForm):
         model = TruthTableQuestion
         exclude = QuestionForm.Meta.exclude + ['table_type']
 
-class OpenAnswerForm(forms.ModelForm):
-
-    def __init__(self, *args, **kwargs):
-       super(OpenAnswerForm, self).__init__(*args, **kwargs)
-
-    class Meta:
-        model = OpenAnswer
-        exclude = ['user_answer', 'question', 'text']
-
 class ChoiceFormSet(forms.BaseInlineFormSet):
 
     def clean(self):

@@ -18,7 +18,6 @@ from .forms import (
     ChoiceFormSet,
     FormulationAnswerFormSet,
     TruthTableQuestionForm,
-    OpenAnswerForm,
 )
 from .models import (
     Chapter,
@@ -169,7 +168,11 @@ class OpenAnswerAdmin(admin.ModelAdmin):
     list_filter = [AnswerGroupFilter, 'grade', 'question__chapter', 'question__number', 'user_answer__user']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
-    form = OpenAnswerForm
+    fieldsets = (
+        ('בדיקה', {'fields': ('grade', 'comment')}),
+        ('תשובה', {'fields': ('user', 'answer_text', 'upload')}),
+        ('שאלה', {'fields': ('chapter', 'question_text')}),
+    )
  
     def has_add_permission(self, request, obj=None):
         return False
@@ -296,8 +299,12 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = [UserProfileInline]
-    list_display = BaseUserAdmin.list_display + ('group',)
-    list_filter = BaseUserAdmin.list_filter + ('userprofile__group',)
+    list_display = ('username', 'group', 'is_staff')
+    list_filter = ('groups', 'is_staff', 'userprofile__group')
+    readonly_fields = ('username',)
+    fieldsets = (
+        (None, {'fields': ('username', 'is_staff', 'groups')}),
+    )
 
     def group(self, obj):
         return obj.userprofile.group
