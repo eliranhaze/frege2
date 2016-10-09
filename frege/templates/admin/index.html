@@ -13,13 +13,23 @@
 <div id="content-main">
 {% if app_list %}
     {% for app in app_list %}
-        <div class="app-{{ app.app_label }} module">
+        <div class="app-{{ app.app_label }} module" id="div-logic">
         <table>
         <caption>
             <a href="{{ app.app_url }}" class="section">{{ app.name }}</a>
         </caption>
+        <script>
+          $(document).ready(function() {
+              $('#div-logic').hide();
+          });
+        </script>
         {% for model in app.models %}
           {% if model.object_name != 'ChapterSubmission' and model.object_name != 'OpenAnswer' and model.object_name != 'GlobalSettings' %}
+            <script>
+              $(document).ready(function() {
+                  $('#div-logic').show();
+              });
+            </script>
             <tr class="model-{{ model.object_name|lower }}">
             {% if model.admin_url %}
                 <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
@@ -46,13 +56,23 @@
     {% endfor %}
     {% for app in app_list %}
       {% if app.app_label == 'logic' %}
-        <div class="app-{{ app.app_label }} module">
+        <div class="app-{{ app.app_label }} module" id="div-logic-users">
         <table>
         <caption>
             <a href="{{ app.app_url }}" class="section">{{ app.name }}: משתמשים</a>
         </caption>
+        <script>
+          $(document).ready(function() {
+              $('#div-logic-users').hide();
+          });
+        </script>
         {% for model in app.models %}
           {% if model.object_name == 'ChapterSubmission' or model.object_name == 'OpenAnswer' %}
+            <script>
+              $(document).ready(function() {
+                  $('#div-logic-users').show();
+              });
+            </script>
             <tr class="model-{{ model.object_name|lower }}">
             {% if model.admin_url %}
                 <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
@@ -80,13 +100,23 @@
     {% endfor %}
     {% for app in app_list %}
       {% if app.app_label == 'logic' %}
-        <div class="app-{{ app.app_label }} module">
+        <div class="app-{{ app.app_label }} module" id="div-logic-sett">
         <table>
         <caption>
             <a href="{{ app.app_url }}" class="section">{{ app.name }}: הגדרות</a>
         </caption>
+        <script>
+          $(document).ready(function() {
+              $('#div-logic-sett').hide();
+          });
+        </script>
         {% for model in app.models %}
           {% if model.object_name == 'GlobalSettings' %}
+            <script>
+              $(document).ready(function() {
+                  $('#div-logic-sett').show();
+              });
+            </script>
             <tr class="model-{{ model.object_name|lower }}">
             {% if model.admin_url %}
                 <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
