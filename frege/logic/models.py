@@ -303,7 +303,7 @@ class TextualQuestion(Question):
     admin_display.short_description = 'שאלה'
 
     def admin_list_display(self):
-        return '%s' % (shorten_text(self.text, size=150))
+        return '%s' % (shorten_text(self.text, size=130))
 
     def __unicode__(self):
         return '%s/%s. %s' % (self.chapter.number, self.number, self.short_text)
