@@ -163,15 +163,31 @@ class AnswerGroupFilter(GroupFilter):
     def _get_kw(self):
         return {'user_answer__user__userprofile__group': self.value()}
 
+class AnswerCheckedFilter(admin.SimpleListFilter):
+    title = 'מצב בדיקה'
+    parameter_name = 'checked'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'נבדק'),
+            ('no', 'לא נבדק'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(grade__isnull=(self.value().lower()!='yes'))
+        else:
+            return queryset.all()
+
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
-    list_filter = [AnswerGroupFilter, 'grade', 'question__chapter', 'question__number', 'user_answer__user']
+    list_filter = [AnswerGroupFilter, AnswerCheckedFilter, 'question__chapter', 'question__number', 'user_answer__user']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
     fieldsets = (
-        ('בדיקה', {'fields': ('grade', 'comment')}),
-        ('תשובה', {'fields': ('user', 'answer_text', 'upload')}),
         ('שאלה', {'fields': ('chapter', 'question_text')}),
+        ('תשובה', {'fields': ('user', 'answer_text', 'upload')}),
+        ('בדיקה', {'fields': ('grade', 'comment')}),
     )
  
     def has_add_permission(self, request, obj=None):
@@ -196,9 +212,25 @@ class OpenAnswerAdmin(admin.ModelAdmin):
         return '\n\n(%d) %s' % (obj.question.number, obj.question.text)
     question_text.short_description = 'שאלה'
 
+class SubmittedFilter(admin.SimpleListFilter):
+    title = 'מצב הגשה'
+    parameter_name = 'submitted'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'הוגש'),
+            ('no', 'לא הוגש'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(time__isnull=(self.value().lower()!='yes'))
+        else:
+            return queryset.all()
+
 class ChapterSubmissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'percent_correct', 'time', 'attempt']
-    list_filter = [GroupFilter, 'chapter', 'time', 'user']
+    list_filter = [GroupFilter, SubmittedFilter, 'chapter', 'time', 'user']
     ordering = ['chapter', 'user']
     readonly_fields = ['user', 'chapter', 'time', 'attempt']
     exclude = ['ongoing']
