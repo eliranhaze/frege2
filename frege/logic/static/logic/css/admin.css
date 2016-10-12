@@ -22,3 +22,26 @@
 .formula-btn:hover {
     background-color: rgb(200,200,200) !important;
 }
+
+/* admin overrides */
+
+.submit-row input, .submit-row input.default {
+    float: right !important;
+    margin-left: 5px !important;
+}
+
+.submit-row p.deletelink-box {
+    float: left !important;
+}
+
+.related-widget-wrapper {
+    float: right !important;
+}
+
+#id_comment {
+    height: 5em;
+}
+
+#id_grade {
+    width: 4em;
+}

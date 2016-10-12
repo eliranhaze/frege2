@@ -731,7 +731,7 @@ class OpenAnswer(models.Model):
     upload = models.FileField(verbose_name='קובץ', upload_to=name_file, null=True, blank=True)
     user_answer = models.OneToOneField(UserAnswer, on_delete=models.CASCADE, unique=True)
     grade = models.DecimalField(
-        verbose_name='ניקוד',
+        verbose_name='ניקוד (בין 0 ל-1)',
         max_digits=2,
         decimal_places=1,
         null=True,
