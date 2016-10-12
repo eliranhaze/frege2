@@ -335,7 +335,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('groups', 'is_staff', 'userprofile__group')
     readonly_fields = ('username',)
     fieldsets = (
-        (None, {'fields': ('username', 'is_staff', 'groups')}),
+        (None, {'fields': ('username', 'password', 'is_staff', 'groups')}),
     )
 
     def group(self, obj):
