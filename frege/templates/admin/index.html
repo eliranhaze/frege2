@@ -13,21 +13,21 @@
 <div id="content-main">
 {% if app_list %}
     {% for app in app_list %}
-        <div class="app-{{ app.app_label }} module" id="div-logic">
+        <div class="app-{{ app.app_label }} module" id="div-{{app.app_label}}">
         <table>
         <caption>
             <a href="{{ app.app_url }}" class="section">{{ app.name }}</a>
         </caption>
         <script>
           $(document).ready(function() {
-              $('#div-logic').hide();
+              $('#div-{{app.app_label}}').hide();
           });
         </script>
         {% for model in app.models %}
           {% if model.object_name != 'ChapterSubmission' and model.object_name != 'OpenAnswer' and model.object_name != 'GlobalSettings' %}
             <script>
               $(document).ready(function() {
-                  $('#div-logic').show();
+                  $('#div-{{app.app_label}}').show();
               });
             </script>
             <tr class="model-{{ model.object_name|lower }}">
