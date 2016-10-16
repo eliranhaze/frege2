@@ -308,7 +308,7 @@ Deduction.prototype.allI = function(i1, i2, v) { // @@export
     if (this.nesting() > 0 && this.areOpenCloseIdx(i1, i2)) {
         var c = this.get(this.openIndex());
         var f1 = this.get(this.idx());
-        if (c && f1 && f1.contains && f1.contains(c)) {
+        if (c && isArbConst(c) && f1 && f1.contains && f1.contains(c)) {
             if (f1.contains(v)) {
                 throw Error('הנוסחה כבר מכילה את המשתנה שהוזן');
             }
