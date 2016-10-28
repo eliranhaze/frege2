@@ -1,7 +1,6 @@
 {% extends "logic/basic_base.html" %}
 
 {% block body_content %}
-    <!-- Fixed navbar -->
     <nav class="navbar navbar-default navbar-fixed-top noselect" style="background-color: rgba(255,255,255,0.9);">
       <div class="container">
         <div class="navbar-header pull-right">
@@ -11,11 +10,8 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <!-- Logo
-          <a class="navbar-brand" href="/">מבוא ללוגיקה</a>
-          <a href="/"><img class="" style="padding: 15px;" src="/static/logic/images/favicon-32x32.png" id="logo"/></a> -->
         </div>
-        <div id="navbar" class="navbar-collapse collapse">
+        <div id="navbar" class="navbar-collapse collapse" style="font-size: 95%;">
           <ul class="nav navbar-nav pull-right">
             <li><a href="{% block help_url %}{% url 'logic:help'%}{% endblock help_url%}"><span class="glyphicon glyphicon-leaf"></span> עזרה</a></li>
             <li><a href="{% url 'logic:user'%}"><span class="glyphicon glyphicon-user"></span> {% firstof user.get_full_name user.get_username %}</a></li>
