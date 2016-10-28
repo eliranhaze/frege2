@@ -224,6 +224,7 @@ Deduction.prototype.exsE = function(i, i1, i2) {
         if (f1 && f2 && f1.contains && f2.contains) {
             var c = f1.getConstantInstanceOf(fExs);
             if (c) {
+                this.verifyArbConstNotAppeared(c, this.openIndex()-1);
                 if (f2.contains(c)) {
                     throw Error('לא ניתן להוציא את הקבוע השרירותי מתת ההוכחה');
                 }
@@ -342,13 +343,7 @@ Deduction.prototype.hyp = function(f) {
  
 // arbitrary constant
 Deduction.prototype.arb = function(c) {
-    // check if const already appeared
-    for (var i = 0; i < this.formulas.length; i++) {
-        var f = this.formulas[i];
-        if (f && ((isArbConst(f) && f == c) || (f.contains && f.contains(c)))) {
-            throw Error('קבוע זה כבר הופיע בהוכחה');
-        }
-    }
+    this.verifyArbConstNotAppeared(c);
     this.push(c, 'arb const', true);
     return c;
 }
@@ -370,6 +365,17 @@ Deduction.prototype.rep = function(i) {
 Deduction.prototype.areOpenCloseIdx = function(i1, i2) {
     if (i2 == undefined) i2 = i1;
     return (i1 == this.openIndex() && i2 == this.idx()) || (i1 == this.openIndex() && i2 == this.idx());
+}
+
+Deduction.prototype.verifyArbConstNotAppeared = function(c, maxIndex) {
+    // check if const already appeared
+    if (!maxIndex) maxIndex = this.formulas.length - 1;
+    for (var i = 0; i <= maxIndex; i++) {
+        var f = this.formulas[i];
+        if (f && ((isArbConst(f) && f == c) || (f.contains && f.contains(c)))) {
+            throw Error('הקבוע ' + c + ' כבר הופיע קודם בהוכחה');
+        }
+    }
 }
 
 function isArbConst(x) {

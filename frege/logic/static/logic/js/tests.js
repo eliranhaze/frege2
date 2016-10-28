@@ -683,6 +683,12 @@ try {
     // exsE tests 
     // ----------------
 
+    var d = deduction('#x(Px-Qx)');
+    d.hyp(predicateFormula('Pa-Qa'));
+    d.conE(2, predicateFormula('Qa'));
+    d.exsI(3,'a','x');
+    assertFormulasEqual(predicateFormula('#xQx'), d.exsE(1,2,4));
+
     var d = deduction('#xPx','Qb');
     d.hyp(predicateFormula('Pa'));
     d.rep(2);
@@ -707,10 +713,16 @@ try {
     assertUndefined(d.exsE(2,3,4));
     assertUndefined(d.exsE(3,2,3));
 
-    var d = deduction('#xPx','Qa');
-    d.hyp(predicateFormula('Pa'));
-    d.rep(2);
+    var d = deduction('#x(Px-Qx)','Qb');
+    d.hyp(predicateFormula('Pa-Qa'));
+    d.conE(3, predicateFormula('Qa'));
     assertError(d, d.exsE, [1,3,4], 'להוציא');
+
+    var d = deduction('#x(Px-Qx)','Qa');
+    d.hyp(predicateFormula('Pa-Qa'));
+    d.conE(3, predicateFormula('Qa'));
+    d.exsI(4,'a','x');
+    assertError(d, d.exsE, [1,3,5], 'הופיע');
 
     // ----------------
     // conI tests 
