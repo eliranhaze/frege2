@@ -1,18 +1,244 @@
 {% extends "logic/base.html" %}
-
+{% load staticfiles %}
 {% block title %}עזרה{% endblock %}
 
 {% block content %}
 
-  <div class="container">
-    <div class="page-header">
-    <h3>עזרה <small></small></h3>
-    </div>
-    <div class="panel panel-default">
-      <div class="panel-body">
+<style>
+   h4, h5 {
+     font-weight: bold;
+   }
+   a.anchor {
+     display: block;
+     position: relative;
+     top: -70px;
+     visibility: hidden;
+   }
+   img {
+     display: block;
+     margin: 0 auto;
+     margin-bottom: 10px;
+   }
+</style>
 
-אין עזרה. תסתדרו לבד.
+<div class="container">
+  <div class="page-header">
+    <h3>עזרה <small></small></h3>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <div class="page-header">
+        <h4>תוכן עניינים</h4>
       </div>
+      <div class="well well-sm">
+      <ol>
+        <li><a href="#general">כללי</a></li>
+        <li><a href="#formalize">הצרנות</a></li>
+        <li><a href="#truth-tables">טבלאות אמת</a>
+          <ol>
+            <li><a href="#truth-tables-cons">טבלאות האמת של הקשרים</a>
+          </ol>
+        </li>
+        <li><a href="#deduction">דדוקציה</a>
+          <ol>
+            <li><a href="#con-i">כללי הדדוקציה</a>
+          </ol>
+        </li>
+      </ol>
+      </div>
+
+      <a class="anchor" id="general"></a>
+      <div class="page-header">
+        <h4>כללי</h4>
+      </div>
+      <h5>הגשת פרק</h5>
+      <p>
+         על מנת לקבל ציון על פרק, לאחר שסיימתם לענות על כל שאלותיו, יש להגיש את הפרק באמצעות לחיצה על 'סיום פרק':
+      </p>
+      <img src='{% static 'logic/images/help/end-chap.png'%}'>
+      <p>
+         <u>שימו לב:</u> ניתן להגיש פרק רק לאחר שעניתם על כל השאלות. ניתן לראות על אילו שאלות עניתם ואילו נותרו באמצעות מספרי השאלות מטה - כחול מסמן את השאלה הנוכחית, כחול בהיר מסמן שאלה שנענתה, לבן שאלה שעוד לא נענתה ואפור מסמן שאלה שנענתה אבל עם שאלת המשך שעוד לא נענתה. למשל:
+      </p>
+      <img src='{% static 'logic/images/help/nav-colors.png'%}'>
+
+      <h5>הגשת חוזרת</h5>
+      <p>
+        ניתן להגיש פרק שוב לשיפור הציון. על מנת לעשות זאת יש להיכנס לפרק (יופיע מסך הסיכום) ומשם ללחוץ על 'ניתן לנסות שוב' או פשוט על השאלות הרצויות. אין צורך לענות על כל השאלות מחדש - התשובות נשמרות - ואפשר, למשל, לענות רק על השאלות שבהן טעיתם (לכל שאלה יש חיווי אם התשובה נכונה או שגויה).
+      </p>
+      <h5>שאלות פתוחות</h5>
+      <p>
+        חלק מהפרקים מכילים שאלות פתוחות. שאלות כאלו נבדקות ידנית ולא אוטומטית כמו שאלות אחרות. את הציון לפרק (והערות ספציפיות לתשובות שלכם, אם יש) יהיה ניתן לראות רק לאחר סיום הבדיקה.
+      </p>
+
+      <a class="anchor" id="formalize"></a>
+      <div class="page-header">
+        <h4>הצרנות</h4>
+      </div>
+      <p>
+        בשאלות הצרנה אתם מתבקשים להזין הצרנה אחת (גם אם יש כמה נכונות) עבור הטענה או הטיעון הנתונים. ההצרנה חייבת להיות תקינה תחבירית על מנת שתתקבל. על מנת להזין הצרנה של טיעון, יש להזין החנות מופרדות בפסיק, סימן ∴ ומסקנה. למשל:
+      </p>
+      <img src='{% static 'logic/images/help/form-arg.png'%}'>
+
+      <h5>שאלות המשך</h5>
+      <p>
+        <u>שימו לב:</u> לחלק משאלות ההצרנה יש שאלת המשך. ניתן לזהות זאת באמצעות הכיתוב 'לשאלה זו יש המשך':
+      </p>
+      <img src='{% static 'logic/images/help/followup.png'%}'>
+      <p>
+        שאלת המשך לוקחת את ההצרנה שלכם לטבלת אמת או דדוקציה, שעליכם לפתור. על מנת להגיע לשאלת ההמשך יש ללחוץ 'המשך' לאחר מענה ואישור שאלת ההצרנה.
+      </p>
+
+      <a class="anchor" id="truth-tables"></a>
+      <div class="page-header">
+        <h4>טבלאות אמת</h4>
+      </div>
+      <p>
+        בטבלת האמת מופיעות בעמודות השמאליות הטענות האטומיות וערכי האמת שלהן כבר מלאים. את שאר העמודות עליכם למלא בהתאם. אם הטבלה היא של טיעון, אז עמודת המסקנה תסומן עם ∴.
+      </p>
+      <img style="width: 90%;" src='{% static 'logic/images/help/truth-table.png'%}'>
+      <p>
+        יש למלא את הטבלה באמצעות לחיצה על T או F:
+      </p>
+      <img src='{% static 'logic/images/help/tt-select.png'%}'>
+      <p>
+        ניתן לבטל בחירה באמצעות לחיצה חוזרת על הערך. ניתן למחוק עמודה שלמה באמצעות לחיצה על כפתור המחיקה שמתחת לעמודה.
+      </p>
+      <img src='{% static 'logic/images/help/tt-delete.png'%}'>
+      <p>
+        לאחר מילוי הטבלה עליכם לבחור את התשובה הנכונה מבין האפשרויות המצוגות.
+      </p>
+      </p>
+        <u>שימו לב:</u> עבור נוסחאות מורכבות, מומלץ מאוד לכתוב על דף טבלת אמת עם עמודות עזר על מנת להגיע לפיתרון בקלות.
+      </p>
+
+      <a class="anchor" id="truth-tables-cons"></a>
+      <h5>טבלאות אמת של הקשרים</h5>
+      <p>
+        להלן טבלאות האמת של הקשרים בתחשיב הפסוקים:
+      </p>
+      <img src='{% static 'logic/images/help/tt-all.png'%}'>
+      <img src='{% static 'logic/images/help/tt-neg.png'%}'>
+
+      <a class="anchor" id="deduction"></a>
+      <div class="page-header">
+        <h4>דדוקציה</h4>
+      </div>
+      <p>
+        בשאלות דדוקציה עליכם להגיע למסקנה באמצעות הפעלת כללי דדוקציה. על מנת להפעיל כלל יש לסמן את השורות הרצויות (באמצעות סימון V בתיבה של השורה) וללחוץ על הכלל הרצוי. ניתן למחוק שורות מהסוף באמצעות לחיצה על כפתור המחיקה. 
+      </p>
+      </p>
+        <u>שימו לב:</u> על מנת שהתשובה תהיה נכונה המסקנה חייבת להופיע בשורה האחרונה בדדוקציה.
+      </p>
+      <p>
+        להלן הכללים שניתן להפעיל, עם דוגמאות.
+      </p>
+
+      <a class="anchor" id="con-i"></a>
+      <h5>הכנסת קוניוקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/con-i.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/con-i-2.png'%}'>
+
+      <a class="anchor" id="con-e"></a>
+      <h5>הוצאת קוניוקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/con-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/con-e-2.png'%}'>
+
+      <a class="anchor" id="dis-i"></a>
+      <h5>הכנסת דיסיונקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/dis-i.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/dis-i-2.png'%}'>
+
+      <a class="anchor" id="dis-e"></a>
+      <h5>הוצאת דיסיונקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/dis-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/dis-e-2.png'%}'>
+
+      <a class="anchor" id="imp-i"></a>
+      <h5>הכנסת אימפליקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/imp-i.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/imp-i-2.png'%}'>
+
+      <a class="anchor" id="imp-e"></a>
+      <h5>הוצאת אימפליקציה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/imp-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/imp-e-2.png'%}'>
+
+      <a class="anchor" id="eqv-i"></a>
+      <h5>הכנסת שקילות</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/eqv-i.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/eqv-i-2.png'%}'>
+
+      <a class="anchor" id="eqv-e"></a>
+      <h5>הוצאת שקילות</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/eqv-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/eqv-e-2.png'%}'>
+
+      <a class="anchor" id="neg-i"></a>
+      <h5>הכנסת שלילה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/neg-i.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/neg-i-2.png'%}'>
+
+      <a class="anchor" id="neg-e"></a>
+      <h5>הוצאת שלילה</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/neg-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/neg-e-2.png'%}'>
+
+      <a class="anchor" id="all-i"></a>
+      <h5>הכנסת כמת כולל</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/all-i.png'%}'>
+      <p>יש לבחור משתנה:</p>
+      <img src='{% static 'logic/images/help/all-i-2.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/all-i-3.png'%}'>
+
+      <a class="anchor" id="all-e"></a>
+      <h5>הוצאת כמת כולל</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/all-e.png'%}'>
+      <p>יש לבחור קבוע:</p>
+      <img src='{% static 'logic/images/help/all-e-2.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/all-e-3.png'%}'>
+
+      <a class="anchor" id="exs-i"></a>
+      <h5>הכנסת כמת ישי</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/exs-i.png'%}'>
+      <p>יש לבחור קבוע ומשתנה:</p>
+      <img src='{% static 'logic/images/help/exs-i-2.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/exs-i-3.png'%}'>
+
+      <a class="anchor" id="exs-e"></a>
+      <h5>הוצאת כמת ישי</h5>
+      <p>הפעלה:</p>
+      <img src='{% static 'logic/images/help/exs-e.png'%}'>
+      <p>תוצאה:</p>
+      <img src='{% static 'logic/images/help/exs-e-2.png'%}'>
+
     </div>
   </div>
+</div>
 {% endblock content %}

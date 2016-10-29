@@ -3,6 +3,12 @@
 
 {% block question_text %}{{ question.text }}{% endblock %}
 {% block question_instruction %}הצרנה{% endblock %}
+{% block hint %}
+יש להזין הצרנה מתאימה עבור הטקסט הנתון.
+{% endblock hint %}
+{% block hint_link %}הסבר נוסף{% endblock %}
+{% block hint_anchor %}formalize{% endblock %}
+
 
 {% block question_content %}
 <div class="noselect">

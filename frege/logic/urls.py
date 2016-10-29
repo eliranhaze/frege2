@@ -20,7 +20,4 @@ urlpatterns = [
 
     # help
     url(r'^help/$', views.HelpView.as_view(), name='help'),
-    url(r'^help/(?P<topic>[0-9]+)/$', views.TopicHelpView.as_view(), name='topic-help'),
-    url(r'^help/groups$', views.GroupHelpView.as_view(), name='group-help'),
-
 ]

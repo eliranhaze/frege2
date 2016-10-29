@@ -1,7 +1,7 @@
 {% extends "logic/chapter_base.html" %}
 {% block title %}שאלה {{question.number }} פרק {{ chapter.display }}{% endblock %}
 {% block topic_header %}שאלה {{ question.number }}{% if followup %}: המשך{% endif %}{% endblock %}
-{% block help_url %}{% url 'logic:topic-help' 1 %}{% endblock help_url%}
+{% block help_url %}{% url 'logic:help' %}{% endblock help_url%}
 
 {% block chapter_content %}
 <div class="panel panel-default">
@@ -13,7 +13,7 @@
     <p style="white-space: pre-wrap; font-size: 106%;">{% block question_text %}{% endblock %}</p>
     <div class="page-header" style="margin-top: -18px;"></div>
     <p class="noselect"><b>{% block question_instruction %}{% endblock %}</b></p>
-    <p class="small text-muted" style="margin-top: -10px;">{% block hint %}{% endblock %}<a class="text-muted" href="{% url 'logic:topic-help' 1 %}" target="_blank"><u>{% block hint_link %}{% endblock %}</u></a></p>
+    <p class="small text-muted" style="margin-top: -10px;">{% block hint %}{% endblock %}<a class="text-muted" href="{% url 'logic:help' %}#{% block hint_anchor %}{% endblock %}" target="_blank"><u>{% block hint_link %}{% endblock %}</u></a></p>
     {% block question_content %}
     {% endblock %}
     <div class="noselect" style="padding: 5px;margin-top: 20px;">
