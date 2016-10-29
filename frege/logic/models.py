@@ -135,7 +135,7 @@ class Chapter(models.Model):
 
 class Question(models.Model):
 
-    CLEAN_CHECK_ANSWERS = False
+    CLEAN_CHECK_ANSWERS = True
     DEFAULT_NUM = 0
 
     chapter = models.ForeignKey(Chapter, verbose_name='פרק', on_delete=models.CASCADE, null=True)
