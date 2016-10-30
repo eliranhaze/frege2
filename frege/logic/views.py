@@ -177,6 +177,11 @@ class UserView(LoginRequiredMixin, generic.ListView):
         logger.debug('%s: user view %d submissions', self.request.user, len(submissions))
         return submissions
 
+    def get_context_data(self, **kwargs):
+        context = super(UserView, self).get_context_data(**kwargs)
+        context['sub_len'] = len([sub for sub in self.object_list if sub.is_complete()])
+        return context
+
 class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/chapter_stats.html'
 
