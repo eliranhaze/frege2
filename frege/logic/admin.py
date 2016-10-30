@@ -10,6 +10,7 @@ from django.db import models, transaction
 from django.forms.widgets import TextInput
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from django.utils.html import format_html
 
 from .actions import export_as_csv_action
@@ -183,10 +184,10 @@ class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
     list_filter = [AnswerGroupFilter, AnswerCheckedFilter, 'question__chapter', 'question__number', 'user_answer__user']
     ordering = ['user_answer__user', 'question__number']
-    readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text']
+    readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text', 'answer_time']
     fieldsets = (
         ('שאלה', {'fields': ('chapter', 'question_text')}),
-        ('תשובה', {'fields': ('user', 'answer_text', 'upload')}),
+        ('תשובה', {'fields': ('user', 'answer_text', 'upload', 'answer_time')}),
         ('בדיקה', {'fields': ('grade', 'comment')}),
     )
  
@@ -195,6 +196,8 @@ class OpenAnswerAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, *args, **kwargs):
         return False
+
+    # some custom-defined fields for display, all have to be included in readonly_fields above
 
     def user(self, obj):
         return obj.user_answer.user
@@ -211,6 +214,10 @@ class OpenAnswerAdmin(admin.ModelAdmin):
     def question_text(self, obj):
         return '\n\n(%d) %s' % (obj.question.number, obj.question.text)
     question_text.short_description = 'שאלה'
+
+    def answer_time(self, obj):
+        return timezone.localtime(obj.user_answer.time).strftime('%d/%m/%Y %H:%M')
+    answer_time.short_description = 'זמן תשובה'
 
 class SubmittedFilter(admin.SimpleListFilter):
     title = 'מצב הגשה'
