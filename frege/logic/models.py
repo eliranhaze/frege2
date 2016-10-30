@@ -583,7 +583,7 @@ class ChapterSubmission(models.Model):
     @property
     def localtime_str(self):
         if self.time:
-            return timezone.localtime(self.time).strftime('%Y-%m-%d %H:%M')
+            return timezone.localtime(self.time).strftime('%d/%m/%Y %H:%M')
 
     def correctness_data(self):
         """
