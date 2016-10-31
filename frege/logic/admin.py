@@ -340,7 +340,7 @@ class UserAdmin(BaseUserAdmin):
     inlines = [UserProfileInline]
     list_display = ('username', 'group', 'is_staff')
     list_filter = ('groups', 'is_staff', 'userprofile__group')
-    readonly_fields = ('username',)
+    #readonly_fields = ('username',) # causes problems when readonly
     fieldsets = (
         (None, {'fields': ('username', 'password', 'is_staff', 'groups')}),
     )
