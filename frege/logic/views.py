@@ -157,6 +157,7 @@ class AboutView(LoginRequiredMixin, generic.DetailView):
 class HelpView(LoginRequiredMixin, generic.DetailView):
     template_name = 'logic/help.html'
     def get_object(self):
+        logger.debug('%s: serving help', self.request.user)
         return None
 
 class ChapterView(LoginRequiredMixin, generic.DetailView):
