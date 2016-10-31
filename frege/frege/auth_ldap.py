@@ -21,6 +21,9 @@ def course_main():
 def course_groups():
     return ['%02d' % i for i in range(2,int(GlobalSettings.get().max_group_id)+1)]
 
+def get_default_group_id():
+    return course_main()
+
 ##############################################################################################
 
 ##############################################################################################
@@ -60,7 +63,8 @@ def user_exists_in_ou(uname, ou):
 def user_exists_in_course(uname, course_id=course_id(), group_id=course_main()):
     if not enabled():
         return True
-    return uname in list_students(course_id, group_id)
+    students = list_students(course_id, group_id)
+    return uname in students or uname.lower() in students or uname.upper() in students
 
 def get_user_group_id(uname, course_id=course_id()):
     if not enabled():
