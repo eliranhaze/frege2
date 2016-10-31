@@ -141,8 +141,8 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, '../logs/app.log'),
-            'maxBytes': 1024*1024*10, # 10mb
-            'backupCount': 3, # 3 backups, in addition to current
+            'maxBytes': 1024*1024*100, # 100mb
+            'backupCount': 1, # 1 backups, in addition to current -- this works best since more than 1 splits concurrently into multiple files
             'formatter': 'verbose'
         },
         'mail_admins': {
