@@ -94,9 +94,7 @@ class UserAuthForm(AuthenticationForm):
         id_num = self.request.POST.get('id_num')
         logger.info('login post: username=%s', username)
         if username and password:
-            # authenticate user through ldap
-            _ldap_auth(username, password)
-            group_id = auth_ldap.get_user_group_id(username)
+            group_id = _authenticate(username, password)
             logger.debug('%s: group=%s', username, group_id)
             if not group_id:
                 raise ValidationError('אינך רשומ\ה לקורס')
@@ -106,7 +104,7 @@ class UserAuthForm(AuthenticationForm):
                 raise ValidationError('')
             with transaction.atomic():
                 user, user_created = User.objects.get_or_create(username=username)
-                profile = self._handle_user_profile(user, group_id, id_num)
+                profile = _handle_user_profile(user, group_id, id_num)
                 logger.debug('%s: user_created=%s, profile=%s', username, user_created, profile)
                 if not user.check_password(password):
                     # password has changed
@@ -116,19 +114,36 @@ class UserAuthForm(AuthenticationForm):
         else:
             raise ValidationError('נא להזין שם משתמש וסיסמה')
 
-    def _handle_user_profile(self, user, group_id, id_num):
-        has_profile = UserProfile.objects.filter(user=user).count() == 1
-        if has_profile:
-            profile = user.userprofile
-            logger.debug('%s: profile=%s', user, profile)
-            if profile.group != group_id or (id_num is not None and profile.id_num != id_num):
-                profile.group = group_id
-                if id_num:
-                    profile.id_num = id_num
-                profile.save()
-        else:
-            profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
-        return profile
+def _authenticate(username, password):
+    try:
+        # authenticate user through ldap
+        _ldap_auth(username, password)
+        group_id = auth_ldap.get_user_group_id(username)
+    except ValidationError, e:
+        existing_user = User.objects.filter(username=username).first()
+        # allow if already registered and has group
+        if existing_user and existing_user.check_password(password):
+            profile = UserProfile.objects.filter(user=existing_user).first()
+            if profile and profile.group:
+                group_id = profile.group
+                logger.debug('%s: allowing user in', username)
+            else:
+               raise e
+    return group_id
+
+def _handle_user_profile(user, group_id, id_num):
+    has_profile = UserProfile.objects.filter(user=user).count() == 1
+    if has_profile:
+        profile = user.userprofile
+        logger.debug('%s: profile=%s', user, profile)
+        if profile.group != group_id or (id_num is not None and profile.id_num != id_num):
+            profile.group = group_id
+            if id_num:
+                profile.id_num = id_num
+            profile.save()
+    else:
+        profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
+    return profile
 
 def _is_id_num_needed(post_data):
     if not 'id_num' in post_data:
