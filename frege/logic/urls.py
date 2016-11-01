@@ -20,4 +20,5 @@ urlpatterns = [
 
     # help
     url(r'^help/$', views.HelpView.as_view(), name='help'),
+    url(r'^about/$', views.AboutView.as_view(), name='about'),
 ]

@@ -46,8 +46,9 @@
     <script>
       $(document).ready(function() {
         $('[data-toggle="tooltip"]').tooltip(); 
-        $("#about").click(function() {
+        $("#about").one('click', function() {
           $("#about").html('פותח על ידי אלירן חזיזה עבור אוניברסיטת תל אביב');
+          $.get("{% url 'logic:about' %}");
         });
       });
     </script>

@@ -152,8 +152,9 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         return context
 
 class AboutView(LoginRequiredMixin, generic.DetailView):
-    template_name = 'logic/about.html'
+    template_name = 'logic/help.html'
     def get_object(self):
+        logger.debug('%s: viewing about', self.request.user)
         return None
 
 class HelpView(LoginRequiredMixin, generic.DetailView):
