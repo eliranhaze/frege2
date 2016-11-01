@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import ast
 import re
+import time
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.utils import OperationalError
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import formats, timezone
@@ -294,15 +296,27 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         )
         logger.debug('%s: fetched submission %s for update', request.user, submission)
         response = {}
-        if submission.is_complete() and submission.can_try_again() and submission.ongoing:
-            submission.time = timezone.localtime(timezone.now())
-            submission.attempt += 1
-            submission.ongoing = False
-            submission.save()
-            logger.info('%s: saved submission: %s', self.request.user, submission)
-            response['next'] = reverse('logic:chapter-summary', args=(chapter.chnum,))
-        else:
-            logger.info('%s: submission not allowed: %s', self.request.user, submission)
+
+        # DB WRITE
+        while True:
+            try:
+                if submission.is_complete() and submission.can_try_again() and submission.ongoing:
+                    submission.time = timezone.localtime(timezone.now())
+                    submission.attempt += 1
+                    submission.ongoing = False
+                    submission.save()
+                    logger.info('%s: saved submission: %s', self.request.user, submission)
+                    response['next'] = reverse('logic:chapter-summary', args=(chapter.chnum,))
+                else:
+                    logger.info('%s: submission not allowed: %s', self.request.user, submission)
+                break
+            except OperationalError, e:
+                logger.error('%s: got %s', request.user, e)
+                time.sleep(0.2)
+            except Exception, e:
+                logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
+                raise
+
         logger.debug('%s: submission post response: %s', self.request.user, response)
         return JsonResponse(response)
 
@@ -386,32 +400,44 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 logger.info('%s: post is not valid, question=%s', request.user, question)
                 return JsonResponse({'msg':'תשובה כבר נבדקה - לא ניתן לבצע שינויים'})
 
-        # atomize all the save operations, to commit once
-        with transaction.atomic():
+        # DB WRITE
+        while True:
+            try:
+                # atomize all the save operations, to commit once
+                with transaction.atomic():
+    
+                    # handle user submission
+                    submission, created = ChapterSubmission.objects.get_or_create(
+                        user=request.user,
+                        chapter=chapter,
+                        defaults={
+                            'attempt':0,
+                            'ongoing':True,
+                        },
+                    )
+                    logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
+        
+                    if not submission.can_try_again():
+                        response = {'msg':'עברת את מספר הנסיונות המירבי לפרק זה'}
+                        logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
+                        return JsonResponse(response)
+        
+                    if not submission.ongoing:
+                        logger.debug('%s: submission is now ongoing', request.user)
+                        submission.ongoing = True
+                        submission.save()
+                    time.sleep(1)
+ 
+                    # handle answer
+                    user_ans, ext_data = self._handle_user_answer(request, question, submission)
+                    break
 
-            # handle user submission
-            submission, created = ChapterSubmission.objects.get_or_create(
-                user=request.user,
-                chapter=chapter,
-                defaults={
-                    'attempt':0,
-                    'ongoing':True,
-                },
-            )
-            logger.debug('%s: fetched submission %s, created=%s', request.user, submission, created)
-
-            if not submission.can_try_again():
-                response = {'msg':'עברת את מספר הנסיונות המירבי לפרק זה'}
-                logger.info('%s: cannot try again, submission=%s, reponse=%s', request.user, submission, response)
-                return JsonResponse(response)
-
-            if not submission.ongoing:
-                logger.debug('%s: submission is now ongoing', request.user)
-                submission.ongoing = True
-                submission.save()
-
-            # handle answer
-            user_ans, ext_data = self._handle_user_answer(request, question, submission)
+            except OperationalError, e:
+                logger.error('%s: got %s', request.user, e)
+                time.sleep(0.2)
+            except Exception, e:
+                logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
+                raise
 
         # make a response
         response = {
