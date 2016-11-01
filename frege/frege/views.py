@@ -118,18 +118,16 @@ def _authenticate(username, password):
     try:
         # authenticate user through ldap
         _ldap_auth(username, password)
-        group_id = auth_ldap.get_user_group_id(username)
+        return auth_ldap.get_user_group_id(username)
     except ValidationError, e:
         existing_user = User.objects.filter(username=username).first()
         # allow if already registered and has group
         if existing_user and existing_user.check_password(password):
             profile = UserProfile.objects.filter(user=existing_user).first()
             if profile and profile.group:
-                group_id = profile.group
                 logger.debug('%s: allowing user in', username)
-            else:
-               raise e
-    return group_id
+                return profile.group
+        raise e
 
 def _handle_user_profile(user, group_id, id_num):
     has_profile = UserProfile.objects.filter(user=user).count() == 1
