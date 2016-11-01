@@ -426,7 +426,6 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                         logger.debug('%s: submission is now ongoing', request.user)
                         submission.ongoing = True
                         submission.save()
-                    time.sleep(1)
  
                     # handle answer
                     user_ans, ext_data = self._handle_user_answer(request, question, submission)
