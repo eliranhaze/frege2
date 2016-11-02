@@ -36,7 +36,7 @@
             </td>
             <td>{% if sub.ongoing %}-{% elif sub.is_ready %}{{sub.percent_correct}}{% else %}בבדיקה...{% endif %}</td>
             <td class="text-muted">{% if sub.ongoing %}נסיון נוסף - עוד לא הוגש{% else %}{{sub.time}}{% endif %}</td>
-          <tr>
+          </tr>
           {% endif %}
         {% endfor %}
         </tbody>

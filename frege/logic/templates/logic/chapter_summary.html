@@ -32,9 +32,9 @@
           <tr>
             <td>
               {% if followup %}
-              <a href='{% url 'logic:followup' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}: המשך
+              <a href='{% url 'logic:followup' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}: המשך</a>
               {% else %}
-              <a href='{% url 'logic:question' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}
+              <a href='{% url 'logic:question' chapter.chnum qnum %}' target="_blank">שאלה {{qnum}}</a>
               {% endif %}
             </td>
             {% if chapter.is_open %}
