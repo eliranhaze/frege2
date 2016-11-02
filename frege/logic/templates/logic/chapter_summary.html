@@ -21,6 +21,13 @@
         <p><a href='{% url 'logic:question' chapter.chnum chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
       {% endif %}
         <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th style="text-align: right;">שאלה</th>
+              <th style="text-align: right;">{% if chapter.is_open %}ניקוד (מתוך 1){% else %}תוצאה{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
           {% for qnum, followup, correct_or_grade in answer_data %}
           <tr>
             <td>
@@ -35,13 +42,14 @@
             {% else %}
             <td>{% if correct_or_grade %}נכון{% else %}לא נכון{% endif %}</td>
             {% endif %}
-          <tr>
+          </tr>
             {% if comments and comments|get_item:qnum %}
           <tr>
             <td colspan="2" class="text-muted small">הערה לשאלה {{qnum}}: {{comments|get_item:qnum}}</td>
           </tr>
             {% endif %}
           {% endfor %}
+          </tbody>
         </table>
     {% else %}
         <p>
