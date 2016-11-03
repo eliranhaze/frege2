@@ -23,6 +23,8 @@
         </p>
         התפלגות ציונים:<br>
         <div id="grades-chart" class="bar-graph"></div>
+        התפלגות נסיונות:<br>
+        <div id="attempts-chart" class="bar-graph"></div>
         <h3>שאלות</h3>
         {% for qnum, pct_correct, final_pct_correct, attempts, avg_attempts in q_stats %}
           {% if attempts %}
@@ -52,6 +54,17 @@
       {% endfor %}
     ],
     xkey: 'grade',
+    ykeys: ['count'],
+    labels: ['תלמידים'],
+  });
+  new Morris.Bar({
+    element: 'attempts-chart',
+    data: [
+      {% for attempt, count in attempts %}
+      {attempt: {{attempt}}, count: {{count}}},
+      {% endfor %}
+    ],
+    xkey: 'attempt',
     ykeys: ['count'],
     labels: ['תלמידים'],
   });

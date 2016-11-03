@@ -216,6 +216,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         if not submissions:
             return context
         context['avg_attempts'] = avg(s.attempt for s in submissions)
+
         grades = [s.percent_correct() for s in submissions]
         grades_dist = {}
         for grade in grades:
@@ -224,6 +225,14 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         grades_dist.sort(key=lambda x: x[0])
         context['grades'] = grades_dist
         context['avg_grade'] = avg(grades)
+
+        attempts = [s.attempt for s in submissions]
+        attempts_dist = {}
+        for a in attempts:
+            attempts_dist[a] = attempts_dist.get(a, 0) + 1
+        attempts_dist = [(k, v) for k, v in attempts_dist.iteritems()]
+        attempts_dist.sort(key=lambda x: x[0])
+        context['attempts'] = attempts_dist
  
         # question stats
         by_question = groupby(stats, lambda s: s.user_answer.question_number)
