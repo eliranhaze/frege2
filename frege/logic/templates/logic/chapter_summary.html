@@ -17,9 +17,13 @@
           {% endif %}
           ציון: {{pct}}.
         </p>
+        <p><a href='{% url 'logic:question' chapter.chnum chapter.first_question.number %}'>
       {% if num_correct < answer_data|length and remaining > 0 %}
-        <p><a href='{% url 'logic:question' chapter.chnum chapter.first_question.number %}'>ניתן לנסות שוב (נסיונות נותרים: {{remaining}})</a></p>
+          ניתן לנסות שוב (נסיונות נותרים: {{remaining}})
+      {% else %}
+          חזרה לשאלות
       {% endif %}
+        </a></p>
         <table class="table table-condensed">
           <thead>
             <tr>
@@ -55,6 +59,9 @@
         <p>
           הפרק בבדיקה. יהיה ניתן לראות את הציון בדף זה לאחר שייבדק במלואו.
         </p>
+        <p><a href='{% url 'logic:question' chapter.chnum chapter.first_question.number %}'>
+          חזרה לשאלות
+        </a></p>
     {% endif %}
       </div>
     </div>
