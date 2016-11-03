@@ -219,6 +219,10 @@ class OpenAnswerAdmin(admin.ModelAdmin):
         return timezone.localtime(obj.user_answer.time).strftime('%d/%m/%Y %H:%M')
     answer_time.short_description = 'זמן תשובה'
 
+    def get_queryset(self, *args, **kwargs):
+        # return only answers for submitted submissions
+        return OpenAnswer.objects.filter(user_answer__submission__attempt__gt = 0)
+
 class SubmittedFilter(admin.SimpleListFilter):
     title = 'מצב הגשה'
     parameter_name = 'submitted'
