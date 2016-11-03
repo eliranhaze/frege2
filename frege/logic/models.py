@@ -735,7 +735,7 @@ class OpenAnswer(models.Model):
         max_digits=2,
         decimal_places=1,
         null=True,
-        blank=False,
+        blank=True,
         validators = [
             MaxValueValidator(1.),
             MinValueValidator(0.),
