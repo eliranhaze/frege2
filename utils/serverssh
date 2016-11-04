@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# set mtu for ssh to work properly
+sudo ifconfig tun0 mtu 1200
+
+ssh admin@132.66.102.99
+
+
