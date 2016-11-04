@@ -50,8 +50,11 @@ def login(request):
     )
 
 def logout(request):
-    logger.info('logout: %s', request.user)
-    return auth_logout(request, next_page=_get_default_redirect())
+    if request.method == 'POST':
+        logger.info('%s: logout', request.user)
+        return auth_logout(request, next_page=_get_default_redirect())
+    else:
+        return HttpResponseRedirect(_get_default_redirect())
 
 # this is currently unused
 def register(request):

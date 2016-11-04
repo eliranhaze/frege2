@@ -18,11 +18,24 @@
             <li><a href="{% url 'logic:index'%}"><span class="glyphicon glyphicon-th-list"></span> פרקים</a></li>
           </ul>
           <ul class="nav navbar-nav pull-left">
-            <li><a href="{% url 'logout'%}"><span class="glyphicon glyphicon-off"></span> יציאה</a></li>
+            <li>
+              <a id="logout-a" style="cursor: pointer;"><span class="glyphicon glyphicon-off"></span> יציאה</a>
+              <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                <button id="logout-btn" type="submit" style="display: none;">
+              </form>
+            </li>
           </ul>
         </div>
       </div>
     </nav>
+
+<script>
+$(document).ready(function() {
+    $('#logout-a').click(function () {
+        $('#logout-btn').click();
+    });
+});
+</script>
 
 {% block content %}
 {% endblock content %} 
