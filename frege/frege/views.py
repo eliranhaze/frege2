@@ -138,7 +138,10 @@ def _handle_user_profile(user, group_id, id_num):
         profile = user.userprofile
         logger.debug('%s: profile=%s', user, profile)
         if profile.group != group_id or (id_num is not None and profile.id_num != id_num):
-            profile.group = group_id
+            # update user group id only if there's only 1 group id other than main
+            user_group_ids = [i for i in auth_ldap.get_all_user_group_ids(user.username) if i != auth_ldap.course_main()]
+            if len(user_group_ids) <= 1:
+                profile.group = group_id
             if id_num:
                 profile.id_num = id_num
             profile.save()
