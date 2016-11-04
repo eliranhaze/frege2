@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # set mtu for ssh to work properly
+# (can check which ifc is needed (tun0 here) by running 'route' and checking which ifc is used for tau)
 sudo ifconfig tun0 mtu 1200
 
 ssh admin@132.66.102.99
