@@ -99,6 +99,9 @@ class UserAuthForm(AuthenticationForm):
         if username and password:
             group_id = _authenticate(username, password)
             logger.debug('%s: group=%s', username, group_id)
+            user_group_ids = [i for i in auth_ldap.get_all_user_group_ids(username) if i != auth_ldap.course_main()]
+            if len(user_group_ids) > 1:
+                logger.debug('%s: in multiple groups: %s', username, user_group_ids)
             if not group_id:
                 raise ValidationError('אינך רשומ\ה לקורס')
             if _is_id_num_needed(self.request.POST):
