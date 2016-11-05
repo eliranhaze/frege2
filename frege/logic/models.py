@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import os
+import threading
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -54,6 +55,49 @@ class Chapter(models.Model):
         verbose_name='כותרת כללית (אופציונלי. שם זה ישמש לתצוגה במסך הראשי עבור פרקים מרובי חלקים)', max_length=40, null=True, blank=True
     )
 
+    #########################################################
+    # class level stuff
+    lock = threading.RLock()
+    chapter_data = {} # chnum -> (is_open, {followup/not -> num_questions})
+
+    @classmethod
+    def _update_data(cls, chnum=None):
+        logger.debug('updating data: %s', chnum if chnum else 'all')
+        with cls.lock:
+            get_value = lambda ch: (ch._is_open(), {is_fu: ch._num_questions(is_fu) for is_fu in (True, False)})
+            if chnum:
+                cls.chapter_data[chnum] = get_value(cls.objects.get(number=chnum))
+            else:
+                cls.chapter_data = {
+                    ch.number: get_value(ch)
+                    for ch in cls.objects.all()
+                }
+
+    @classmethod
+    def _get_data(cls, chnum):
+        with cls.lock:
+            if chnum not in cls.chapter_data:
+                cls._update_data(chnum)
+            return cls.chapter_data[chnum]
+
+    @classmethod
+    def _remove_data(cls, chnum=None):
+        logger.debug('removing data: %s', chnum if chnum else 'all')
+        with cls.lock:
+            if chnum:
+                cls.chapter_data.pop(chnum, None)
+            else:
+                cls.chapter_data.clear()
+    #
+    #########################################################
+
+    def __init__(self, *args, **kwargs):
+        super(Chapter, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        super(Chapter, self).save(*args, **kwargs)
+        self._remove_data(self.number)
+
     @property
     def chnum(self):
         return str(self.number)
@@ -94,12 +138,16 @@ class Chapter(models.Model):
         return self.number == int(self.number)
 
     def num_questions(self, followups=False):
+        _, num_qs = self._get_data(self.number)
+        return num_qs[followups]
+    num_questions.short_description = 'מספר שאלות'
+
+    def _num_questions(self, followups=False):
         if followups:
             questions = Question._filter(chapter=self)
             return len(questions) + sum(1 for q in questions if q.has_followup())
         else:
             return Question._count(chapter=self)
-    num_questions.short_description = 'מספר שאלות'
 
     def questions(self):
         return Question._filter(chapter=self)
@@ -108,6 +156,10 @@ class Chapter(models.Model):
         return min(self.questions(), key=lambda q: q.number)
 
     def is_open(self):
+        is_op, _ = self._get_data(self.number)
+        return is_op
+
+    def _is_open(self):
         return any(type(q) == OpenQuestion for q in self.questions())
 
     def user_answers(self):
@@ -216,6 +268,7 @@ class Question(models.Model):
         if reorder_chapter:
             # reorder the chapter from which the question was moved (must be after save)
             existing_chapter.reorder_questions(moved_num=old_num)
+        Chapter._remove_data()
 
     def _chapter_changed(self):
         existing_q = self._get_existing()
@@ -534,7 +587,7 @@ class ChapterSubmission(models.Model):
         this is premised on the assumption that a user can always advance to the followup question,
         even if the preliminary one is incorrect
         """
-        user_answers = self.useranswer_set.all()
+        user_answers = self.all_useranswers_with_related()
         chapter_questions = {q.number: q for q in self.chapter.questions()}
         chapter_followups = {q.number for q in chapter_questions.itervalues() if q.has_followup()}
         answered_questions = {a.question_number: a.correct for a in user_answers if not a.is_followup}
@@ -600,7 +653,7 @@ class ChapterSubmission(models.Model):
         returns dict of (question number, is followup) -> grade/correct
         """
         if self.chapter.is_open() and self.is_ready():
-            answers = OpenAnswer.objects.filter(user_answer__user=self.user, question__chapter=self.chapter)
+            answers = OpenAnswer.objects.filter(user_answer__user=self.user, question__chapter=self.chapter).select_related('question')
             answer_data = {
                 (ans.question.number, False): float(ans.grade)
                 for ans in answers
@@ -609,12 +662,21 @@ class ChapterSubmission(models.Model):
         else:
             answer_data = {
                 (ans.question_number, ans.is_followup): ans.correct 
-                for ans in self.useranswer_set.all()
+                for ans in self.all_useranswers_with_related()
             }
             num_correct = sum(1 for correct in answer_data.itervalues() if correct)
 
         pct = int(round(num_correct * 100. / self.chapter.num_questions(followups=True)))
         return answer_data, num_correct, pct
+
+    def all_useranswers_with_related(self):
+        return self.useranswer_set.all() \
+            .select_related('_cq') \
+            .select_related('_fq') \
+            .select_related('_tq') \
+            .select_related('_dq') \
+            .select_related('_oq') \
+            .select_related('_mq')
 
     @property
     def chapter_number_f(self):

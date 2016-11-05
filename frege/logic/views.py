@@ -95,8 +95,7 @@ def avg(iterable):
 def groupby(data_list, key):
     groups = {}
     for item in data_list:
-        group = groups.setdefault(key(item), [])
-        group.append(item)
+        groups.setdefault(key(item), []).append(item)
     return groups
 
 class IndexView(LoginRequiredMixin, generic.ListView):
@@ -128,22 +127,23 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         context = super(StatsView, self).get_context_data(**kwargs)
         chapters = self.object_list
         # general stats
-        all_subs = [s for s in ChapterSubmission.objects.all().prefetch_related('useranswer_set')]
-        subs = [s for s in all_subs if s.is_ready_for_stats()]
-        logger.debug('%s:stats: %d submissions %d ready', self.request.user, len(all_subs), len(subs))
-        subs_by_chapter = {}
-        for sub in subs:
-            subs_by_chapter.setdefault(sub.chapter.number, []).append(sub)
+        subs = [
+            s for s in ChapterSubmission.objects.all().prefetch_related('useranswer_set').select_related('chapter')
+            if s.is_ready_for_stats()
+        ]
+        logger.debug('%s:stats: %d submissions ready', self.request.user, len(subs))
+        by_chapter = groupby(subs, lambda s: s.chapter.number)
+        pct_by_sub = {s.id: s.percent_correct() for s in subs}
         context['num_sub'] = len(subs)
         if subs:
             context['avg_attempts'] = avg(s.attempt for s in subs)
-            context['avg_grade'] = avg(s.percent_correct() for s in subs)
+            context['avg_grade'] = avg(pct_by_sub.itervalues())
             # chapter stats
             chapter_data = []
             for chapter in chapters:
-                subs = subs_by_chapter.get(chapter.number)
+                subs = by_chapter.get(chapter.number)
                 if subs:
-                    avg_grade = avg(s.percent_correct() for s in subs)
+                    avg_grade = avg(pct_by_sub[s.id] for s in subs)
                     num_sub = len(subs)
                     avg_attempts = avg(s.attempt for s in subs)
                     chapter_data.append((chapter, avg_grade, num_sub, avg_attempts))
@@ -201,13 +201,26 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ChapterStatsView, self).get_context_data(**kwargs)
         chapter = self.object
-        logger.debug('%s: chapter %s stats', self.request.user, chapter)
+        logger.debug('%s:chapter %s stats', self.request.user, chapter.number)
 
         # get submission data (only ready ones)
-        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter).prefetch_related('useranswer_set') if s.is_ready_for_stats()]
-        stats = [s for s in Stat.objects.filter(user_answer__chapter=chapter) if s.user_answer.submission in submissions]
+        submissions = [
+            s for s in ChapterSubmission.objects.filter(chapter=chapter).prefetch_related('useranswer_set')
+            if s.is_ready_for_stats()
+        ]
+        sub_ids = set(s.id for s in submissions)
+        stats = [
+            s for s in Stat.objects.filter(user_answer__chapter=chapter, user_answer__submission_id__in=sub_ids)
+            .select_related('user_answer')
+            .select_related('user_answer___cq')
+            .select_related('user_answer___fq')
+            .select_related('user_answer___tq')
+            .select_related('user_answer___dq')
+            .select_related('user_answer___oq')
+            .select_related('user_answer___mq')
+        ]
         logger.debug(
-            '%s:chapter %s stats: fetched %d submissions and %d stats',
+            '%s:chapter %s stats: fetched %d ready submissions and %d stats',
             self.request.user, chapter.number, len(submissions), len(stats)
         )
 
