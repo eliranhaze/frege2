@@ -32,7 +32,7 @@ def login(request):
     context = {}
     if request.method == 'GET':
         if request.user.is_authenticated():
-            logger.info('already logged in: %s', request.user)
+            logger.info('%s: already logged in', request.user)
             return HttpResponseRedirect(_get_default_redirect())
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
