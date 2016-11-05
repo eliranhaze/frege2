@@ -231,7 +231,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         context['avg_attempts'] = avg(s.attempt for s in submissions)
 
         grades = [s.percent_correct() for s in submissions]
-        grades_dist = {}
+        grades_dist = {i: 0 for i in range(0,100,10)}
         for grade in grades:
             grades_dist[grade] = grades_dist.get(grade, 0) + 1
         grades_dist = [(k, v) for k, v in grades_dist.iteritems()]
