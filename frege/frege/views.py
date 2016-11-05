@@ -37,9 +37,10 @@ def login(request):
         context['title'] = 'לוגיקה'
         context['next'] = _get_default_redirect()
     else: # POST (full handling is done in UserAuthForm)
-        context['username'] = request.POST.get('username','').strip()
-        context['password'] = request.POST.get('password','')
-        if _is_id_num_needed(request.POST):
+        username, password = get_username_pw(request)
+        context['username'] = username
+        context['password'] = password
+        if _is_id_num_needed(request):
             context['get_id_num'] = True
 
     return auth_login(
@@ -92,8 +93,9 @@ class UserAuthForm(AuthenticationForm):
         super(UserAuthForm, self).clean(*args, **kwargs)
 
     def _handle_login_post(self):
-        username = self.request.POST.get('username', '').strip()
-        password = self.request.POST.get('password', '')
+        username, password = get_username_pw(self.request)
+        # update username in cleaned data since we convert it to lowercase in the above function
+        self.cleaned_data['username'] = username
         id_num = self.request.POST.get('id_num')
         logger.info('login post: username=%s', username)
         if username and password:
@@ -104,7 +106,7 @@ class UserAuthForm(AuthenticationForm):
                 logger.debug('%s: in multiple groups: %s', username, user_group_ids)
             if not group_id:
                 raise ValidationError('אינך רשומ\ה לקורס')
-            if _is_id_num_needed(self.request.POST):
+            if _is_id_num_needed(self.request):
                 # to prompt the user to input id num
                 logger.debug('%s: prompting user for id num', username)
                 raise ValidationError('')
@@ -152,9 +154,10 @@ def _handle_user_profile(user, group_id, id_num):
         profile = UserProfile.objects.create(user=user, group=group_id, id_num=id_num)
     return profile
 
-def _is_id_num_needed(post_data):
-    if not 'id_num' in post_data:
-        user = User.objects.filter(username=post_data.get('username','').strip()).first()
+def _is_id_num_needed(request):
+    if not 'id_num' in request.POST:
+        username, _ = get_username_pw(request)
+        user = User.objects.filter(username=username).first()
         if not user:
             return True
         else:
@@ -179,3 +182,9 @@ def _ldap_auth(username, password):
             logger.debug('check ldap auth: %s: wrong username', username)
             raise ValidationError('שם לא נמצא - יש להזין שם משתמש וסיסמה של האוניברסיטה')
     logger.debug('check ldap auth: %s: done', username)
+
+def get_username_pw(request):
+    # in tau username is case insensitive, so all incoming usernames are converted to lowercase
+    username = request.POST.get('username', '').strip().lower()
+    password = request.POST.get('password', '')
+    return username, password
