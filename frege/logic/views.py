@@ -129,7 +129,7 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         chapters = self.object_list
         # general stats
         all_subs = [s for s in ChapterSubmission.objects.all().prefetch_related('useranswer_set')]
-        subs = [s for s in all_subs if s.is_ready()]
+        subs = [s for s in all_subs if s.is_ready_for_stats()]
         logger.debug('%s:stats: %d submissions %d ready', self.request.user, len(all_subs), len(subs))
         subs_by_chapter = {}
         for sub in subs:
@@ -204,7 +204,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: chapter %s stats', self.request.user, chapter)
 
         # get submission data (only ready ones)
-        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter).prefetch_related('useranswer_set') if s.is_ready() and s.attempt > 0]
+        submissions = [s for s in ChapterSubmission.objects.filter(chapter=chapter).prefetch_related('useranswer_set') if s.is_ready_for_stats()]
         stats = [s for s in Stat.objects.filter(user_answer__chapter=chapter) if s.user_answer.submission in submissions]
         logger.debug(
             '%s:chapter %s stats: fetched %d submissions and %d stats',

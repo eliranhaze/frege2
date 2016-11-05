@@ -548,6 +548,16 @@ class ChapterSubmission(models.Model):
                 return False
         return self.is_complete()
 
+    def is_submitted(self):
+        return self.attempt > 0
+
+    def is_ready_for_stats(self):
+        if self.is_submitted():
+            if self.chapter.is_open():
+                return self.is_ready()
+            return True
+        return False
+
     @classmethod
     def MAX_ATTEMPTS(cls):
         return GlobalSettings.get().max_attempts
