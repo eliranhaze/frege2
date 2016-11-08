@@ -834,6 +834,17 @@ class FormulaTests(TestCase):
        }))
        self.assertEquals(f.correct_option, Contingency)
 
+    def __form(self, s):
+        return s.replace('v', DIS) \
+                .replace('=', EQV) \
+                .replace('-', CON) \
+                .replace('>', IMP)
+
+    def _form(self, s):
+        return Formula(
+            self.__form(s)
+        )
+
     def test_equal(self):
        self.assertEqual(
            Formula('%sp' % NEG),
@@ -848,8 +859,44 @@ class FormulaTests(TestCase):
            Formula('%s(q%sp)' % (NEG, EQV)),
        )
        self.assertEqual(
-           Formula('%s(p%sq)%s(r%sq)' % (NEG, EQV, CON, DIS)),
-           Formula('(q%sr)%s%s(q%sp)' % (DIS, CON, NEG, EQV)),
+           self._form('~(p=q)-(rvq)'),
+           self._form('(qvr)-~(q=p)'),
+       )
+       self.assertEqual(
+           self._form('(p-q)-(r-s)'),
+           self._form('(s-p)-(q-r)'),
+       )
+       self.assertEqual(
+           self._form('(p-q)-(r-s)'),
+           self._form('(s-(p-(q-r)))'),
+       )
+       self.assertEqual(
+           self._form('(pv~~q)v(~rvq)'),
+           self._form('(qvp)v(~~qv~r)'),
+       )
+       self.assertEqual(
+           self._form('p=(q=(r=(s)))'),
+           self._form('(p=r)=(s=q)'),
+       )
+       self.assertEqual(
+           self._form('(q-~(p>q))-r'),
+           self._form('(r-q)-~(p>q)'),
+       )
+       self.assertEqual(
+           self._form('(q-(p>q))-r'),
+           self._form('(r-q)-(p>q)'),
+       )
+       self.assertEqual(
+           self._form('((t-s)-(p-q))-r'),
+           self._form('(r-s)-(q-(t-p))'),
+       )
+       self.assertEqual(
+           self._form('(p-q)-(~r-~s)'),
+           self._form('(p-~r)-(q-~s)'),
+       )
+       self.assertEqual(
+           self._form('(p-q)-(~r-~s)'),
+           self._form('(p-(q-(~r-(~s))))'),
        )
 
     def test_not_equal(self):
@@ -876,6 +923,34 @@ class FormulaTests(TestCase):
        self.assertNotEqual(
            Formula('%s(p%sq)%s(r%sq)' % (NEG, EQV, CON, IMP)),
            Formula('(q%sr)%s%s(q%sp)' % (IMP, CON, NEG, EQV)),
+       )
+       self.assertNotEqual(
+           self._form('~(p=q)-(rvq)'),
+           self._form('(qvr)-(q=p)'),
+       )
+       self.assertNotEqual(
+           self._form('(p-q)v(r-s)'),
+           self._form('(s-p)v(q-r)'),
+       )
+       self.assertNotEqual(
+           self._form('(p-q)-(r-s)'),
+           self._form('(s-(p-(p-r)))'),
+       )
+       self.assertNotEqual(
+           self._form('(pv~~q)v(~rvq)'),
+           self._form('(qvp)v(~qv~r)'),
+       )
+       self.assertNotEqual(
+           self._form('p>(q=(r=(s)))'),
+           self._form('(p=r)>(s=q)'),
+       )
+       self.assertNotEqual(
+           self._form('(q-~(p>q))vr'),
+           self._form('(rvq)-~(p>q)'),
+       )
+       self.assertNotEqual(
+           self._form('~(p-q)-(r-s)'),
+           self._form('~(s-p)-(q-r)'),
        )
 
 class PredicateFormulaTests(TestCase):

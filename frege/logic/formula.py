@@ -161,7 +161,7 @@ class Formula(object):
             assert len(self.literal) > 1
             # validate of sub formulas is not called here since it is called while creating them above
             assert self.sf1
-            if self.con in BINARY_CONNECTIVES:
+            if self.is_binary:
                 assert self.sf2
 
     def _is_valid_first_letter(self, letter):
@@ -223,6 +223,17 @@ class Formula(object):
         elif self.con == EQV:
            return  self.sf1.assign(assignment) == self.sf2.assign(assignment)
 
+    def canonical_form(self, main_con=None):
+        if main_con is None:
+            main_con = self.con
+        if self.is_commutative and main_con == self.con:
+            form1 = self.sf1.canonical_form(main_con)
+            form2 = self.sf2.canonical_form(main_con)
+            if form1 and form2:
+                return form1.union(form2)
+        else:
+            return {self.literal}
+
     def options(self):
         return FORMULA_OPTIONS
 
@@ -260,6 +271,10 @@ class Formula(object):
     def is_binary(self):
         return self.con in BINARY_CONNECTIVES
 
+    @property
+    def is_commutative(self):
+        return self.con in COMMUTATIVE
+
     def __eq__(self, other):
         if not isinstance(other, Formula):
             return False
@@ -270,7 +285,10 @@ class Formula(object):
         if self.con == other.con:
             if self.sf1 == other.sf1 and self.sf2 == other.sf2:
                 return True
-            if self.con in COMMUTATIVE and self.sf1 == other.sf2 and self.sf2 == other.sf1:
+            if self.is_commutative and self.sf1 == other.sf2 and self.sf2 == other.sf1:
+                return True
+            self_form = self.canonical_form()
+            if self_form is not None and self_form == other.canonical_form():
                 return True
         return False
 
