@@ -1,0 +1,1 @@
+sudo openconnect wifivpn.tau.ac.il --authgroup=tausslvpn1 --user=eliranhaziza
