@@ -11,15 +11,20 @@
             <span class="icon-bar"></span>
           </button>
         </div>
-        <div id="navbar" class="navbar-collapse collapse" style="font-size: 95%;">
+        <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav pull-right">
-            <li><a href="{% block help_url %}{% url 'logic:help'%}{% endblock help_url%}"><span class="glyphicon glyphicon-leaf"></span> עזרה</a></li>
-            <li><a href="{% url 'logic:user'%}"><span class="glyphicon glyphicon-user"></span> {% firstof user.get_full_name user.get_username %}</a></li>
-            <li><a href="{% url 'logic:index'%}"><span class="glyphicon glyphicon-th-list"></span> פרקים</a></li>
+            <li><a class="nav-link" href="{% block help_url %}{% url 'logic:help'%}{% endblock help_url%}"><span class="glyphicon glyphicon-leaf"></span> עזרה</a></li>
+            {% if request.user.is_staff %}
+            <li><a class="nav-link" href="{% url 'logic:stats' %}" style="margin-right: 3px;">
+              <span class="glyphicon glyphicon-stats"></span> סטטיסטיקה
+            </a></li>
+            {% endif %}
+            <li><a class="nav-link" href="{% url 'logic:user'%}"><span class="glyphicon glyphicon-user"></span> {% firstof user.get_full_name user.get_username %}</a></li>
+            <li><a class="nav-link nav-link-first" href="{% url 'logic:index'%}"><span class="glyphicon glyphicon-th-list"></span> פרקים</a></li>
           </ul>
           <ul class="nav navbar-nav pull-left">
             <li>
-              <a id="logout-a" style="cursor: pointer;"><span class="glyphicon glyphicon-off"></span> יציאה</a>
+              <a id="logout-a" class="nav-link nav-link-first" style="cursor: pointer;"><span class="glyphicon glyphicon-off"></span> יציאה</a>
               <form method="post" action="{% url 'logout' %}">{% csrf_token %}
                 <button id="logout-btn" type="submit" style="display: none;">
               </form>

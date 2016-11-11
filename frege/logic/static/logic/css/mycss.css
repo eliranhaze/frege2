@@ -70,6 +70,14 @@ table {
   padding: 5px;
 }
 
+.nav-link-first {
+  border-right: solid 1px #eee;
+}
+.nav-link {
+  border-left: solid 1px #f2f2f2;
+  font-size: 94%;
+}
+
 /* Modal */
 
 .modal-header {
