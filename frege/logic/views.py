@@ -411,6 +411,11 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def post(self, request, chnum, qnum):
+
+        if 'remove-file' in request.POST:
+            self._remove_answer_file(request, chnum, qnum)
+            return JsonResponse({})
+
         logger.info('%s: answering question %s/%s', request.user, chnum, qnum)
         logger.debug('%s: post data %s', request.user, request.POST)
 
@@ -520,6 +525,42 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             question.chapter.number, question.number, correct,
         )
         return user_ans, ext_data
+
+    def _remove_answer_file(self, request, chnum, qnum):
+        
+        # DB WRITE
+        while True:
+            try:
+                with transaction.atomic():
+                    logger.info('%s: removing answer file for question %s/%s', request.user, chnum, qnum)
+                    question = Question._get(chapter__number=chnum, number=qnum)
+                    user_answer = question.user_answer(user=request.user)
+                    if not user_answer:
+                        logger.debug('%s: no user answer found for file removal', request.user)
+                        return
+                    filename, text = self._get_open_answer_data(user_answer.answer)
+                    if not text:
+                        # delete the entire user answer, since the file is all there was
+                        logger.debug('%s: deleting user answer %s', request.user, user_answer)
+                        user_answer.delete()
+                    else:
+                        cur_open_ans = OpenAnswer.objects.filter(question=question, user_answer=user_answer).first()
+                        if cur_open_ans:
+                            if cur_open_ans.upload:
+                                cur_open_ans.upload.delete(save=True)
+                                user_answer.answer = self._make_open_answer_data(upload=cur_open_ans.upload, text=cur_open_ans.text)
+                                user_answer.save()
+                            else:
+                                logger.debug('%s: no upload found for removal', request.user)
+                        else:
+                            logger.warning('%s: no open answer found for file removal', request.user)
+                    break
+            except OperationalError, e:
+                logger.error('%s: got %s', request.user, e)
+                time.sleep(0.2)
+            except Exception, e:
+                logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
+                raise
 
     def _next_url(self, request, question):
         if question.has_followup():
@@ -705,7 +746,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             'maxfilesize': 1024*1024*GlobalSettings.get().max_file_size,
         }
         if answer:
-            filename, text = answer.split('/',1)
+            filename, text = self._get_open_answer_data(answer)
             context['answer'] = text
             context['filename'] = filename
             cur_open_ans = OpenAnswer.objects.filter(question=question, user_answer__user=self.request.user).first()
@@ -714,9 +755,16 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
                 context['graded'] = cur_open_ans.grade is not None
         return context
 
+    def _get_open_answer_data(self, answer):
+        filename, text = answer.split('/',1)
+        return filename, text
+
+    def _make_open_answer_data(self, upload, text):
+        return '%s/%s' % (upload.name if upload else '', text) # '/' cannot be a filename char, so it is used to separate filename and text
+
     def _handle_open_post(self, request, question):
         text, upload, upload_changed = self._get_open_answer_input(request)
-        answer = '%s/%s' % (upload.name if upload else '', text) # '/' cannot be a filename char, so it is used to separate filename and text
+        answer = self._make_open_answer_data(upload, text)
         return False, None, answer
 
     def _handle_open_answer(self, request, question, user_answer):

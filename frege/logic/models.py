@@ -820,13 +820,15 @@ class OpenAnswer(models.Model):
         return self.grade is not None
 
     def save(self, *args, **kwargs):
-        try:
-            # delete old file if replaced
-            this = OpenAnswer.objects.get(id=self.id)
-            if this.upload != self.upload:
-                logger.debug('%s upload updated, deleting previous file', self)
-                this.upload.delete(save=False)
-        except: pass # new file
+        if self.pk is not None:
+            # existing answer updated, delete old file if replaced
+            existing = OpenAnswer.objects.get(id=self.id)
+            if existing.upload and existing.upload != self.upload:
+                logger.debug('upload updated (%s->%s), deleting previous file', existing, self)
+                existing.upload.delete(save=False)
+        if not self.upload and not self.text:
+            logger.error('not saving open answer with no upload and no text: %s', self)
+            raise ValidationError('empty open answer')
         super(OpenAnswer, self).save(*args, **kwargs)
 
     @property

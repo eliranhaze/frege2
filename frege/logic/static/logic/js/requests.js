@@ -2,6 +2,24 @@
  * functions for handling question-related server requests
  */
 
+// general post function
+function post(url, csrf, postData, onSuccess) {
+    if (!postData) {
+        postData = {};
+    }
+    postData['csrfmiddlewaretoken'] = csrf
+    $.post(url, postData, function(data, status) {
+        if (data['msg']) {
+            errmsg(data['msg']);
+        } else {
+            onSuccess();
+        }
+    })
+    .fail(function(response) {
+        errhandler(response);
+    });
+}
+
 function sbt(url, csrf) {
     $.post(url, {'csrfmiddlewaretoken':csrf}, function(data, status) {
         if (data['next']) window.location.assign(data['next']);
@@ -31,6 +49,19 @@ function ans(url, csrf) {
     if (data instanceof FormData) {
         ajaxkw.processData = false;
         ajaxkw.contentType = false;
+        ajaxkw.xhr = function() {
+            var xhr = new window.XMLHttpRequest();
+            $('#upload-pct').text('0%');
+            xhr.upload.addEventListener("progress", function(evt) {
+              if (evt.lengthComputable) {
+                  var pct = evt.loaded / evt.total;
+                  pct = parseInt(pct * 100);
+                  if (pct == 100) pct = 99;
+                  $('#upload-pct').text(pct+'%');
+              }
+            }, false);
+            return xhr;
+        };
     } else {
         data['csrfmiddlewaretoken'] = csrf;
     }

@@ -14,13 +14,27 @@ $(document).ready(function() {
   {% endif %}
 });
 window.resetE = function(e) {
-    console.log('resetting ' + e);
+    post('{% url 'logic:question' question.chapter.chnum question.number %}', '{{ csrf_token }}', {'remove-file':''},
+        function () {
+            resetSuccess(e);
+        }
+    );
+    $('#unfile').hide();
+    $('#filename').text($('#filename').text() + ' [מסיר...]');
+};
+function resetSuccess(e) {
     e.wrap('<form>').closest('form').get(0).reset();
     e.unwrap();
     _updateFile(e.get(0), true);
-};
+}
 </script>
 
+<style>
+  .file-label {
+       font-size: 85%;
+       color: #777;
+   }
+</style>
 <div>
   <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
     <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if graded %}disabled{% endif %}>{{answer}}</textarea>
@@ -30,14 +44,19 @@ window.resetE = function(e) {
         <span class="glyphicon glyphicon-folder-open"></span>
         העלאת קובץ <input type="file" name="file" id="file" style="display: none;">
       </label>
-      <label id="filename" class="text-muted small">
+    </div>
+    <div style="margin-bottom: -10px;">
+      <label id="filename" class="file-label">
         {% if filename %}קובץ: <a href="{{open_ans.upload.url}}">{{filename}}</a>
-        {% elif not graded %} לא נבחר
+        {% elif not graded %} לא נבחר קובץ
         {% endif %}
       </label>
-      <label id="upload-status" class="text-muted small"></label>
       <button id="unfile" type="button" class="btn btn-default btn-sm" onclick="resetE($('#file'));" style="display: {% if filename %}inline{%else %}none{% endif %};"><span class="glyphicon glyphicon-remove"></span></button>
       <input id="file-upd" name="file-upd" type="hidden" value="false">
+    </div>
+    <div id="file-sts-div" style="display: none; margin-bottom: -15px;">
+      <label id="upload-status" class="file-label"></label>
+      <label id="upload-pct" class="file-label"></label>
     </div>
     {% endif %}
   </form>
@@ -61,6 +80,7 @@ window.resetE = function(e) {
       }
   }
   function getPostData() {
+      $('#upload-status').text('מצב העלאה:');
       return new FormData($('#ansform')[0]);
   }
   function _validateFile(file) {
@@ -79,16 +99,20 @@ window.resetE = function(e) {
   function _updateFile(e, reset) {
       var file = e.files[0];
       if (!_validateFile(file)) {
+          resetSuccess($('#file'));
+          $('#filename').text('לא נבחר קובץ');
           return;
       }
       if (file) {
           var label = 'קובץ: ' + file.name;
-          var sts = '[*לחצו אישור להעלאה]';
+          var sts = '* לחצו אישור להעלאת הקובץ';
           $('#unfile').show();
+          $('#file-sts-div').show();
       } else if (reset){
-          var label = 'לא נבחר';
-          var sts = '';
+          var label = 'קובץ הוסר בהצלחה';
           $('#unfile').hide();
+          $('#file-sts-div').hide();
+          $('#upload-pct').text('');
       } else {
           // user canceled browse
           return;
@@ -98,8 +122,8 @@ window.resetE = function(e) {
       $('#file-upd').val('true');
   }
   function ansOk() {
-      if (($('#file').get(0) && $('#file').get(0).files[0]) || {% if filename %}true{% else %}false{% endif %}) {
-          $('#upload-status').text('[קובץ הועלה בהצלחה]');
+      if (($('#file').get(0) && $('#file').get(0).files[0])) {
+          $('#upload-pct').text('קובץ הועלה בהצלחה');
       }
   }
   $(document).on('change', ':file', function() {
