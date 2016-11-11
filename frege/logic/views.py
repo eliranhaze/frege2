@@ -502,22 +502,27 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
 
         # save user answer
         if not created:
+            changed = user_ans.answer != answer
             user_ans.correct = correct
             user_ans.answer = answer
             user_ans.time = timezone.localtime(timezone.now())
             user_ans.save()
         else:
+            changed = True
             user_ans.set_question(question)
             user_ans.save()
 
         # create stat for answer
         if user_ans.stat_set.count() < 10:
-            Stat.objects.create(
-                user_answer = user_ans,
-                correct = correct,
-            )
+            if changed:
+                Stat.objects.create(
+                    user_answer = user_ans,
+                    correct = correct,
+                )
+            else:
+                logger.debug('%s: answer not changed, not saving stat', request.user);
         else:
-            logger.warning('exceeding answer stats for %s, not creating any more', user_ans)
+            logger.warning('%s: exceeding answer stats for %s, not creating any more', request.user, user_ans)
 
         logger.info(
             '%s: %s answer %s/%s, correct=%s',
