@@ -12,7 +12,7 @@
           </button>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav pull-right">
+          <ul class="nav navbar-nav pull-right" style="padding-right: 0px;">
             <li><a class="nav-link" href="{% block help_url %}{% url 'logic:help'%}{% endblock help_url%}"><span class="glyphicon glyphicon-leaf"></span> עזרה</a></li>
             {% if request.user.is_staff %}
             <li><a class="nav-link" href="{% url 'logic:stats' %}" style="margin-right: 3px;">
