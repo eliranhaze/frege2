@@ -39,6 +39,7 @@ function resetSuccess(e) {
   <form id="ansform" enctype="multipart/form-data">{% csrf_token %}
     <textarea id="anstxt" name="anstxt" style="min-width: 100%; resize: none; padding: 4px;" rows=10 maxlength=1000 autofocus {% if graded %}disabled{% endif %}>{{answer}}</textarea>
     {% if question.has_file %}
+      {% if not graded or filename %}
     <div>
       <label class="btn btn-default btn-lg" id="filelbl">
         <span class="glyphicon glyphicon-folder-open"></span>
@@ -58,13 +59,14 @@ function resetSuccess(e) {
       <label id="upload-status" class="file-label"></label>
       <label id="upload-pct" class="file-label"></label>
     </div>
+      {% endif %}
     {% endif %}
   </form>
 </div>
 
 {% if graded and open_ans %}
 <div>
-<table class="table table-condensed" style="margin-bottom: -10px;">
+<table class="table table-condensed" style="margin-bottom: -10px; margin-top: 5px;">
  <tbody>
   <tr>
     <td style="width: 10%;"><b>ניקוד:</b></td>
