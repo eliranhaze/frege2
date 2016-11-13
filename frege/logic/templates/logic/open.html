@@ -64,12 +64,20 @@ function resetSuccess(e) {
 
 {% if graded and open_ans %}
 <div>
-  <div class="page-header" style="margin-top: 0px;"></div>
-  <p><b>ניקוד:</b> {{open_ans.grade|floatformat:-1}} מתוך 1
+<table class="table table-condensed" style="margin-bottom: -10px;">
+ <tbody>
+  <tr>
+    <td style="width: 10%;"><b>ניקוד:</b></td>
+    <td>{{open_ans.grade|floatformat:-1}} מתוך 1</td>
+  </tr>
   {% if open_ans.comment %}
-  <br><b>הערות:</b> {{open_ans.comment}}
+  <tr>
+    <td style="width: 10%;"><b>הערה:</b></td>
+    <td class="comment">{{open_ans.comment}}</td>
+  </tr>
   {% endif %}
-  </p>
+ </tbody>
+</table>
 </div>
 {% endif %}
 

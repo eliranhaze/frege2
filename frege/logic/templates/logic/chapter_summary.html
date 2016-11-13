@@ -49,7 +49,7 @@
           </tr>
             {% if comments and comments|get_item:qnum %}
           <tr>
-            <td colspan="2" class="text-muted small">הערה לשאלה {{qnum}}: {{comments|get_item:qnum}}</td>
+            <td colspan="2" class="text-muted small comment"><b>הערה לשאלה {{qnum}}</b><br>{{comments|get_item:qnum}}</td>
           </tr>
             {% endif %}
           {% endfor %}
