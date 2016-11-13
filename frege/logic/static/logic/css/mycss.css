@@ -144,6 +144,11 @@ input:-webkit-autofill {
     cursor: default;
 }
 
+.comment {
+  white-space: pre-wrap;
+  line-height: 1.3 !important;
+}
+
 /* Truth tables */
 
 .tt-notice {
