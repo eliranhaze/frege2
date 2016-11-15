@@ -169,6 +169,8 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
         return get_object_or_404(Chapter, number=self.kwargs['chnum'])
 
     def dispatch(self, request, chnum):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('login'))
         chapter = get_object_or_404(Chapter, number=chnum)
         logger.debug('%s: chapter %s', self.request.user, chapter)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
@@ -193,6 +195,8 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
         return get_object_or_404(Chapter, number=self.kwargs['chnum'])
 
     def dispatch(self, request, chnum):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('login'))
         chapter = get_object_or_404(Chapter, number=chnum)
         if chapter.num_questions() == 0:
             return HttpResponseRedirect(reverse('logic:index'))
@@ -280,6 +284,8 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         return get_object_or_404(Chapter, number=self.kwargs['chnum'])
 
     def dispatch(self, request, chnum):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('login'))
         chapter = get_object_or_404(Chapter, number=chnum)
         if chapter.num_questions() == 0:
             return HttpResponseRedirect(reverse('logic:index'))
@@ -810,6 +816,8 @@ class FollowupQuestionView(QuestionView):
         return question.user_answer(self.request.user, is_followup=False)
 
     def dispatch(self, request, chnum, qnum):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('login'))
         question = get_question_or_404(chapter__number=chnum, number=qnum)
         if not question.has_followup() or self._get_answer(question) is None:
             # no followup
