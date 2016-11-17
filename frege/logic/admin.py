@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
+from django.db.models import Q
 from django.forms.widgets import TextInput
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -154,17 +155,29 @@ class GroupFilter(admin.SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
+        if 'group' in request.GET and 'group2' in request.GET:
+            return queryset.filter(
+                Q(**self._get_kw(request.GET['group'])) |
+                Q(**self._get_kw(request.GET['group2']))
+            )
         if self.value():
-            return queryset.filter(**self._get_kw())
+            return queryset.filter(**self._get_kw(self.value()))
         else:
             return queryset.all()
 
-    def _get_kw(self):
-        return {'user__userprofile__group': self.value()}
+    def _get_kw(self, value):
+        return {self._field(): value}
+
+    def _field(self):
+        return 'user__userprofile__group'
 
 class AnswerGroupFilter(GroupFilter):
-    def _get_kw(self):
-        return {'user_answer__user__userprofile__group': self.value()}
+    def _field(self):
+        return 'user_answer__user__userprofile__group'
+
+class AnswerGroupFilter2(AnswerGroupFilter):
+    title = 'קבוצה נוספת'
+    parameter_name = 'group2'
 
 class AnswerCheckedFilter(admin.SimpleListFilter):
     title = 'מצב בדיקה'
@@ -184,7 +197,7 @@ class AnswerCheckedFilter(admin.SimpleListFilter):
 
 class OpenAnswerAdmin(admin.ModelAdmin):
     list_display = ['user', 'chapter', 'question', 'grade']
-    list_filter = [AnswerGroupFilter, AnswerCheckedFilter, 'question__chapter', 'question__number', 'user_answer__user']
+    list_filter = [AnswerGroupFilter, AnswerGroupFilter2, AnswerCheckedFilter, 'question__chapter', 'question__number', 'user_answer__user']
     ordering = ['user_answer__user', 'question__number']
     readonly_fields = ['user', 'answer_text', 'upload', 'chapter', 'question_text', 'answer_time']
     fieldsets = (
