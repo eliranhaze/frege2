@@ -171,9 +171,18 @@ class ChapterView(LoginRequiredMixin, generic.DetailView):
     def dispatch(self, request, chnum):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('login'))
+        if float(chnum) in MAINTENANCE_CHAPTERS:
+            return HttpResponseRedirect(reverse('logic:chapter-maintenance'))
         chapter = get_object_or_404(Chapter, number=chnum)
         logger.debug('%s: chapter %s', self.request.user, chapter)
         return HttpResponseRedirect(next_question_url(chapter, request.user))
+
+class ChapterMaintenanceView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'logic/chapter_maintenance.html'
+
+    def get_object(self):
+        logger.debug('%s: chapter maintenance', self.request.user)
+        return None
 
 class UserView(LoginRequiredMixin, generic.ListView):
     template_name = 'logic/user.html'
@@ -349,6 +358,10 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         logger.debug('%s: submission post response: %s', self.request.user, response)
         return JsonResponse(response)
 
+MAINTENANCE_CHAPTERS = [
+    4.0,
+]
+
 class QuestionView(LoginRequiredMixin, generic.DetailView):
     context_object_name = 'question'
 
@@ -378,6 +391,13 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         self.post_validators = {
             OpenQuestion: self._validate_open_post,
         }
+
+    def dispatch(self, request, chnum, qnum):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('login'))
+        if float(chnum) in MAINTENANCE_CHAPTERS:
+            return HttpResponseRedirect(reverse('logic:chapter-maintenance'))
+        return super(QuestionView, self).dispatch(request, chnum, qnum)
 
     def get_object(self):
         question = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
@@ -413,7 +433,12 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         context.update(
             self.context_handlers[type(question)](question, answer)
         )
-        logger.debug('%s: serving question %s/%s, context=%s', self.request.user, question.chapter.number, question.number, context)
+        logger.debug(
+            '%s: serving question %s/%s%s, context=%s',
+            self.request.user, question.chapter.number, question.number,
+            '[followup]' if self._is_followup() else '',
+            context,
+        )
         return context
 
     def post(self, request, chnum, qnum):
@@ -422,7 +447,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             self._remove_answer_file(request, chnum, qnum)
             return JsonResponse({})
 
-        logger.info('%s: answering question %s/%s', request.user, chnum, qnum)
+        logger.info('%s: answering question %s/%s%s', request.user, chnum, qnum, '[followup]' if self._is_followup() else '')
         logger.debug('%s: post data %s', request.user, request.POST)
 
         chapter = Chapter.objects.get(number=chnum)
@@ -816,13 +841,12 @@ class FollowupQuestionView(QuestionView):
         return question.user_answer(self.request.user, is_followup=False)
 
     def dispatch(self, request, chnum, qnum):
-        if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse('login'))
+        super_dispatch = super(FollowupQuestionView, self).dispatch(request, chnum, qnum)
         question = get_question_or_404(chapter__number=chnum, number=qnum)
         if not question.has_followup() or self._get_answer(question) is None:
             # no followup
             return HttpResponseRedirect(reverse('logic:question', args=(chnum, qnum)))
-        return super(FollowupQuestionView, self).dispatch(request, chnum, qnum)
+        return super_dispatch
 
     def get_object(self):
         original = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])

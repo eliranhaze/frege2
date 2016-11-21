@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
     url(r'^stats/$', views.StatsView.as_view(), name='stats'),
     url(r'^user/$', views.UserView.as_view(), name='user'),
+    url(r'^chapter-maintenance/$', views.ChapterMaintenanceView.as_view(), name='chapter-maintenance'),
 
     # content
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/$', views.ChapterView.as_view(), name='chapter'),
