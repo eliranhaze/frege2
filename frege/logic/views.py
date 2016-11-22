@@ -872,7 +872,7 @@ class FollowupQuestionView(QuestionView):
         original = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
         self.original_q = original
         self.original_ans = self._get_answer(original)
-        if not hasattr(original, 'followup'):
+        if not hasattr(original, 'followup') or not self.original_ans:
             return original
         if original.followup == FormulationQuestion.TRUTH_TABLE:
             followup = TruthTableQuestion()
@@ -921,7 +921,7 @@ class FollowupRefreshView(LoginRequiredMixin, generic.DetailView):
             _fq__number=qnum,
             chapter__number=chnum,
             is_followup=False
-        ).first()
+        ).first() if request.user.is_authenticated() else None
         if user_answer:
             answer_formula = request.GET.get('refresh')
             if answer_formula != user_answer.answer:
