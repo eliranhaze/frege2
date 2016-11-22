@@ -863,7 +863,7 @@ class FollowupQuestionView(QuestionView):
     def dispatch(self, request, chnum, qnum):
         super_dispatch = super(FollowupQuestionView, self).dispatch(request, chnum, qnum)
         if request.method == 'GET':
-            if not self.original_q.has_followup() or self.original_ans is None:
+            if not self.original_q or not self.original_q.has_followup() or self.original_ans is None:
                 # no followup
                 return HttpResponseRedirect(reverse('logic:question', args=(chnum, qnum)))
         return super_dispatch
