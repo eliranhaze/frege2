@@ -151,12 +151,15 @@ class QuestionViewTests(TestCase):
         response = self.client.post(self._get_url(question), {'choice':choice.id})
         self.assertTrue(allowed == ('next' in response.json()))
 
-    def _post_followup(self, question, conclusion, allowed=True):
+    def _post_followup(self, question, conclusion, formula=None, allowed=True, rload=False):
+        if not formula:
+            formula = question.user_answer(self.user, is_followup=False).answer
         response = self.client.post(
             reverse('logic:followup', args=(question.chapter.chnum, question.number)),
-            {'conclusion':conclusion, 'obj':''}
+            {'formula': formula, 'conclusion':conclusion, 'obj':''}
         )
         self.assertTrue(allowed == ('next' in response.json()))
+        self.assertTrue(rload == ('reload' in response.json()))
 
     def _post_formulation(self, question, answer, allowed=True):
         response = self.client.post(self._get_url(question), {'formulation':answer})
@@ -271,6 +274,7 @@ class QuestionViewTests(TestCase):
         self._post_formulation(q2, u'~p∴p') # incorrect
         self._post_submission(allowed=False)
         self._post_followup(q2, u'~p') # incorrect (followup)
+        self._post_followup(q2, u'~p', formula='p', allowed=False, rload=True) # reload (followup)
         self._post_submission(allowed=False)
         self._get_submission(allowed=False)
         self._post_submission(allowed=False)

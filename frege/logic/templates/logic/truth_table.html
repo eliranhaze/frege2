@@ -110,6 +110,7 @@
     }
     function getPostData() {
         return {
+            'formula':'{{question.formula}}',
             'option':$('input[name=option]:checked', '#options').val(),
             'values':[
               {% for formula in formulas %} 

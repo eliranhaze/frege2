@@ -95,6 +95,7 @@
   }
   function getPostData() {
       return {
+          'formula':'{{question.formula}}',
           'conclusion': dd.get(dd.idx()).lit,
           'obj': JSON.stringify(dd)
       };

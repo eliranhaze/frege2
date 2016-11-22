@@ -75,8 +75,11 @@ function ans(url, csrf) {
 function ansDone(btn) {
     return function(data, status) {
         btn.html("אישור");
+        handleResponse(data);
         if (!data['next']) {
-            errmsg(data['msg']);
+            if (data['msg']) {
+                errmsg(data['msg']);
+            }
             return;
         }
         if (data['ans_time']) {

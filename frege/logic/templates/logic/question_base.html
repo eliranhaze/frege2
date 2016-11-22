@@ -34,8 +34,57 @@
           {% endif %}
       });
   }
+  function handleResponse(data) {
+    {% if followup %}
+      checkRefresh(data);
+    {% endif %}
+  }
+  {% if followup %}
+  var doRefresh = true;
+  function checkRefresh(data) {
+      if (data['reload'] && doRefresh) {
+          $('#reload-modal-btn').click();
+          doRefresh = false;
+      }
+  }
+  (function worker() {
+      $.ajax({
+          url: '{% url 'logic:followup-refresh' chapter.chnum question.number %}',
+          data: {'refresh':'{{question.formula}}'},
+          success: checkRefresh,
+          complete: function() {
+              // schedule next upon request completion
+              if (doRefresh) {
+                  setTimeout(worker, 20000);
+              }
+          }
+      });
+  })();
+  {% endif %}
   $(document).ready(reg);
 </script>
+
+{% if followup %}
+<button class="btn btn-primary btn-lg" style="display: none;" id="reload-modal-btn" data-toggle="modal" data-target="#reload-modal"></button>
+<div class="modal fade" data-keyboard="false" data-backdrop="static" style="vertical-align: middle;" id="reload-modal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p>ההצרנה עודכנה. יש לטעון מחדש את העמוד.</p>
+      </div>
+      <div class="modal-footer" style="text-align: center;">
+        <button type="button" class="btn btn-primary btn-lg" onclick="location.reload();">
+          טען מחדש <span class="glyphicon glyphicon-refresh"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+</script>
+{% endif %}
 
 {% if remaining %}
 <div class="modal fade" data-keyboard="false" data-backdrop="static" style="vertical-align: middle;" id="chp-sbmt" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">

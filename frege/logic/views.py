@@ -359,8 +359,10 @@ class ChapterSummaryView(LoginRequiredMixin, generic.DetailView):
         return JsonResponse(response)
 
 MAINTENANCE_CHAPTERS = [
-    4.0,
 ]
+
+class ReloadPageException(Exception):
+    pass
 
 class QuestionView(LoginRequiredMixin, generic.DetailView):
     context_object_name = 'question'
@@ -493,6 +495,8 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             except OperationalError, e:
                 logger.error('%s: got %s', request.user, e)
                 time.sleep(0.2)
+            except ReloadPageException, e:
+                return JsonResponse({'reload':'y'})
             except Exception, e:
                 logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
                 raise
@@ -674,6 +678,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def _handle_truth_table_post(self, request, question):
+        self._validate_user_formula(request, question)
         answers = []
         for i in xrange(1000):
             l = request.POST.getlist('values[%d][]' % i)
@@ -771,6 +776,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         return context
 
     def _handle_deduction_post(self, request, question):
+        self._validate_user_formula(request, question)
         argument = get_argument(question.formula)
         conclusion = request.POST['conclusion']
         logger.debug('%s: checking deduction conclusion %s', request.user, conclusion)
@@ -834,22 +840,40 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
         upload_changed = request.POST.get('file-upd') == 'true'
         return text, upload, upload_changed
 
+    def _validate_user_formula(self, request, question):
+        answer_formula = request.POST.get('formula')
+        if answer_formula != question.formula:
+            logger.debug(
+                '%s:%s/%d answer and question formulas are different, asking to reload',
+                request.user, question.chapter.number, question.number,
+            )
+            raise ReloadPageException()
+
 class FollowupQuestionView(QuestionView):
 
+    def __init__(self, *args, **kwargs):
+        super(FollowupQuestionView, self).__init__(*args, **kwargs)
+        self.original_q = None
+        self.original_ans = None
+        
     def _get_answer(self, question):
         # get the answer to the original (non-followup question)
         return question.user_answer(self.request.user, is_followup=False)
 
     def dispatch(self, request, chnum, qnum):
         super_dispatch = super(FollowupQuestionView, self).dispatch(request, chnum, qnum)
-        question = get_question_or_404(chapter__number=chnum, number=qnum)
-        if not question.has_followup() or self._get_answer(question) is None:
-            # no followup
-            return HttpResponseRedirect(reverse('logic:question', args=(chnum, qnum)))
+        if request.method == 'GET':
+            if not self.original_q.has_followup() or self.original_ans is None:
+                # no followup
+                return HttpResponseRedirect(reverse('logic:question', args=(chnum, qnum)))
         return super_dispatch
 
     def get_object(self):
         original = get_question_or_404(chapter__number=self.kwargs['chnum'], number=self.kwargs['qnum'])
+        self.original_q = original
+        self.original_ans = self._get_answer(original)
+        if not hasattr(original, 'followup'):
+            return original
         if original.followup == FormulationQuestion.TRUTH_TABLE:
             followup = TruthTableQuestion()
         elif original.followup == FormulationQuestion.DEDUCTION:
@@ -860,7 +884,7 @@ class FollowupQuestionView(QuestionView):
             raise ValueError('invalid followup type %r in question %s' % (original.followup, original)) 
         followup.chapter = original.chapter
         followup.number = original.number
-        followup.formula = self._get_answer(original).answer
+        followup.formula = self.original_ans.answer
         followup.original = original
         if type(followup) == TruthTableQuestion or type(followup) == ModelQuestion:
             followup._set_table_type()
@@ -887,3 +911,20 @@ class FollowupQuestionView(QuestionView):
             raise ValueError('invalid followup type %r in question %s' % (question.followup, question)) 
         return handler(request, self.get_object())
 
+class FollowupRefreshView(LoginRequiredMixin, generic.DetailView):
+    def get_object(self):
+        return None
+    def dispatch(self, request, chnum, qnum):
+        logger.debug('%s: refresh %s/%s', self.request.user, chnum, qnum)
+        user_answer = UserAnswer.objects.filter(
+            user=self.request.user,
+            _fq__number=qnum,
+            chapter__number=chnum,
+            is_followup=False
+        ).first()
+        if user_answer:
+            answer_formula = request.GET.get('refresh')
+            if answer_formula != user_answer.answer:
+                logger.debug('%s: should reload %s/%s', self.request.user, chnum, qnum)
+                return JsonResponse({'reload':'y'})
+        return JsonResponse({})
