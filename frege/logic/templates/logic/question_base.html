@@ -50,7 +50,7 @@
   (function worker() {
       $.ajax({
           url: '{% url 'logic:followup-refresh' chapter.chnum question.number %}',
-          data: {'refresh':'{{question.formula}}'},
+          data: {'refresh':'{{question.formula}}', 't': new Date().getTime()},
           success: checkRefresh,
           complete: function() {
               // schedule next upon request completion
