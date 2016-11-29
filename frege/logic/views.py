@@ -11,6 +11,7 @@ from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import formats, timezone
 from django.views import generic
+from django.views.decorators.cache import never_cache
 
 from .formula import (
     Formula,
@@ -394,6 +395,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             OpenQuestion: self._validate_open_post,
         }
 
+    @never_cache
     def dispatch(self, request, chnum, qnum):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('login'))
