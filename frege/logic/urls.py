@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.views.decorators.cache import never_cache
 
 from . import views
 
@@ -16,7 +17,7 @@ urlpatterns = [
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/parts/$', views.ChapterPartsView.as_view(), name='chapter-parts'),
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/stats/$', views.ChapterStatsView.as_view(), name='chapter-stats'),
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/summary/$', views.ChapterSummaryView.as_view(), name='chapter-summary'),
-    url(r'^(?P<chnum>[0-9]+\.[0-9]+)/(?P<qnum>[0-9]+)/$', views.QuestionView.as_view(), name='question'),
+    url(r'^(?P<chnum>[0-9]+\.[0-9]+)/(?P<qnum>[0-9]+)/$', never_cache(views.QuestionView.as_view()), name='question'),
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/(?P<qnum>[0-9]+)/followup/$', views.FollowupQuestionView.as_view(), name='followup'),
     url(r'^(?P<chnum>[0-9]+\.[0-9]+)/(?P<qnum>[0-9]+)/followup-refresh/$', views.FollowupRefreshView.as_view(), name='followup-refresh'),
 
