@@ -14,6 +14,7 @@ from django.template.context_processors import csrf
 from logic.models import UserProfile
 from . import auth_ldap
 
+import re
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,10 @@ def _user_exists(name):
     return User.objects.filter(username=name).count() > 0
 
 def _is_valid(name):
+     if re.search(ur'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]', name):
+         # non-latin not allowed
+         return False
      return True
-#    return name and len(name) == 9 and all(c.isdigit() for c in name) # check for valid id number
 
 def login(request):
     context = {}
@@ -95,6 +98,8 @@ class UserAuthForm(AuthenticationForm):
 
     def _handle_login_post(self):
         username, password = get_username_pw(self.request)
+        if not _is_valid(username):
+            raise ValidationError('שם משתמש לא תקין')
         # update username in cleaned data since we convert it to lowercase in the above function
         self.cleaned_data['username'] = username
         id_num = self.request.POST.get('id_num')
