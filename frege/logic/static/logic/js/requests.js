@@ -196,28 +196,7 @@ function insert(text) {
 
 // bind symbol buttons to insertions
 $(document).ready(function() {
-    $("#neg").click(function() {
-        insert('~');
-    });
-    $("#con").click(function() {
-        insert('·');
-    });
-    $("#dis").click(function() {
-        insert('∨');
-    });
-    $("#imp").click(function() {
-        insert('⊃');
-    });
-    $("#eqv").click(function() {
-        insert('≡');
-    });
-    $("#all").click(function() {
-        insert('∀');
-    });
-    $("#exs").click(function() {
-        insert('∃');
-    });
-    $("#thf").click(function() {
-        insert('∴');
+    $("#extbtns").find("input").click(function() {
+        insert(this.value);
     });
 });

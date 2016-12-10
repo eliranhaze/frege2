@@ -13,6 +13,7 @@
 {% block question_content %}
 <div class="noselect">
   <input type="text" id="ftxt" class="txtIn" style="margin-bottom: 10px; font-size: 95%; max-width: 100%;" size="50" maxlength="50" autofocus autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" value="{{answer}}">
+ <div id="extbtns">
   <div>
     <input type="button" class="btn sym-btn" id="neg" value="~"/>
     <input type="button" class="btn sym-btn" id="con" value="·"/>
@@ -27,6 +28,14 @@
     <input type="button" class="btn sym-btn" id="thf" value="∴"/>
     {% endif %}
   </div>
+  <div>
+    <input type="button" class="btn sym-btn" id="rbr" value=")"/>
+    <input type="button" class="btn sym-btn" id="lbr" value="("/>
+    {% if 'Argument' in type %}
+    <input type="button" class="btn sym-btn" id="com" value=","/>
+    {% endif %}
+  </div>
+ </div>
 </div>
 <script src="{% static 'logic/js/formula.js'%}"></script>
 <script>
