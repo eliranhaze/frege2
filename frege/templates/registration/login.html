@@ -113,6 +113,7 @@ $(document).ready(function() {
         $("#errors").empty();
         if (!$.trim($("#id_username").val()) || !$.trim($("#id_password").val())) {
             $("#errors").text("נא להזין שם משתמש וסיסמה");
+            $('#submit').prop('disabled', false); $('#submit').text('התחברות');
             e.preventDefault();
         }
     });
