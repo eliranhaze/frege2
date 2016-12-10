@@ -5,6 +5,7 @@ from django.contrib.auth.views import login as auth_login
 from django.contrib.auth.views import logout as auth_logout
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.utils import OperationalError
 from django.forms import ValidationError
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render_to_response
@@ -110,15 +111,27 @@ class UserAuthForm(AuthenticationForm):
                 # to prompt the user to input id num
                 logger.debug('%s: prompting user for id num', username)
                 raise ValidationError('')
-            with transaction.atomic():
-                user, user_created = User.objects.get_or_create(username=username)
-                profile = _handle_user_profile(user, group_id, id_num)
-                logger.debug('%s: user_created=%s, profile=%s', username, user_created, profile)
-                if not user.check_password(password):
-                    # password has changed
-                    logger.debug('%s: changing user password', username)
-                    user.set_password(password)
-                    user.save()
+
+        # DB WRITE
+        while True:
+            try:
+                with transaction.atomic():
+                    user, user_created = User.objects.get_or_create(username=username)
+                    profile = _handle_user_profile(user, group_id, id_num)
+                    logger.debug('%s: user_created=%s, profile=%s', username, user_created, profile)
+                    if not user.check_password(password):
+                        # password has changed
+                        logger.debug('%s: changing user password', username)
+                        user.set_password(password)
+                        user.save()
+                    break
+            except OperationalError, e:
+                logger.error('%s: got %s', request.user, e)
+                time.sleep(0.2)
+            except Exception, e:
+                logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
+                raise
+
         else:
             raise ValidationError('נא להזין שם משתמש וסיסמה')
 
