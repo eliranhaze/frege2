@@ -128,10 +128,13 @@ class StatsView(LoginRequiredMixin, generic.ListView):
         context = super(StatsView, self).get_context_data(**kwargs)
         chapters = self.object_list
         # general stats
-        subs = [
-            s for s in ChapterSubmission.objects.all().prefetch_related('useranswer_set').select_related('chapter')
-            if s.is_ready_for_stats()
-        ]
+        subs = []
+        # fetch stats by chapter since a single query is apparently too much for sqlite
+        for ch in Chapter.objects.all():
+            subs.extend([
+                s for s in ChapterSubmission.objects.filter(chapter=ch).prefetch_related('useranswer_set').select_related('chapter')
+                if s.is_ready_for_stats()
+            ])
         logger.debug('%s:stats: %d submissions ready', self.request.user, len(subs))
         by_chapter = groupby(subs, lambda s: s.chapter.number)
         pct_by_sub = {s.id: s.percent_correct() for s in subs}
