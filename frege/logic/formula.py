@@ -15,10 +15,13 @@ EQV = u'≡'
 # Quantifiers
 ALL = u'∀'
 EXS = u'∃'
+
 #CON = '&'
 #DIS = '|'
 #IMP = '>'
 #EQV = '='
+#ALL = '@'
+#EXS = '#'
 
 BINARY_CONNECTIVES = set([CON, DIS, IMP, EQV])
 COMMUTATIVE = set([CON, DIS, EQV])
@@ -274,6 +277,9 @@ class Formula(object):
     @property
     def is_commutative(self):
         return self.con in COMMUTATIVE
+
+    def eqv(self, other):
+        return TruthTable(self).result == TruthTable(other).result
 
     def __eq__(self, other):
         if not isinstance(other, Formula):
