@@ -437,7 +437,7 @@ class PredicateFormula(Formula):
             return False
         if self.literal == other.literal:
             return True
-        if self.quantifier and self.quantifier == other.quantifier and len(self.literal) == len(other.literal):
+        if self.quantifier and self.quantifier == other.quantifier:
             if self.quantified != other.quantified:
                 new_var = get_new_var([self, other])
                 other_inner_range = other._quantifier_range().replace(other.quantified, new_var)
