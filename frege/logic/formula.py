@@ -467,8 +467,8 @@ def quantifier_range(string):
                     stack.append(s)
                 elif s == ')':
                     stack.pop()
-            if len(stack) == 0:
-                return qrange
+                if len(stack) == 0:
+                    return qrange
         # case 2: quantified expression is a negation
         elif start == NEG:
             return start + quantifier_range(string.replace(NEG,'',1))

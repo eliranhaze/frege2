@@ -1078,18 +1078,30 @@ class PredicateFormulaTests(TestCase):
         self.assertRaises(ValueError, self._form, '@x#y@Fxy')
 
     def test_equal(self):
+        self.assertTrue(self._form('Fx') == self._form('Fx'))
+        self.assertTrue(self._form('Fx') == self._form('(Fx)'))
         self.assertTrue(self._form('@xFx') == self._form('@xFx'))
+        self.assertTrue(self._form('@xFx') == self._form('@x(Fx)'))
+        self.assertTrue(self._form('@xFx') == self._form('(@xFx)'))
+        self.assertTrue(self._form('@xFx') == self._form('(@x(Fx))'))
         self.assertTrue(self._form('@xFxx') == self._form('@xFxx'))
         self.assertTrue(self._form('Ra') == self._form('Ra'))
         self.assertTrue(self._form('@xFx-@xGx') == self._form('@xGx-@xFx'))
         self.assertTrue(self._form('@xFx-@xGx') == self._form('@yGy-@xFx'))
+        self.assertTrue(self._form('@xFx-@xGx') == self._form('@yGy-(@xFx)'))
         self.assertTrue(self._form('@yFy') == self._form('@xFx'))
         self.assertTrue(self._form('@yFyy') == self._form('@xFxx'))
         self.assertTrue(self._form('@y@xRyx') == self._form('@x@yRxy'))
         self.assertTrue(self._form('@y@xRyx') == self._form('@u@vRuv'))
+        self.assertTrue(self._form('@y@xRyx') == self._form('@u@v(Ruv)'))
+        self.assertTrue(self._form('@y@xRyx') == self._form('@u(@vRuv)'))
+        self.assertTrue(self._form('@y@xRyx') == self._form('(@u(@v(Ruv)))'))
         self.assertTrue(self._form('@y@xRyx>#yLyy') == self._form('@u@vRuv>#xLxx'))
         self.assertTrue(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz>#yFy'))
         self.assertTrue(self._form('@x#yLxy-#xFx') == self._form('#yFy-@w#zLwz'))
+        self.assertTrue(self._form('@xLx>Aa') == self._form('@x(Lx)>Aa'))
+        self.assertTrue(self._form('@xLx>Aa') == self._form('@x(Lx)>(Aa)'))
+        self.assertTrue(self._form('@xTxa>#yTya') == self._form('@x(Txa)>#y(Tya)'))
 
     def test_not_equal(self):
         self.assertFalse(self._form('@xFx') == self._form('@xFy'))
@@ -1107,6 +1119,7 @@ class PredicateFormulaTests(TestCase):
         self.assertFalse(self._form('#y#xRyx') == self._form('@u@vRuv'))
         self.assertFalse(self._form('@x#yLxy>#xFx') == self._form('@w#zLwz-#yFy'))
         self.assertFalse(self._form('@x#yLxy-#xFx') == self._form('@w#zLxz-#xFx'))
+        self.assertFalse(self._form('@xLx>Aa') == self._form('@x(Lx>Aa)'))
 
     def test_assign_atomic(self):
         self.assertTrue(self._form('Pa').assign({
