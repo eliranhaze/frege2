@@ -81,7 +81,11 @@
 {% if answer %}
   var dd = new Deduction({{answer|safe}});
   for (var i = 1; i < dd.formulas.length; i++) {
-      addRow(dd.formulas[i].lit, dd.symbols[i], i);
+      var exp = dd.formulas[i];
+      if (!isArbConst(exp)) {
+          exp = exp.lit;
+      }
+      addRow(exp, dd.symbols[i], i);
   }
 {% else %}
   {% for premise in premises %}
