@@ -82,10 +82,11 @@
   var dd = new Deduction({{answer|safe}});
   for (var i = 1; i < dd.formulas.length; i++) {
       var exp = dd.formulas[i];
-      if (!isArbConst(exp)) {
+      var isArb = isArbConst(exp);
+      if (!isArb) {
           exp = exp.lit;
       }
-      addRow(exp, dd.symbols[i], i);
+      addRow(exp, dd.symbols[i], i, isArb);
   }
 {% else %}
   {% for premise in premises %}
