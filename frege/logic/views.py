@@ -272,7 +272,7 @@ class ChapterStatsView(LoginRequiredMixin, generic.DetailView):
                 num_stats = len(stat_list)
                 user_answers = set(s.user_answer for s in stat_list)
                 if chapter.is_open():
-                    pct_correct = 100.*sum(float(s.user_answer.openanswer.grade) for s in stat_list)/num_stats
+                    pct_correct = 100.*sum(float(a.openanswer.grade) for a in user_answers)/len(user_answers)
                     final_pct_correct = pct_correct
                 else:
                     pct_correct = 100.*sum(1 for s in stat_list if s.correct)/num_stats
