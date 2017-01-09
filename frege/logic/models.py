@@ -544,6 +544,11 @@ class FormulationAnswer(models.Model):
     formula = models.CharField(verbose_name='נוסחה/טיעון/קבוצה', max_length=60)
     question = models.ForeignKey(FormulationQuestion, verbose_name='שאלה', on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        logger.info('saving formulation answer: %s', self)
+        logger.info('args: %s, kwargs: %s', args, kwargs)
+        super(FormulationAnswer, self).save(*args, **kwargs)
+
     def clean(self):
         super(FormulationAnswer, self).clean()
         try:
