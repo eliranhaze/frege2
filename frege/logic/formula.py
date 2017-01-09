@@ -208,6 +208,13 @@ class Formula(object):
         # binary
         return self.sf1._var_list() + self.sf2._var_list() 
 
+    def combine(self, con, other=None):
+        if con in BINARY_CONNECTIVES:
+            new_literal = '(%s)%s(%s)' % (self.literal, con, other.literal)
+        else:
+            new_literal = '%s(%s)' % (con, self.literal)
+        return self.__class__(new_literal)
+
     def assign(self, assignment):
         if len(self.variables) > len(assignment):
             raise ValueError('incorrect assignment size, should be %d' % len(self.variables))
@@ -278,7 +285,9 @@ class Formula(object):
     def is_commutative(self):
         return self.con in COMMUTATIVE
 
-    def eqv(self, other):
+    def eqv(self, other, strict=False):
+        if strict:
+            return self.combine(EQV, other).is_tautology
         return TruthTable(self).result == TruthTable(other).result
 
     def __eq__(self, other):
@@ -429,6 +438,61 @@ class PredicateFormula(Formula):
     @property
     def is_contradiction(self):
         raise NotImplementedError()
+
+    def to_propositional(self, domain, mapping=None, get_mapping=False):
+        p = None
+        if mapping is None:
+            mapping = {}
+        if self.is_atomic:
+            var = mapping.setdefault(self.literal, chr(ord(max(mapping.values()))+1) if mapping else 'a')
+            p = Formula(var)
+        elif self.con:
+            p1 = self.sf1.to_propositional(domain, mapping)
+            p2 = self.sf2.to_propositional(domain, mapping) if self.sf2 else None
+            p = p1.combine(self.con, p2)
+        elif self.quantifier:
+            con = CON if self.quantifier == ALL else DIS
+            p = None
+            def inst(d):
+                return self.instantiate(d).to_propositional(domain, mapping)
+            for d in domain:
+                if p is None:
+                    p = inst(d)
+                else:
+                    p = p.combine(con, inst(d))
+        if get_mapping:
+            return p, mapping
+        return p
+
+    def instantiate(self, const):
+        if self.quantifier:
+            return PredicateFormula(self.sf1.instantiate_free(const, self.quantified))
+
+    def instantiate_free(self, const, var):
+        """ returns a string """
+        if self.is_atomic:
+            return self.literal.replace(var, const)
+        if self.quantifier:
+            if self.quantified == var:
+                return self.literal
+            return '%s%s(%s)' % (self.quantifier, self.quantified, self.sf1.instantiate_free(const, var))
+        elif self.con:
+            p1 = PredicateFormula(self.sf1.instantiate_free(const, var))
+            p2 = PredicateFormula(self.sf2.instantiate_free(const, var)) if self.sf2 else None
+            return p1.combine(self.con, p2).literal
+ 
+    def eqv(self, other):
+        if self == other:
+            return True
+        domains = [
+            {'a', 'b'},
+            {'a', 'b', 'c'},
+        ]
+        for domain in domains:
+            p1, mapping = self.to_propositional(domain, get_mapping=True)
+            p2 = other.to_propositional(domain, mapping=mapping)
+            if not p1.eqv(p2, strict=True):
+                return False
 
     def __eq__(self, other):
         if super(PredicateFormula, self).__eq__(other):
