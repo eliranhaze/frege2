@@ -449,11 +449,13 @@ function applyRule(ruleFunc, numRows, inputHandler, allowOffLevel) {
 // ======================================================
 
 function formulaInputHandler(input, ruleArgs) {
+    input = $.trim(input);
     var formula = get_formula(input);
     ruleArgs.push(formula);
 }
 
 function arbInputHandler(input, ruleArgs) {
+    input = $.trim(input);
     if (!isArbConst(input)) throw Error('קלט לא תקין');
     ruleArgs.push(input);
 }
