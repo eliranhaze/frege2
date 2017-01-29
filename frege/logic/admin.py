@@ -95,6 +95,18 @@ class QuestionAdmin(admin.ModelAdmin):
     ordering = ['chapter', 'number']
     form = QuestionForm
 
+    def save_model(self, request, obj, *args, **kw):
+        logger.info('%s: saving question: %s/%s', request.user, obj.chapter.number, obj.number)
+        super(QuestionAdmin, self).save_model(request, obj, *args, **kw)
+ 
+    def save_formset(self, request, form, formset, change):
+        if formset:
+            formset.save(commit=False)
+            q = form.instance
+            logger.info('%s: saving question %s/%s formset new=%s, upd=%s, del=%s',
+                request.user, q.chapter.number, q.number, formset.new_objects, formset.changed_objects, formset.deleted_objects)
+        super(QuestionAdmin, self).save_formset(request, form, formset, change)
+ 
 class TextualQuestionAdmin(QuestionAdmin):
     search_fields = ['text']
 
