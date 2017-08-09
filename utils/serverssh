@@ -4,6 +4,6 @@
 # (can check which ifc is needed (tun0 here) by running 'route' and checking which ifc is used for tau)
 sudo ifconfig tun0 mtu 1200
 
-ssh admin@132.66.102.99
-
+# don't use public key auth since it might try to use wrong keys and get 'too many auth failures'
+ssh -o PubkeyAuthentication=no admin@132.66.102.99
 

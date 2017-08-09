@@ -1,1 +1,1 @@
-sudo openconnect sslvpn.tau.ac.il --authgroup=tausslvpn1 --user=eliranhaziza
+sudo openconnect sslvpn.tau.ac.il --authgroup=tausslvpn1 --user=eliranhaziza --no-cert-check
