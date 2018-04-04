@@ -553,7 +553,7 @@ class QuestionView(LoginRequiredMixin, generic.DetailView):
             user_ans.save()
 
         # create stat for answer
-        if user_ans.stat_set.count() < 10:
+        if user_ans.stat_set.count() < 4:
             if changed:
                 Stat.objects.create(
                     user_answer = user_ans,
