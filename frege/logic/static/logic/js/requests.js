@@ -90,14 +90,14 @@ function ansDone(btn) {
         reg();
         btn.html("אישור");
         if (data['complete']) {
-            $("#sum").show();
+            $("#sum").css('display', 'inline');
             if (!data['has_followup']) {
                 $("#next").hide();
             }
         } else {
             $("#next").attr("onclick", data['next']);
             $("#next").show();
-            $("#sum").hide();
+            $("#sum").css('display', 'none');
         }
     }
 }
