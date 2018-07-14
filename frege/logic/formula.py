@@ -668,7 +668,8 @@ class FormulaSet(object):
         return self.formulas[key]
 
     def __eq__(self, other):
-        return self.formulas == other.formulas
+        # use set to ignore order
+        return set(self.formulas) == set(other.formulas)
 
     def __ne__(self, other):
         return not self == other
