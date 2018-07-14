@@ -1573,6 +1573,20 @@ class FormulaSetTests(TestCase):
         self.assertFalse(FormulaSet('p,%sp,q,r,s' % NEG).is_consistent)
         self.assertFalse(FormulaSet('p%sq,p%sq,%sp%sq' % (CON, DIS, NEG, EQV)).is_consistent)
 
+    def test_equals(self):
+        self.assertEquals(
+            FormulaSet('p,q,p'),
+            FormulaSet('p,q,p'),
+        )
+        self.assertEquals(
+            FormulaSet('p,q,p'),
+            FormulaSet('p,q'),
+        )
+        self.assertEquals(
+            FormulaSet('p,q,r'),
+            FormulaSet('r,p,q'),
+        )
+
 class ArgumentTests(TestCase):
 
     def test_create(self):
@@ -1604,3 +1618,35 @@ class ArgumentTests(TestCase):
         self.assertFalse(Argument(u'∴(p%sp)' % DIS).is_valid)
         self.assertFalse(Argument(u'p,q,r,s,t,u,v∴(p%sx)' % CON).is_valid)
         self.assertFalse(Argument(u'p,q,p∴(p%s%sp)' % (CON, NEG)).is_valid)
+
+    def test_equals(self):
+        self.assertEquals(
+            Argument(u'p,q,p∴p'),
+            Argument(u'p,q,p∴p'),
+        )
+        self.assertEquals(
+            Argument(u'p,q,p∴p'),
+            Argument(u'p,q∴p'),
+        )
+        self.assertEquals(
+            Argument(u'p,q,r∴p'),
+            Argument(u'q,r,p∴p'),
+        )
+        self.assertEquals(
+            Argument(u'p%sq,r∴p' % CON),
+            Argument(u'q,r,p∴p'),
+        )
+        self.assertEquals(
+            Argument(u'p%s(q%s(r%sq))∴p' % (CON, CON, IMP)),
+            Argument(u'p,q,r%sq∴p' % IMP),
+        )
+
+    def test_not_equals(self):
+        self.assertNotEqual(
+            Argument(u'p,q,p∴p'),
+            Argument(u'r,q,p∴p'),
+        )
+        self.assertNotEqual(
+            Argument(u'p%s(q%s(r%sq))∴p' % (CON, IMP, CON)),
+            Argument(u'p,q,r%sq∴p' % CON),
+        )
