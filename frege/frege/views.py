@@ -131,10 +131,10 @@ class UserAuthForm(AuthenticationForm):
                         user.save()
                     break
             except OperationalError, e:
-                logger.error('%s: got %s', request.user, e)
+                logger.error('%s: got %s', username, e)
                 time.sleep(0.2)
             except Exception, e:
-                logger.error('%s: got unexpected %s (%s)', request.user, e, type(e))
+                logger.error('%s: got unexpected %s (%s)', username, e, type(e))
                 raise
 
         else:
