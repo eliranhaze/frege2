@@ -15,6 +15,7 @@ from logic.models import UserProfile
 from . import auth_ldap
 
 import re
+import time
 import logging
 logger = logging.getLogger(__name__)
 
