@@ -745,7 +745,7 @@ class Argument(object):
     def __eq__(self, other):
         # from_set is used in order to not distinguish between A,B and A&B
         return self.conclusion == other.conclusion and \
-               Formula.from_set(self.premises) == Formula.from_set(other.premises)
+               self.formula_cls.from_set(self.premises) == self.formula_cls.from_set(other.premises)
 
     def __ne__(self, other):
         return not self == other
