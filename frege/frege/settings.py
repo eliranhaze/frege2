@@ -42,6 +42,11 @@ INSTALLED_APPS = [
 #    'django_extensions',
 ]
 
+# the following stores admin module messages (e.g. those saying save question was successful) in server session instead of cookies,
+# this was changed because storing the message in the cookie creates a cookie that is not rtc-compliant and problems within tau servers
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+#MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
