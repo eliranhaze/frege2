@@ -1,0 +1,13 @@
+To run this in development:
+
+- change to 'DEBUG = True' in settings.py
+- enabled = False in auth_ldap (to disable tau authenticaion)
+- python manage.py runserver to run in dev
+
+if static files don't show:
+- needs to collectstatic first so run deploy (build not needed, I am not minifying my files)
+- ln -s admin mgr in actual django folder, and inside in js
+
+other requirements:
+- pip install python-ldap (the ldap auth module)
+- django version is 1.9.6
