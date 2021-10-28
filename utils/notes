@@ -1,0 +1,6 @@
+the 132.66.102.99 server is the right one, it is host.logic.tau.ac.il
+(logic.tau.ac.il gives a different ip, probably a virtual machine running on top though)
+
+to vpn i can logic with eliranhaze - a new user. pwd is Fn..!
+
+also login via ssh with eliranhaze - a user on host.logic, pwd is in mail, then sudo -i to switch to root
